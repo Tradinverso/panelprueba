@@ -145,7 +145,7 @@ function paintCalendar(container, dayIndex) {
   endOfLastRow.setDate(endOfLastRow.getDate() + (6 - lastDayDow));
 
   while (cursor <= endOfLastRow) {
-    let wTrades = 0, wTp = 0, wSl = 0, wPnl = 0, wPnlReal = 0;
+    let wTrades = 0, wTp = 0, wSl = 0, wBe = 0, wPnl = 0, wPnlReal = 0;
     const mondayISO = isoOf(cursor);
 
     // 7 celdas de día (lun → dom)
@@ -174,7 +174,7 @@ function paintCalendar(container, dayIndex) {
 
       // Acumulado de la semana — incluye días del mes vecino (la semana es la semana)
       if (data) {
-        wTrades += data.count; wTp += data.tp; wSl += data.sl;
+        wTrades += data.count; wTp += data.tp; wSl += data.sl; wBe += data.be;
         wPnl += data.pnl; wPnlReal += data.pnlReal;
       }
 
@@ -227,8 +227,9 @@ function paintCalendar(container, dayIndex) {
       const wrColor = wWr >= 55 ? 'var(--green)' : wWr < 45 ? 'var(--red)' : 'var(--orange)';
       const pnlColor = wPnl > 0 ? 'var(--green)' : wPnl < 0 ? 'var(--red)' : 'var(--orange)';
       const pnlRealColor = wPnlReal > 0 ? 'var(--green)' : wPnlReal < 0 ? 'var(--red)' : 'var(--orange)';
+      const breakdown = `${wTp}T · ${wSl}S${wBe > 0 ? ' · ' + wBe + 'BE' : ''}`;
       wkCell.innerHTML = `
-        <div class="cws-trades">${wTrades}tr</div>
+        <div class="cws-trades">${wTrades} tr <span class="cws-bd">· ${breakdown}</span></div>
         <div class="cws-wr" style="color:${wrColor};">${wWr.toFixed(0)}% WR</div>
         <div class="cws-pnl" style="color:${pnlColor};"><span class="cws-lbl">sis</span>${fmtPct(wPnl, 1)}</div>
         <div class="cws-pnl" style="color:${pnlRealColor};"><span class="cws-lbl">rl</span>${fmtPct(wPnlReal, 1)}</div>

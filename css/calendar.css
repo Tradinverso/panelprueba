@@ -20,8 +20,8 @@
 .cal-cell:nth-child(7n) { border-right: none; }
 
 /* ── Calendario técnico: 8ª columna SEM ────────────────────── */
-.cal-wrap .cal-dow-row { grid-template-columns: repeat(7, 1fr) 130px; }
-.cal-wrap .cal-grid    { grid-template-columns: repeat(7, 1fr) 130px; }
+.cal-wrap .cal-dow-row { grid-template-columns: repeat(7, 1fr) 170px; }
+.cal-wrap .cal-grid    { grid-template-columns: repeat(7, 1fr) 170px; }
 /* La regla nth-child(7n) anterior no aplica al calendario técnico — el
    domingo no es el último, hay celda SEM detrás. Restauramos borde derecho. */
 .cal-wrap .cal-cell:nth-child(7n) { border-right: 1px solid var(--border); }
@@ -30,25 +30,27 @@
   background: var(--card2);
   border-left: 2px solid var(--border);
   border-bottom: 1px solid var(--border);
-  padding: 8px 8px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   cursor: pointer;
   transition: background .1s;
   font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
   min-height: 84px;
 }
 .cal-week-summary:hover { background: var(--hover); }
 .cal-week-summary.empty { opacity: .35; cursor: default; }
 .cal-week-summary.empty:hover { background: var(--card2); }
 .cal-week-summary.selected { outline: 2px solid var(--accent); outline-offset: -2px; }
-.cws-trades { font-size: 11px; color: var(--muted); font-weight: 500; }
-.cws-wr { font-size: 13px; font-weight: 600; line-height: 1.15; }
-.cws-pnl { font-size: 11px; font-weight: 600; letter-spacing: -.2px; line-height: 1.2; }
-.cws-pnl .cws-lbl { color: var(--muted); font-weight: 500; margin-right: 3px; }
+.cws-trades { font-size: 11px; color: var(--text); font-weight: 500; line-height: 1.2; white-space: nowrap; }
+.cws-trades .cws-bd { color: var(--muted); font-weight: 400; }
+.cws-wr { font-size: 12px; font-weight: 500; line-height: 1.2; }
+.cws-pnl { font-size: 12px; font-weight: 500; letter-spacing: 0; line-height: 1.2; white-space: nowrap; }
+.cws-pnl .cws-lbl { color: var(--muted); font-weight: 400; margin-right: 4px; }
 .cws-empty { font-size: 14px; color: var(--muted); }
 /* Días pertenecientes a la semana seleccionada (resaltado sutil) */
 .cal-cell.in-week:not(.selected):not(.cal-today) { background: var(--hover); }
