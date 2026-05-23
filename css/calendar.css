@@ -9,23 +9,33 @@
 .cs-val { font-size: 20px; font-weight: 600; letter-spacing: -.5px; color: var(--text); }
 .cs-sub { font-size: 10px; color: var(--muted); font-family: var(--mono); margin-top: 4px; }
 .cal-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-.cal-dow-row { display: grid; grid-template-columns: repeat(7, 1fr) 90px; border-bottom: 1px solid var(--border); }
+.cal-dow-row { display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--border); }
 .cal-dow { padding: 10px 8px; text-align: center; font-size: 10px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .07em; border-right: 1px solid var(--border); }
 .cal-dow:last-child { border-right: none; }
-.cal-dow-sem { background: var(--card2); color: var(--text); }
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr) 90px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
 .cal-cell { min-height: 84px; padding: 8px 10px; position: relative; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; cursor: pointer; transition: background .1s; }
-/* Resumen de semana (8ª columna por fila) */
+/* Domingo (última col en grid de 7) sin borde derecho — solo aplica a calendarios
+   de 7 columnas (psicología). El calendario técnico (.cal-wrap) usa 8 columnas
+   y se sobrescribe abajo. */
+.cal-cell:nth-child(7n) { border-right: none; }
+
+/* ── Calendario técnico: 8ª columna SEM ────────────────────── */
+.cal-wrap .cal-dow-row { grid-template-columns: repeat(7, 1fr) 130px; }
+.cal-wrap .cal-grid    { grid-template-columns: repeat(7, 1fr) 130px; }
+/* La regla nth-child(7n) anterior no aplica al calendario técnico — el
+   domingo no es el último, hay celda SEM detrás. Restauramos borde derecho. */
+.cal-wrap .cal-cell:nth-child(7n) { border-right: 1px solid var(--border); }
+.cal-dow-sem { background: var(--card2); color: var(--text); }
 .cal-week-summary {
   background: var(--card2);
   border-left: 2px solid var(--border);
   border-bottom: 1px solid var(--border);
-  padding: 8px 6px;
+  padding: 8px 8px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   cursor: pointer;
   transition: background .1s;
   font-family: var(--mono);
@@ -36,8 +46,9 @@
 .cal-week-summary.empty:hover { background: var(--card2); }
 .cal-week-summary.selected { outline: 2px solid var(--accent); outline-offset: -2px; }
 .cws-trades { font-size: 11px; color: var(--muted); font-weight: 500; }
-.cws-wr { font-size: 13px; font-weight: 600; }
-.cws-pnl { font-size: 12px; font-weight: 600; letter-spacing: -.3px; }
+.cws-wr { font-size: 13px; font-weight: 600; line-height: 1.15; }
+.cws-pnl { font-size: 11px; font-weight: 600; letter-spacing: -.2px; line-height: 1.2; }
+.cws-pnl .cws-lbl { color: var(--muted); font-weight: 500; margin-right: 3px; }
 .cws-empty { font-size: 14px; color: var(--muted); }
 /* Días pertenecientes a la semana seleccionada (resaltado sutil) */
 .cal-cell.in-week:not(.selected):not(.cal-today) { background: var(--hover); }

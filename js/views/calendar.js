@@ -226,10 +226,12 @@ function paintCalendar(container, dayIndex) {
     if (wTrades > 0) {
       const wrColor = wWr >= 55 ? 'var(--green)' : wWr < 45 ? 'var(--red)' : 'var(--orange)';
       const pnlColor = wPnl > 0 ? 'var(--green)' : wPnl < 0 ? 'var(--red)' : 'var(--orange)';
+      const pnlRealColor = wPnlReal > 0 ? 'var(--green)' : wPnlReal < 0 ? 'var(--red)' : 'var(--orange)';
       wkCell.innerHTML = `
         <div class="cws-trades">${wTrades}tr</div>
-        <div class="cws-wr" style="color:${wrColor};">${wWr.toFixed(0)}%</div>
-        <div class="cws-pnl" style="color:${pnlColor};">${fmtPct(wPnl, 1)}</div>
+        <div class="cws-wr" style="color:${wrColor};">${wWr.toFixed(0)}% WR</div>
+        <div class="cws-pnl" style="color:${pnlColor};"><span class="cws-lbl">sis</span>${fmtPct(wPnl, 1)}</div>
+        <div class="cws-pnl" style="color:${pnlRealColor};"><span class="cws-lbl">rl</span>${fmtPct(wPnlReal, 1)}</div>
       `;
     } else {
       wkCell.innerHTML = `<div class="cws-empty">–</div>`;
