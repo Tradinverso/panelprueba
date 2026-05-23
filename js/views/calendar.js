@@ -229,8 +229,8 @@ function paintCalendar(container, dayIndex) {
       const pnlRealColor = wPnlReal > 0 ? 'var(--green)' : wPnlReal < 0 ? 'var(--red)' : 'var(--orange)';
       const breakdown = `${wTp}T · ${wSl}S${wBe > 0 ? ' · ' + wBe + 'BE' : ''}`;
       wkCell.innerHTML = `
-        <div class="cws-trades">${wTrades} tr <span class="cws-bd">· ${breakdown}</span></div>
-        <div class="cws-wr" style="color:${wrColor};">${wWr.toFixed(0)}% WR</div>
+        <div class="cws-top">${wTrades} tr · <span class="cws-wr" style="color:${wrColor};">${wWr.toFixed(0)}% WR</span></div>
+        <div class="cws-bd">${breakdown}</div>
         <div class="cws-pnl" style="color:${pnlColor};"><span class="cws-lbl">sis</span>${fmtPct(wPnl, 1)}</div>
         <div class="cws-pnl" style="color:${pnlRealColor};"><span class="cws-lbl">rl</span>${fmtPct(wPnlReal, 1)}</div>
       `;
