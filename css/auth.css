@@ -23,8 +23,8 @@ body[data-auth="false"] #view {
   width: 56px; height: 56px; border-radius: 14px;
   background: linear-gradient(135deg, var(--green), var(--accent));
   display: flex; align-items: center; justify-content: center;
-  font-weight: 800; color: #0A0F1E; font-size: 24px;
-  box-shadow: 0 8px 24px rgba(0,212,170,0.35);
+  font-weight: 800; color: #080B12; font-size: 24px;
+  box-shadow: 0 8px 24px rgba(59,130,246,0.35);
 }
 .auth-tagline { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .14em; text-transform: uppercase; }
 .auth-logo-img {
@@ -46,7 +46,7 @@ body[data-auth="false"] #view {
 
 .auth-error {
   background: var(--red-bg);
-  border: 1px solid rgba(255,71,87,0.25);
+  border: 1px solid rgba(239,68,68,0.25);
   color: var(--red);
   padding: 10px 12px;
   border-radius: 8px;
@@ -85,7 +85,7 @@ body[data-auth="false"] #view {
 .btn .spinner-sm {
   width: 14px; height: 14px;
   border: 2px solid rgba(10,15,30,0.2);
-  border-top-color: #0A0F1E;
+  border-top-color: #080B12;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }

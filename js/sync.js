@@ -138,6 +138,23 @@ export const sync = {
     return ids.length;
   },
 
+  // ── Perfiles de riesgo (módulo de Riesgo/Rotación) ─────────
+  // Solo persistimos los perfiles CUSTOM del usuario. Los presets built-in
+  // viven en código (risk-levels.js PERFILES_BUILTIN) y no se guardan.
+  async loadPerfiles(uid) {
+    const snap = await getDocs(collection(db, 'users', uid, 'perfiles'));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  async savePerfil(uid, perfil) {
+    if (!perfil.id) throw new Error('Perfil necesita id');
+    await setDoc(doc(db, 'users', uid, 'perfiles', perfil.id), perfil);
+  },
+
+  async deletePerfil(uid, perfilId) {
+    await deleteDoc(doc(db, 'users', uid, 'perfiles', perfilId));
+  },
+
   // ── Reflexiones de psicología (diaria/semanal/mensual) ─────
   async loadReflections(uid) {
     const snap = await getDocs(collection(db, 'users', uid, 'reflections'));

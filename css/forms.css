@@ -25,12 +25,12 @@
 }
 .pill:hover { border-color: var(--border-strong); color: var(--text); }
 .pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-.pill-group.green .pill.active { background: var(--green); color: #0A0F1E; border-color: var(--green); font-weight: 600; }
+.pill-group.green .pill.active { background: var(--green); color: #080B12; border-color: var(--green); font-weight: 600; }
 .pill-group.red .pill.active { background: var(--red); color: #fff; border-color: var(--red); }
 .pill-group.zonas .pill.active { background: var(--zonas); border-color: var(--zonas); color: #fff; }
 .pill-group.liquidez .pill.active { background: var(--liquidez); border-color: var(--liquidez); color: #fff; }
 .pill-group.nasdaq .pill.active { background: var(--nasdaq); border-color: var(--nasdaq); color: #fff; }
-.pill-group.sens .pill[data-val="Seguro - Confiado"].active   { background: rgba(0,212,170,.5); border-color: #00D4AA; color: #fff; }
+.pill-group.sens .pill[data-val="Seguro - Confiado"].active   { background: rgba(16,185,129,.5); border-color: #10B981; color: #fff; }
 .pill-group.sens .pill[data-val="Convencido - Calma"].active  { background: rgba(59,130,246,.5); border-color: #60A5FA; color: #fff; }
 .pill-group.sens .pill[data-val="Dudoso - Inseguro"].active   { background: rgba(255,165,2,.5); border-color: #FFA502; color: #fff; }
 .pill-group.sens .pill[data-val="Fomo - Acelerado"].active    { background: rgba(239,68,68,.5); border-color: #EF4444; color: #fff; }
@@ -57,7 +57,7 @@
 .import-table td input:focus { border-color: var(--accent); background: var(--card2); }
 .import-table td.calc { background: var(--card2); opacity: .55; }
 .import-table td.calc input { color: var(--muted); cursor: not-allowed; }
-.import-table td.invalid input { border-color: var(--red); background: rgba(255,71,87,0.05); }
+.import-table td.invalid input { border-color: var(--red); background: rgba(239,68,68,0.05); }
 .import-table td.row-status { text-align: center; padding: 6px; font-family: var(--mono); font-size: 12px; }
 .row-status.ok { color: var(--green); }
 .row-status.warn { color: var(--orange); }
@@ -65,8 +65,8 @@
 
 .import-toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
 .import-result { padding: 12px 14px; border-radius: 8px; background: var(--card2); margin-top: 16px; font-family: var(--mono); font-size: 12px; }
-.import-result.ok { background: var(--green-bg); color: var(--green); border: 1px solid rgba(0,212,170,.3); }
-.import-result.err { background: var(--red-bg); color: var(--red); border: 1px solid rgba(255,71,87,.3); }
+.import-result.ok { background: var(--green-bg); color: var(--green); border: 1px solid rgba(16,185,129,.3); }
+.import-result.err { background: var(--red-bg); color: var(--red); border: 1px solid rgba(239,68,68,.3); }
 
 .import-tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--card2); border-radius: 8px; padding: 3px; }
 .import-tab { background: transparent; border: none; color: var(--muted); padding: 8px 16px; border-radius: 6px; font-family: var(--mono); font-size: 12px; cursor: pointer; transition: all .12s; }

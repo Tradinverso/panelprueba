@@ -168,7 +168,37 @@ function sanitizeCuenta(c) {
           }))
       : [],
     notes: String(c.notes || '').trim(),
+    // ── Módulo de Riesgo/Rotación (escalado por niveles) ──────
+    // Config de riesgo de la cuenta. Defaults retrocompatibles: cuentas viejas
+    // sin estos campos arrancan con el perfil "Estándar" (0,5% × 1,3) en rotación.
+    riesgoBase: numPos(c.riesgoBase, 0.0050),
+    multiplicador: numPos(c.multiplicador, 1.300),
+    perfilId: c.perfilId != null && c.perfilId !== '' ? String(c.perfilId) : null,
+    enRotacion: c.enRotacion === false ? false : true,
+    rotacionOrden: typeof c.rotacionOrden === 'number' ? c.rotacionOrden : (parseFloat(c.rotacionOrden) || 0),
     createdAt: c.createdAt || Date.now(),
+  };
+}
+
+// Coerción a número estrictamente positivo, con fallback.
+function numPos(v, fallback) {
+  const n = typeof v === 'number' ? v : parseFloat(v);
+  return isFinite(n) && n > 0 ? n : fallback;
+}
+
+const PERFIL_ID_RE = /^[A-Za-z0-9_-]+$/;
+
+function sanitizePerfil(p) {
+  if (!p) return null;
+  const nombre = String(p.nombre || '').trim();
+  if (!nombre) return null;
+  const id = p.id && PERFIL_ID_RE.test(p.id) ? p.id : uuid();
+  return {
+    id,
+    nombre,
+    riesgoBase: numPos(p.riesgoBase, 0.0050),
+    multiplicador: numPos(p.multiplicador, 1.300),
+    descripcion: String(p.descripcion || '').trim(),
   };
 }
 
@@ -208,6 +238,8 @@ export const state = {
   trades: [],
   cuentas: [],
   reflections: [],
+  perfiles: [],       // perfiles de riesgo CUSTOM del usuario (los built-in van en código)
+  config: {},         // preferencias del usuario (users/{uid}/config/data)
   viewAsUid: null,    // null = ves tus propios trades; uid = admin viendo a alumno
   viewAsProfile: null,// perfil del alumno que se está viendo (banner)
   readOnly: false,    // true cuando viewAsUid != null
@@ -220,25 +252,33 @@ export const state = {
       this.trades = [];
       this.cuentas = [];
       this.reflections = [];
+      this.perfiles = [];
+      this.config = {};
       this.emit();
       return;
     }
     this.loading = true;
     this.emit();
     try {
-      const [trades, cuentas, reflections] = await Promise.all([
+      const [trades, cuentas, reflections, perfiles, config] = await Promise.all([
         sync.loadTrades(uid),
         sync.loadCuentas(uid),
         sync.loadReflections(uid),
+        sync.loadPerfiles(uid),
+        sync.loadConfig(uid),
       ]);
       this.trades = trades.map(sanitizeTrade).filter(Boolean);
       this.cuentas = cuentas.map(sanitizeCuenta).filter(Boolean);
       this.reflections = reflections.map(sanitizeReflection).filter(Boolean);
+      this.perfiles = perfiles.map(sanitizePerfil).filter(Boolean);
+      this.config = config || {};
     } catch (e) {
       console.error('[state] Error cargando datos:', e);
       this.trades = [];
       this.cuentas = [];
       this.reflections = [];
+      this.perfiles = [];
+      this.config = {};
     }
     this.loading = false;
     this.viewAsUid = null;
@@ -253,14 +293,18 @@ export const state = {
     this.loading = true;
     this.emit();
     try {
-      const [trades, cuentas, reflections] = await Promise.all([
+      const [trades, cuentas, reflections, perfiles, config] = await Promise.all([
         sync.loadStudentTrades(studentUid),
         sync.loadCuentas(studentUid),
         sync.loadReflections(studentUid),
+        sync.loadPerfiles(studentUid),
+        sync.loadConfig(studentUid),
       ]);
       this.trades = trades.map(sanitizeTrade).filter(Boolean);
       this.cuentas = cuentas.map(sanitizeCuenta).filter(Boolean);
       this.reflections = reflections.map(sanitizeReflection).filter(Boolean);
+      this.perfiles = perfiles.map(sanitizePerfil).filter(Boolean);
+      this.config = config || {};
       this.viewAsUid = studentUid;
       this.viewAsProfile = profile;
       this.readOnly = true;
@@ -269,6 +313,8 @@ export const state = {
       this.trades = [];
       this.cuentas = [];
       this.reflections = [];
+      this.perfiles = [];
+      this.config = {};
     }
     this.loading = false;
     this.emit();
@@ -441,6 +487,49 @@ export const state = {
     if (this.reflections.length === before) return;
     this.emit();
     fireAndForget(sync.deleteReflection(targetUid(), id), 'deleteReflection');
+  },
+
+  // ── Perfiles de riesgo (CRUD optimista) ──────────────────
+  addPerfil(perfil) {
+    const p = sanitizePerfil(perfil);
+    if (!p) return null;
+    this.perfiles.push(p);
+    this.emit();
+    fireAndForget(sync.savePerfil(targetUid(), p), 'savePerfil');
+    return p;
+  },
+
+  updatePerfil(id, patch) {
+    const i = this.perfiles.findIndex(p => p.id === id);
+    if (i < 0) return null;
+    this.perfiles[i] = sanitizePerfil({ ...this.perfiles[i], ...patch, id });
+    this.emit();
+    fireAndForget(sync.savePerfil(targetUid(), this.perfiles[i]), 'savePerfil(update)');
+    return this.perfiles[i];
+  },
+
+  deletePerfil(id) {
+    // Desasignar el perfil de cualquier cuenta que lo use (espejo del PHP).
+    const cuentasAfectadas = [];
+    this.cuentas.forEach((c, idx) => {
+      if (c.perfilId === id) {
+        this.cuentas[idx] = sanitizeCuenta({ ...c, perfilId: null });
+        cuentasAfectadas.push(this.cuentas[idx]);
+      }
+    });
+    this.perfiles = this.perfiles.filter(p => p.id !== id);
+    this.emit();
+    const uid = targetUid();
+    fireAndForget(sync.deletePerfil(uid, id), 'deletePerfil');
+    cuentasAfectadas.forEach(c => fireAndForget(sync.saveCuenta(uid, c), 'saveCuenta(deletePerfil cleanup)'));
+  },
+
+  // ── Config del usuario (merge optimista) ─────────────────
+  setConfig(patch) {
+    this.config = { ...this.config, ...patch };
+    this.emit();
+    fireAndForget(sync.saveConfig(targetUid(), patch), 'saveConfig');
+    return this.config;
   },
 
   // ── Bus de eventos ───────────────────────────────────────

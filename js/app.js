@@ -22,6 +22,7 @@ import { adminView } from './views/admin.js';
 import { grupoView } from './views/grupo.js';
 import { cuentasListView } from './views/cuentas.js';
 import { cuentaDetailView } from './views/cuenta.js';
+import { riesgoView } from './views/riesgo.js';
 
 theme.init();
 
@@ -48,7 +49,8 @@ router
   .add('#/admin',       (_, c) => adminView(c))
   .add('#/grupo',       (_, c) => grupoView(c))
   .add('#/cuentas',     (_, c) => cuentasListView(c))
-  .add('#/cuenta',      (params, c) => cuentaDetailView(c, params.id));
+  .add('#/cuenta',      (params, c) => cuentaDetailView(c, params.id))
+  .add('#/riesgo',      (_, c) => riesgoView(c));
 
 router.onChange(() => renderSidebar(sidebar));
 

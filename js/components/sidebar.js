@@ -12,6 +12,7 @@ const NAV_BASE = [
   { path: '#/nuevo',      label: 'Nuevo trade', icon: '✏️', class: '' },
   { path: '#/calendario', label: 'Calendario',  icon: '📅', class: '' },
   { path: '#/cuentas',    label: 'Cuentas',     icon: '🏦', class: '', countActiveCuentas: true },
+  { path: '#/riesgo',     label: 'Riesgo',      icon: '🎯', class: '', riskModule: true },
 
   { section: 'Estrategias' },
   { path: '#/zonas',    label: 'Zonas',    icon: '🎯', class: 'zonas',    sheet: 'ZONAS' },
@@ -57,7 +58,9 @@ export function renderSidebar(container) {
 
   // En viewAs solo ocultamos Ajustes (muestra info del admin). Importar y
   // Nuevo trade siguen visibles porque admin puede dar de alta datos a alumnos.
-  let nav = NAV_BASE.filter(item => !inViewAs || !item.hideInViewAs);
+  // Módulo de Riesgo: visible salvo que el usuario lo haya desactivado.
+  const riskOn = !(state.config && state.config.riskModuleEnabled === false);
+  let nav = NAV_BASE.filter(item => (!inViewAs || !item.hideInViewAs) && (!item.riskModule || riskOn));
   if (auth.isAdmin()) nav = nav.concat(NAV_ADMIN);
 
   const initial = (auth.displayName() || '?').charAt(0).toUpperCase();
