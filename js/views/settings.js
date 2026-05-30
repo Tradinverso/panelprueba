@@ -141,7 +141,7 @@ export function settingsView(container) {
         <div class="setting-info">
           <div class="setting-label">Backup completo (JSON)</div>
           <div class="setting-desc">
-            Archivo JSON con <strong>todos tus datos</strong>: trades, cuentas y reflexiones de psicología.
+            Archivo JSON con <strong>todos tus datos</strong>: trades, cuentas, reflexiones de psicología y perfiles de riesgo.
             Para restaurar, súbelo desde <strong>Importar → Subir archivo</strong>.
           </div>
         </div>
@@ -225,6 +225,8 @@ export function settingsView(container) {
       trades: state.trades,
       cuentas: state.cuentas,
       reflections: state.reflections,
+      perfiles: state.perfiles,
+      config: state.config,
     };
     const stamp = stampNow();
     const userPart = inViewAs && viewedProfile

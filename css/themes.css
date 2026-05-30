@@ -34,7 +34,7 @@
   --neg: #EF4444;
 
   --font: 'Inter', system-ui, -apple-system, sans-serif;
-  --mono: 'JetBrains Mono', ui-monospace, 'DM Mono', monospace;
+  --mono: 'DM Mono', ui-monospace, monospace;
 
   --radius: 12px;
   --radius-sm: 8px;

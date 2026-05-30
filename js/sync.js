@@ -155,6 +155,19 @@ export const sync = {
     await deleteDoc(doc(db, 'users', uid, 'perfiles', perfilId));
   },
 
+  async wipeAllPerfiles(uid) {
+    const all = await this.loadPerfiles(uid);
+    const ids = all.map(p => p.id);
+    for (let i = 0; i < ids.length; i += FIRESTORE_BATCH_LIMIT) {
+      const batch = writeBatch(db);
+      for (const id of ids.slice(i, i + FIRESTORE_BATCH_LIMIT)) {
+        batch.delete(doc(db, 'users', uid, 'perfiles', id));
+      }
+      await batch.commit();
+    }
+    return ids.length;
+  },
+
   // ── Reflexiones de psicología (diaria/semanal/mensual) ─────
   async loadReflections(uid) {
     const snap = await getDocs(collection(db, 'users', uid, 'reflections'));
