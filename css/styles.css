@@ -225,7 +225,7 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
 .kpi-card.blue::before { background: var(--accent); }
 .kpi-card.purple::before { background: var(--zonas); }
 .kpi-label { font-size: 10px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
-.kpi-value { font-size: 27px; font-weight: 700; letter-spacing: -1px; line-height: 1; font-family: var(--mono); }
+.kpi-value { font-size: 24px; font-weight: 600; letter-spacing: -1px; line-height: 1; }
 .kpi-value.green { color: var(--green); }
 .kpi-value.red { color: var(--red); }
 .kpi-value.orange { color: var(--orange); }
