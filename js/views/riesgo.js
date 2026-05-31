@@ -28,14 +28,35 @@ const GRUPOS = [
 const FASE_TO_GRUPO = Object.fromEntries(GRUPOS.map(g => [g.fase, g]));
 
 // ── Helpers de datos ────────────────────────────────────────
-function allPerfiles() {
-  return [...PERFILES_BUILTIN, ...state.perfiles];
+// Solo las cuentas ACTIVAS entran en el módulo de riesgo. Las pausadas, pasadas
+// o perdidas no se gestionan aquí (no tiene sentido asignarles riesgo/rotación).
+function cuentasModulo() {
+  return state.cuentas.filter(c => c.status === 'activa');
 }
 
-// Cuentas relevantes para el módulo: las que NO están perdidas/pasadas,
-// ordenadas por su orden de rotación y luego por antigüedad.
+function allPerfiles() {
+  return state.perfiles;
+}
+
+// Siembra los 4 perfiles preset la PRIMERA vez (si el usuario no tiene ninguno).
+// Quedan como perfiles normales en Firestore, totalmente editables y borrables.
+let seedChecked = false;
+function ensurePerfilesSeed() {
+  if (seedChecked || state.viewAsUid) return;   // no sembrar en cuentas de alumnos al verlas
+  seedChecked = true;
+  if (state.perfiles.length === 0) {
+    for (const b of PERFILES_BUILTIN) {
+      state.addPerfil({
+        id: b.id, nombre: b.nombre, riesgoBase: b.riesgoBase,
+        multiplicador: b.multiplicador, descripcion: b.descripcion,
+      });
+    }
+  }
+}
+
+// Cuentas activas en rotación, ordenadas por orden de rotación y antigüedad.
 function rotacionList() {
-  return state.cuentas
+  return cuentasModulo()
     .filter(c => c.enRotacion !== false)
     .sort((a, b) => (a.rotacionOrden || 0) - (b.rotacionOrden || 0) || (a.createdAt || 0) - (b.createdAt || 0));
 }
@@ -69,13 +90,13 @@ const pf = n => (n >= 0 ? '+' : '') + (n * 100).toFixed(2) + '%';
 
 // ── Render principal ────────────────────────────────────────
 function render(container) {
-  const cuentas = state.cuentas;
+  const cuentas = cuentasModulo();
 
   container.innerHTML = `
     <div class="page-header">
       <div>
         <h1>Riesgo / Rotación</h1>
-        <div class="sub">Escalado de riesgo por niveles · ${cuentas.length} cuenta${cuentas.length !== 1 ? 's' : ''}</div>
+        <div class="sub">Escalado de riesgo por niveles · ${cuentas.length} cuenta${cuentas.length !== 1 ? 's' : ''} activa${cuentas.length !== 1 ? 's' : ''}</div>
       </div>
     </div>
 
@@ -144,7 +165,7 @@ function renderCuentasTab() {
   }
 
   const cards = GRUPOS.map(g => {
-    const gr = state.cuentas.filter(c => c.fase === g.fase);
+    const gr = cuentasModulo().filter(c => c.fase === g.fase);
     if (!gr.length) return '';
     return `
       <div class="rg-group">
@@ -198,7 +219,7 @@ function wireCuentasTab(container) {
 
 // ── TAB: Resumen (KPIs + alertas + tabla) ───────────────────
 function renderResumenTab() {
-  const cuentas = state.cuentas;
+  const cuentas = cuentasModulo();
   const totalCap = cuentas.reduce((s, c) => s + (c.capital || 0), 0);
   const totalBal = cuentas.reduce((s, c) => s + riskOf(c).equity, 0);
   const pnl = totalBal - totalCap;
@@ -261,7 +282,7 @@ function renderResumenTab() {
 
 function buildAlertas() {
   const out = [];
-  for (const c of state.cuentas) {
+  for (const c of cuentasModulo()) {
     const r = riskOf(c);
     const p = r.pctCuenta;
     const nom = esc(c.empresa);
@@ -293,7 +314,7 @@ function renderGestionarTab() {
   const actId = activaId();
   const perfilOpts = allPerfiles();
 
-  const acordeones = state.cuentas.map(c => {
+  const acordeones = cuentasModulo().map(c => {
     const r = riskOf(c);
     const g = FASE_TO_GRUPO[c.fase] || GRUPOS[0];
     const open = openAccordions.has(c.id);
@@ -427,19 +448,18 @@ function wireGestionarTab(container) {
 function renderPerfilesTab() {
   const list = allPerfiles().map(p => {
     const niveles = calcNiveles(p.riesgoBase, p.multiplicador, 100000);
-    const asoc = state.cuentas.filter(c => c.perfilId === p.id);
+    const asoc = cuentasModulo().filter(c => c.perfilId === p.id);
     return `
       <div class="rg-perfil">
         <div class="rg-perfil-hdr">
           <div>
-            <div class="rg-perfil-name">${esc(p.nombre)} ${p.builtin ? '<span class="rg-preset">preset</span>' : ''}</div>
+            <div class="rg-perfil-name">${esc(p.nombre)}</div>
             ${p.descripcion ? `<div class="rg-perfil-desc">${esc(p.descripcion)}</div>` : ''}
           </div>
-          ${p.builtin ? '' : `
           <div style="display:flex;gap:6px;">
             <button class="btn" data-edit-perfil="${p.id}">Editar</button>
             <button class="btn danger" data-del-perfil="${p.id}">Eliminar</button>
-          </div>`}
+          </div>
         </div>
         <div class="rg-perfil-pills">
           <span class="rg-ppill b">Base ${(p.riesgoBase * 100).toFixed(3)}%</span>
@@ -455,7 +475,7 @@ function renderPerfilesTab() {
       <div class="section-title" style="margin:0;">Perfiles de riesgo</div>
       <button class="btn primary" id="newPerfilBtn">+ Nuevo perfil</button>
     </div>
-    <div class="rg-hint">Los <b>presets</b> son fijos. Crea perfiles personalizados para tus propias configuraciones.</div>
+    <div class="rg-hint">Edita o elimina cualquier perfil, o crea uno nuevo. Los 4 iniciales son una plantilla de partida que puedes ajustar a tu gestión.</div>
     ${list}`;
 }
 
@@ -534,8 +554,8 @@ function emptyState() {
   return `
     <div class="empty">
       <div class="big">🎯</div>
-      <div>Aún no tienes cuentas configuradas.</div>
-      <div style="margin-top:8px;font-size:11px;color:var(--muted);">Crea cuentas en <a href="#/cuentas">Cuentas</a> para ver aquí su nivel de riesgo y la rotación.</div>
+      <div>No tienes cuentas activas.</div>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted);">Solo las cuentas con estado <b>Activa</b> aparecen aquí. Crea o reactiva cuentas en <a href="#/cuentas">Cuentas</a> para ver su nivel de riesgo y la rotación.</div>
     </div>`;
 }
 
@@ -555,6 +575,7 @@ function esc(s) {
 }
 
 export function riesgoView(container) {
+  ensurePerfilesSeed();
   render(container);
   return state.on(() => render(container));
 }
