@@ -34,24 +34,24 @@ function cuentasModulo() {
   return state.cuentas.filter(c => c.status === 'activa');
 }
 
+// Perfiles disponibles = 4 presets (siempre presentes, desde código) + perfiles
+// custom del usuario. Si el usuario edita un preset, su versión guardada (mismo
+// id) SOBREESCRIBE al preset. Así los presets aparecen siempre, aunque la
+// persistencia falle, y siguen siendo editables.
 function allPerfiles() {
-  return state.perfiles;
+  const stored = new Map(state.perfiles.map(p => [p.id, p]));
+  const presets = PERFILES_BUILTIN.map(b => stored.get(b.id) || b);
+  const customs = state.perfiles.filter(p => !isPresetId(p.id));
+  return [...presets, ...customs];
 }
 
-// Siembra los 4 perfiles preset la PRIMERA vez (si el usuario no tiene ninguno).
-// Quedan como perfiles normales en Firestore, totalmente editables y borrables.
-let seedChecked = false;
-function ensurePerfilesSeed() {
-  if (seedChecked || state.viewAsUid) return;   // no sembrar en cuentas de alumnos al verlas
-  seedChecked = true;
-  if (state.perfiles.length === 0) {
-    for (const b of PERFILES_BUILTIN) {
-      state.addPerfil({
-        id: b.id, nombre: b.nombre, riesgoBase: b.riesgoBase,
-        multiplicador: b.multiplicador, descripcion: b.descripcion,
-      });
-    }
-  }
+function isPresetId(id) {
+  return PERFILES_BUILTIN.some(b => b.id === id);
+}
+
+// ¿El usuario ha editado (guardado una versión propia de) este preset?
+function isPresetOverridden(id) {
+  return isPresetId(id) && state.perfiles.some(p => p.id === id);
 }
 
 // Cuentas activas en rotación, ordenadas por orden de rotación y antigüedad.
@@ -449,16 +449,20 @@ function renderPerfilesTab() {
   const list = allPerfiles().map(p => {
     const niveles = calcNiveles(p.riesgoBase, p.multiplicador, 100000);
     const asoc = cuentasModulo().filter(c => c.perfilId === p.id);
+    const preset = isPresetId(p.id);
+    const overridden = isPresetOverridden(p.id);
     return `
       <div class="rg-perfil">
         <div class="rg-perfil-hdr">
           <div>
-            <div class="rg-perfil-name">${esc(p.nombre)}</div>
+            <div class="rg-perfil-name">${esc(p.nombre)} ${preset ? '<span class="rg-preset">predeterminado</span>' : ''}</div>
             ${p.descripcion ? `<div class="rg-perfil-desc">${esc(p.descripcion)}</div>` : ''}
           </div>
           <div style="display:flex;gap:6px;">
             <button class="btn" data-edit-perfil="${p.id}">Editar</button>
-            <button class="btn danger" data-del-perfil="${p.id}">Eliminar</button>
+            ${preset
+              ? (overridden ? `<button class="btn" data-restore-perfil="${p.id}" title="Volver a los valores originales">Restaurar</button>` : '')
+              : `<button class="btn danger" data-del-perfil="${p.id}">Eliminar</button>`}
           </div>
         </div>
         <div class="rg-perfil-pills">
@@ -475,7 +479,7 @@ function renderPerfilesTab() {
       <div class="section-title" style="margin:0;">Perfiles de riesgo</div>
       <button class="btn primary" id="newPerfilBtn">+ Nuevo perfil</button>
     </div>
-    <div class="rg-hint">Edita o elimina cualquier perfil, o crea uno nuevo. Los 4 iniciales son una plantilla de partida que puedes ajustar a tu gestión.</div>
+    <div class="rg-hint">Los 4 <b>predeterminados</b> siempre están disponibles y puedes editarlos (luego "Restaurar" los devuelve a su valor original). Crea perfiles propios para tus configuraciones.</div>
     ${list}`;
 }
 
@@ -485,14 +489,14 @@ function wirePerfilesTab(container) {
 
   container.querySelectorAll('[data-edit-perfil]').forEach(b => {
     b.addEventListener('click', () => {
-      const p = state.perfiles.find(x => x.id === b.dataset.editPerfil);
+      const p = allPerfiles().find(x => x.id === b.dataset.editPerfil);
       if (p) openPerfilModal(p, container);
     });
   });
 
   container.querySelectorAll('[data-del-perfil]').forEach(b => {
     b.addEventListener('click', () => {
-      const p = state.perfiles.find(x => x.id === b.dataset.delPerfil);
+      const p = allPerfiles().find(x => x.id === b.dataset.delPerfil);
       if (!p) return;
       openModal({
         title: 'Eliminar perfil',
@@ -502,6 +506,15 @@ function wirePerfilesTab(container) {
           { label: 'Eliminar', variant: 'danger', onClick: c => { state.deletePerfil(p.id); c(); } },
         ],
       });
+    });
+  });
+
+  // Restaurar un preset editado a sus valores originales: borra el override
+  // guardado (las cuentas siguen apuntando al preset, que vuelve al default).
+  container.querySelectorAll('[data-restore-perfil]').forEach(b => {
+    b.addEventListener('click', () => {
+      const id = b.dataset.restorePerfil;
+      state.deletePerfil(id, { keepAssignments: true });
     });
   });
 }
@@ -542,7 +555,15 @@ function openPerfilModal(perfil, container) {
         const desc = root.querySelector('#pfDesc').value.trim();
         if (!nombre) { root.querySelector('#pfNombre').focus(); return; }
         const payload = { nombre, riesgoBase: rb, multiplicador: mu, descripcion: desc };
-        if (editing) state.updatePerfil(perfil.id, payload); else state.addPerfil(payload);
+        if (editing) {
+          // Si ya hay una versión guardada (custom u override), actualízala;
+          // si es un preset que se edita por primera vez, créalo con SU id
+          // (override). Para custom nuevos, addPerfil genera un id.
+          if (state.perfiles.some(x => x.id === perfil.id)) state.updatePerfil(perfil.id, payload);
+          else state.addPerfil({ ...payload, id: perfil.id });
+        } else {
+          state.addPerfil(payload);
+        }
         c();
       } },
     ],
@@ -575,7 +596,6 @@ function esc(s) {
 }
 
 export function riesgoView(container) {
-  ensurePerfilesSeed();
   render(container);
   return state.on(() => render(container));
 }

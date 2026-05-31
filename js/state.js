@@ -508,15 +508,19 @@ export const state = {
     return this.perfiles[i];
   },
 
-  deletePerfil(id) {
+  deletePerfil(id, { keepAssignments = false } = {}) {
     // Desasignar el perfil de cualquier cuenta que lo use (espejo del PHP).
+    // keepAssignments=true al "restaurar" un preset: la cuenta sigue apuntando
+    // al preset, que vuelve a sus valores por defecto al quitar el override.
     const cuentasAfectadas = [];
-    this.cuentas.forEach((c, idx) => {
-      if (c.perfilId === id) {
-        this.cuentas[idx] = sanitizeCuenta({ ...c, perfilId: null });
-        cuentasAfectadas.push(this.cuentas[idx]);
-      }
-    });
+    if (!keepAssignments) {
+      this.cuentas.forEach((c, idx) => {
+        if (c.perfilId === id) {
+          this.cuentas[idx] = sanitizeCuenta({ ...c, perfilId: null });
+          cuentasAfectadas.push(this.cuentas[idx]);
+        }
+      });
+    }
     this.perfiles = this.perfiles.filter(p => p.id !== id);
     this.emit();
     const uid = targetUid();
