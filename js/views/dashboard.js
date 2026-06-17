@@ -189,12 +189,12 @@ function renderShell(allTrades, filtered) {
             <span class="strat-pill nasdaq">Nasdaq</span>
           </div>
         </div>
-        <div class="chart-wrap" style="height:220px;"><canvas id="equityChart"></canvas></div>
+        <div class="chart-wrap" style="height:300px;"><canvas id="equityChart"></canvas></div>
       </div>
       <div class="card">
         <div class="card-title">P&L mensual</div>
         <div class="card-sub">${perfMode === 'real' ? 'Porcentaje según riesgo real' : 'Porcentaje sistema 1R'}</div>
-        <div class="chart-wrap" style="height:220px;"><canvas id="monthlyChart"></canvas></div>
+        <div class="chart-wrap" style="height:300px;"><canvas id="monthlyChart"></canvas></div>
       </div>
     </div>
 

@@ -9,6 +9,13 @@
 .page-header h1 { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.6px; font-size: 26px; }
 .brand-line2 { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.4px; }
 
+/* Acento en títulos de sección */
+.section-title { color: var(--text); }
+.section-title::before {
+  content: ''; flex-shrink: 0; width: 3px; height: 13px; border-radius: 2px;
+  background: linear-gradient(180deg, var(--cyan), var(--accent));
+}
+
 /* ── Shell: sidebar de cristal ── */
 #sidebar {
   background: linear-gradient(180deg, var(--glass), var(--card2));
@@ -52,6 +59,9 @@
   border-color: var(--glass-border);
   box-shadow: var(--glow-card), var(--glow-accent);
 }
+.kpi-value { font-family: var(--font-display); font-size: 26px; font-weight: 600; letter-spacing: -0.5px; }
+.kpi-label { letter-spacing: .12em; }
+.kpi-card { padding: 20px; }
 .kpi-card::before { height: 3px; opacity: .9; }
 .kpi-card.green::before  { background: linear-gradient(90deg, var(--green), transparent); }
 .kpi-card.red::before    { background: linear-gradient(90deg, var(--red), transparent); }
