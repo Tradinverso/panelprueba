@@ -24,6 +24,7 @@ const NAV_BASE = [
 
   { section: 'Psicología' },
   { path: '#/psicologia', label: 'Reflexiones', icon: '🧘', class: '' },
+  { path: '#/plan',       label: 'Plan de trading', icon: '📋', class: '' },
 
   { section: 'Datos' },
   { path: '#/importar', label: 'Importar', icon: '📥', class: '' },

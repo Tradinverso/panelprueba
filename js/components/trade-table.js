@@ -268,7 +268,7 @@ function row(t, canDelete) {
     : '<span style="color:var(--dim)">–</span>';
   const dur = t.dur != null ? t.dur + 'm' : '–';
   const pct = t.result === 'BE' ? '<span style="color:var(--orange)">0.00%</span>' : `<span style="color:${t.pnl_pct >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(t.pnl_pct)}</span>`;
-  const realPnl = tradeRealPnl(t);
+  const realPnl = tradeRealPnl(t, state.cuentaMap());
   const pctReal = t.result === 'BE'
     ? '<span style="color:var(--orange)">0.00%</span>'
     : `<span style="color:${realPnl >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(realPnl)}</span>`;

@@ -11,6 +11,7 @@
 
 import { state } from '../state.js';
 import { openModal } from '../components/modal.js';
+import { renderPills } from '../components/pills.js';
 import { accountStats, fmtUsd } from '../utils/account-stats.js';
 import {
   calcNiveles, calcNivelActivo, resolveRiesgoConfig,
@@ -18,6 +19,7 @@ import {
 } from '../utils/risk-levels.js';
 
 let activeTab = 'cuentas';   // cuentas | resumen | gestionar | perfiles
+let filterTipo = 'all';      // all | CFD | Futuros
 const openAccordions = new Set();
 
 const GRUPOS = [
@@ -30,8 +32,12 @@ const FASE_TO_GRUPO = Object.fromEntries(GRUPOS.map(g => [g.fase, g]));
 // ── Helpers de datos ────────────────────────────────────────
 // Solo las cuentas ACTIVAS entran en el módulo de riesgo. Las pausadas, pasadas
 // o perdidas no se gestionan aquí (no tiene sentido asignarles riesgo/rotación).
-function cuentasModulo() {
+function cuentasActivas() {
   return state.cuentas.filter(c => c.status === 'activa');
+}
+// Subconjunto que ven las pestañas: activas filtradas por tipo (CFD/Futuros).
+function cuentasModulo() {
+  return cuentasActivas().filter(c => filterTipo === 'all' || c.tipo === filterTipo);
 }
 
 // Perfiles disponibles = 4 presets (siempre presentes, desde código) + perfiles
@@ -90,32 +96,50 @@ const pf = n => (n >= 0 ? '+' : '') + (n * 100).toFixed(2) + '%';
 
 // ── Render principal ────────────────────────────────────────
 function render(container) {
+  const activas = cuentasActivas();
   const cuentas = cuentasModulo();
 
   container.innerHTML = `
     <div class="page-header">
       <div>
         <h1>Riesgo / Rotación</h1>
-        <div class="sub">Escalado de riesgo por niveles · ${cuentas.length} cuenta${cuentas.length !== 1 ? 's' : ''} activa${cuentas.length !== 1 ? 's' : ''}</div>
+        <div class="sub">Escalado de riesgo por niveles · ${cuentas.length} cuenta${cuentas.length !== 1 ? 's' : ''} activa${cuentas.length !== 1 ? 's' : ''}${filterTipo !== 'all' ? ` · ${esc(filterTipo)}` : ''}</div>
       </div>
+      ${activas.length ? `<div class="page-actions"><div class="type-tabs" id="rgTypeTabs"></div></div>` : ''}
     </div>
 
-    ${cuentas.length === 0 ? emptyState() : `
+    ${activas.length === 0 ? emptyState() : `
       <div class="rg-tabs" id="rgTabs">
         ${tabBtn('cuentas', 'Cuentas')}
         ${tabBtn('resumen', 'Resumen')}
         ${tabBtn('gestionar', 'Gestionar')}
         ${tabBtn('perfiles', 'Perfiles')}
       </div>
-      <div id="rgPanel"></div>
+      ${cuentas.length === 0
+        ? '<div class="empty">No tienes cuentas activas de este tipo.</div>'
+        : '<div id="rgPanel"></div>'}
     `}
   `;
 
-  if (cuentas.length) {
+  const typeTabsEl = container.querySelector('#rgTypeTabs');
+  if (typeTabsEl) {
+    renderPills(typeTabsEl, {
+      name: 'rgTipo',
+      options: [
+        { value: 'all', label: 'Todas' },
+        { value: 'CFD', label: 'CFD' },
+        { value: 'Futuros', label: 'Futuros' },
+      ],
+      value: filterTipo,
+      onChange: v => { filterTipo = v; render(container); },
+    });
+  }
+
+  if (activas.length) {
     container.querySelectorAll('[data-tab]').forEach(b => {
       b.addEventListener('click', () => { activeTab = b.dataset.tab; render(container); });
     });
-    renderPanel(container);
+    if (cuentas.length) renderPanel(container);
   }
 }
 

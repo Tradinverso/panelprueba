@@ -227,6 +227,7 @@ export function settingsView(container) {
       reflections: state.reflections,
       perfiles: state.perfiles,
       config: state.config,
+      tradingPlan: state.tradingPlan,
     };
     const stamp = stampNow();
     const userPart = inViewAs && viewedProfile

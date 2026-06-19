@@ -60,6 +60,16 @@ export const sync = {
     await setDoc(doc(db, 'users', uid, 'config', 'data'), patch, { merge: true });
   },
 
+  // ── Plan de trading (doc único por usuario) ────────────────
+  async loadTradingPlan(uid) {
+    const snap = await getDoc(doc(db, 'users', uid, 'tradingPlan', 'data'));
+    return snap.exists() ? snap.data() : {};
+  },
+
+  async saveTradingPlan(uid, patch) {
+    await setDoc(doc(db, 'users', uid, 'tradingPlan', 'data'), patch, { merge: true });
+  },
+
   // ── Trades ─────────────────────────────────────────────────
   async loadTrades(uid) {
     const snap = await getDocs(collection(db, 'users', uid, 'trades'));

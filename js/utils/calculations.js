@@ -35,17 +35,39 @@ export function pnlPct(trades) {
   return s;
 }
 
-// P&L real per trade = pnl_pct × risk_real_pct (default risk = 1)
-export function tradeRealPnl(t) {
+// USD de una asignación trade→cuenta. Prioriza usdPnl (modelo nuevo); si no,
+// deriva del riskPct legacy. Inline aquí para no importar account-stats (ciclo).
+function assignmentUsd(t, a, capital) {
+  if (typeof a.usdPnl === 'number' && isFinite(a.usdPnl)) return a.usdPnl;
+  const risk = typeof a.riskPct === 'number' && a.riskPct > 0 ? a.riskPct : 1;
+  return capital ? (t.pnl_pct || 0) * risk * capital / 100 : 0;
+}
+
+// P&L real por trade.
+//  · Sin cuentaMap (o trade sin cuentas): pnl_pct × risk_real_pct (default 1).
+//  · Con cuentaMap y cuentas asignadas: SUMA el % real de cada cuenta donde se
+//    metió el trade — realPct = Σ (usdPnl_cuenta ÷ capital_cuenta × 100). Así un
+//    trade en 3 cuentas pesa ~3× y queda ponderado por el capital real de cada una.
+export function tradeRealPnl(t, cuentaMap) {
   if (!t || t.result === 'BE') return 0;
+  if (cuentaMap && Array.isArray(t.accounts) && t.accounts.length) {
+    let pct = 0, any = false;
+    for (const a of t.accounts) {
+      const c = cuentaMap.get(a.accountId);
+      if (!c || !c.capital) continue;
+      pct += assignmentUsd(t, a, c.capital) / c.capital * 100;
+      any = true;
+    }
+    if (any) return pct;
+  }
   const r = typeof t.risk_real_pct === 'number' && isFinite(t.risk_real_pct) ? t.risk_real_pct : 1;
   return (t.pnl_pct || 0) * r;
 }
 
 // Sum of real P&L excluding BE
-export function pnlPctReal(trades) {
+export function pnlPctReal(trades, cuentaMap) {
   let s = 0;
-  for (const t of trades) if (t.result !== 'BE') s += tradeRealPnl(t);
+  for (const t of trades) if (t.result !== 'BE') s += tradeRealPnl(t, cuentaMap);
   return s;
 }
 
@@ -82,12 +104,12 @@ export function equityCurve(trades) {
   });
 }
 
-// Cumulative equity curve usando P&L real (pnl_pct × risk_real_pct)
-export function equityCurveReal(trades) {
+// Cumulative equity curve usando P&L real (ponderado por capital si hay cuentaMap)
+export function equityCurveReal(trades, cuentaMap) {
   const sorted = sortChrono(trades);
   let cum = 0;
   return sorted.map(t => {
-    if (t.result !== 'BE') cum += tradeRealPnl(t);
+    if (t.result !== 'BE') cum += tradeRealPnl(t, cuentaMap);
     return { x: t.date, y: +cum.toFixed(2) };
   });
 }
@@ -277,7 +299,7 @@ export function statsByGroup(trades, keyFn) {
 }
 
 // Monthly P&L grouping
-export function monthlyPnl(trades) {
+export function monthlyPnl(trades, cuentaMap) {
   const months = {};
   for (const t of trades) {
     const m = yearMonth(t.date);
@@ -285,7 +307,7 @@ export function monthlyPnl(trades) {
     if (!months[m]) months[m] = { pnl: 0, pnlReal: 0, total: 0, tp: 0, sl: 0 };
     if (t.result !== 'BE') {
       months[m].pnl += t.pnl_pct || 0;
-      months[m].pnlReal += tradeRealPnl(t);
+      months[m].pnlReal += tradeRealPnl(t, cuentaMap);
     }
     if (t.result === 'TP') months[m].tp++;
     else if (t.result === 'SL') months[m].sl++;

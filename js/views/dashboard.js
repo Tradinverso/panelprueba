@@ -286,7 +286,7 @@ function paintKpis(container, trades) {
   const c = tradeCounts(trades);
   const wr = winrate(trades);
   const pnl = pnlPct(trades);
-  const pnlReal = pnlPctReal(trades);
+  const pnlReal = pnlPctReal(trades, state.cuentaMap());
   const dd = maxDrawdown(trades);
   const tpStreak = maxStreak(trades, 'TP');
   const tpStreakPct = bestTpStreakPnl(trades);
@@ -303,7 +303,8 @@ function paintKpis(container, trades) {
 }
 
 function paintEquity(container, trades) {
-  const curve = perfMode === 'real' ? equityCurveReal : equityCurve;
+  const cm = state.cuentaMap();
+  const curve = perfMode === 'real' ? (x => equityCurveReal(x, cm)) : equityCurve;
   const datasets = [
     { key: 'ALL', label: 'Global', data: curve(trades) },
     { key: 'ZONAS', label: 'Zonas', data: curve(trades.filter(t => t.sheet === 'ZONAS')) },
@@ -314,7 +315,7 @@ function paintEquity(container, trades) {
 }
 
 function paintMonthly(container, allTrades) {
-  const data = monthlyPnl(allTrades);
+  const data = monthlyPnl(allTrades, state.cuentaMap());
   const labels = data.map(d => MONTHS_ES_SHORT[+d.month.split('-')[1] - 1]);
   const values = data.map(d => +(perfMode === 'real' ? d.pnlReal : d.pnl).toFixed(2));
   createBar(container.querySelector('#monthlyChart'), labels, values);
@@ -326,7 +327,7 @@ function paintStrategy(container, sheet, trades) {
   if (!card) return;
   const c = tradeCounts(sub);
   const subPnl = pnlPct(sub);
-  const subPnlReal = pnlPctReal(sub);
+  const subPnlReal = pnlPctReal(sub, state.cuentaMap());
   card.querySelector('[data-field="wr"]').textContent = fmtPctNoSign(winrate(sub));
   const pnlEl = card.querySelector('[data-field="pnl"]');
   pnlEl.textContent = fmtPct(subPnl, 1);

@@ -202,6 +202,16 @@ function sanitizePerfil(p) {
   };
 }
 
+function sanitizeTradingPlan(p) {
+  p = p || {};
+  const docUrl = String(p.docUrl || '').trim();
+  return {
+    content: String(p.content || ''),
+    docUrl: /^https?:\/\//i.test(docUrl) ? docUrl : '',
+    updatedAt: typeof p.updatedAt === 'number' ? p.updatedAt : 0,
+  };
+}
+
 function sanitizeReflection(r) {
   if (!r) return null;
   if (!VALID_REFL_TYPE.has(r.type)) return null;
@@ -240,6 +250,7 @@ export const state = {
   reflections: [],
   perfiles: [],       // perfiles de riesgo CUSTOM del usuario (los built-in van en código)
   config: {},         // preferencias del usuario (users/{uid}/config/data)
+  tradingPlan: {},    // plan de trading del usuario (users/{uid}/tradingPlan/data)
   viewAsUid: null,    // null = ves tus propios trades; uid = admin viendo a alumno
   viewAsProfile: null,// perfil del alumno que se está viendo (banner)
   readOnly: false,    // true cuando viewAsUid != null
@@ -254,24 +265,27 @@ export const state = {
       this.reflections = [];
       this.perfiles = [];
       this.config = {};
+      this.tradingPlan = {};
       this.emit();
       return;
     }
     this.loading = true;
     this.emit();
     try {
-      const [trades, cuentas, reflections, perfiles, config] = await Promise.all([
+      const [trades, cuentas, reflections, perfiles, config, tradingPlan] = await Promise.all([
         sync.loadTrades(uid),
         sync.loadCuentas(uid),
         sync.loadReflections(uid),
         sync.loadPerfiles(uid),
         sync.loadConfig(uid),
+        sync.loadTradingPlan(uid),
       ]);
       this.trades = trades.map(sanitizeTrade).filter(Boolean);
       this.cuentas = cuentas.map(sanitizeCuenta).filter(Boolean);
       this.reflections = reflections.map(sanitizeReflection).filter(Boolean);
       this.perfiles = perfiles.map(sanitizePerfil).filter(Boolean);
       this.config = config || {};
+      this.tradingPlan = sanitizeTradingPlan(tradingPlan);
     } catch (e) {
       console.error('[state] Error cargando datos:', e);
       this.trades = [];
@@ -279,6 +293,7 @@ export const state = {
       this.reflections = [];
       this.perfiles = [];
       this.config = {};
+      this.tradingPlan = {};
     }
     this.loading = false;
     this.viewAsUid = null;
@@ -293,18 +308,20 @@ export const state = {
     this.loading = true;
     this.emit();
     try {
-      const [trades, cuentas, reflections, perfiles, config] = await Promise.all([
+      const [trades, cuentas, reflections, perfiles, config, tradingPlan] = await Promise.all([
         sync.loadStudentTrades(studentUid),
         sync.loadCuentas(studentUid),
         sync.loadReflections(studentUid),
         sync.loadPerfiles(studentUid),
         sync.loadConfig(studentUid),
+        sync.loadTradingPlan(studentUid),
       ]);
       this.trades = trades.map(sanitizeTrade).filter(Boolean);
       this.cuentas = cuentas.map(sanitizeCuenta).filter(Boolean);
       this.reflections = reflections.map(sanitizeReflection).filter(Boolean);
       this.perfiles = perfiles.map(sanitizePerfil).filter(Boolean);
       this.config = config || {};
+      this.tradingPlan = sanitizeTradingPlan(tradingPlan);
       this.viewAsUid = studentUid;
       this.viewAsProfile = profile;
       this.readOnly = true;
@@ -315,6 +332,7 @@ export const state = {
       this.reflections = [];
       this.perfiles = [];
       this.config = {};
+      this.tradingPlan = {};
     }
     this.loading = false;
     this.emit();
@@ -534,6 +552,21 @@ export const state = {
     this.emit();
     fireAndForget(sync.saveConfig(targetUid(), patch), 'saveConfig');
     return this.config;
+  },
+
+  // Mapa id→cuenta del contexto actual (propio o alumno en viewAs). Lo usan los
+  // cálculos de "P&L real" ponderado por capital.
+  cuentaMap() {
+    return new Map(this.cuentas.map(c => [c.id, c]));
+  },
+
+  // ── Plan de trading (merge optimista) ────────────────────
+  saveTradingPlan(patch) {
+    const next = sanitizeTradingPlan({ ...this.tradingPlan, ...patch });
+    this.tradingPlan = next;
+    this.emit();
+    fireAndForget(sync.saveTradingPlan(targetUid(), next), 'saveTradingPlan');
+    return next;
   },
 
   // ── Bus de eventos ───────────────────────────────────────

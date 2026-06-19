@@ -14,7 +14,7 @@ const STRAT_LABEL = { ZONAS: 'Zonas', LIQUIDEZ: 'Liquidez', NASDAQ: 'Nasdaq' };
 
 export function openViewTradeModal(trade) {
   const meta = STRATEGIES[trade.sheet] || {};
-  const realPnl = tradeRealPnl(trade);
+  const realPnl = tradeRealPnl(trade, state.cuentaMap());
   const resColor = trade.result === 'TP' ? 'var(--green)' : trade.result === 'SL' ? 'var(--red)' : 'var(--orange)';
 
   // Cuentas asignadas en formato legible

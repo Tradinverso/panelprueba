@@ -24,12 +24,13 @@ export async function generateBackup(onProgress = () => {}) {
   if (includeAdmin) {
     i++;
     onProgress(i, total);
-    const [trades, cuentas, reflections, perfiles, config] = await Promise.all([
+    const [trades, cuentas, reflections, perfiles, config, tradingPlan] = await Promise.all([
       sync.loadTrades(adminUid).catch(() => []),
       sync.loadCuentas(adminUid).catch(() => []),
       sync.loadReflections(adminUid).catch(() => []),
       sync.loadPerfiles(adminUid).catch(() => []),
       sync.loadConfig(adminUid).catch(() => ({})),
+      sync.loadTradingPlan(adminUid).catch(() => ({})),
     ]);
     result.push({
       uid: adminUid,
@@ -39,17 +40,19 @@ export async function generateBackup(onProgress = () => {}) {
       reflections,
       perfiles,
       config,
+      tradingPlan,
     });
   }
 
   for (const s of students) {
     i++;
     onProgress(i, total);
-    const [cuentas, reflections, perfiles, config] = await Promise.all([
+    const [cuentas, reflections, perfiles, config, tradingPlan] = await Promise.all([
       sync.loadCuentas(s.uid).catch(() => []),
       sync.loadReflections(s.uid).catch(() => []),
       sync.loadPerfiles(s.uid).catch(() => []),
       sync.loadConfig(s.uid).catch(() => ({})),
+      sync.loadTradingPlan(s.uid).catch(() => ({})),
     ]);
     result.push({
       uid: s.uid,
@@ -59,6 +62,7 @@ export async function generateBackup(onProgress = () => {}) {
       reflections,
       perfiles,
       config,
+      tradingPlan,
     });
   }
   return {
@@ -212,6 +216,11 @@ export async function restoreBackup(data, mode = 'merge', onProgress = () => {})
     // Config del usuario (toggle módulo, puntero de rotación, etc.)
     if (s.config && typeof s.config === 'object' && Object.keys(s.config).length) {
       try { await sync.saveConfig(s.uid, s.config); } catch (e) { console.warn('config fallo', s.uid, e.message); }
+    }
+
+    // Plan de trading
+    if (s.tradingPlan && typeof s.tradingPlan === 'object' && (s.tradingPlan.content || s.tradingPlan.docUrl)) {
+      try { await sync.saveTradingPlan(s.uid, s.tradingPlan); } catch (e) { console.warn('tradingPlan fallo', s.uid, e.message); }
     }
 
     stats.students++;
