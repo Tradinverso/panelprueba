@@ -150,8 +150,10 @@
 
 /* ── Entrada suave de vista ── */
 @media (prefers-reduced-motion: no-preference) {
+  /* Solo opacidad: un transform aquí rompe la medición de tamaño de los
+     canvas de Chart.js durante su creación y los deja en blanco. */
   #view { animation: viewIn .28s var(--ease); }
-  @keyframes viewIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes viewIn { from { opacity: 0; } to { opacity: 1; } }
 }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
