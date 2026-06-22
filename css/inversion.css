@@ -1,0 +1,6 @@
+/* Vista Inversión — ajustes de la tabla de detalle por cuenta.
+   Reutiliza .kpi-grid, .card, .data-table, .badge y los tokens var(--*). */
+.inv-table td.mono, .inv-table th { font-family: var(--mono); }
+.inv-table td.mono { font-size: 12px; }
+.inv-table th:nth-child(n+3), .inv-table td:nth-child(n+3) { text-align: right; }
+.inv-table .badge { font-size: 10px; }

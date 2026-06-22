@@ -168,6 +168,10 @@ function sanitizeCuenta(c) {
           }))
       : [],
     notes: String(c.notes || '').trim(),
+    // ── Inversión: historial de compras/reintentos de la cuenta ──
+    purchases: Array.isArray(c.purchases)
+      ? c.purchases.map(sanitizePurchase).filter(Boolean)
+      : [],
     // ── Módulo de Riesgo/Rotación (escalado por niveles) ──────
     // Config de riesgo de la cuenta. Defaults retrocompatibles: cuentas viejas
     // sin estos campos arrancan con el perfil "Estándar" (0,5% × 1,3) en rotación.
@@ -177,6 +181,21 @@ function sanitizeCuenta(c) {
     enRotacion: c.enRotacion === false ? false : true,
     rotacionOrden: typeof c.rotacionOrden === 'number' ? c.rotacionOrden : (parseFloat(c.rotacionOrden) || 0),
     createdAt: c.createdAt || Date.now(),
+  };
+}
+
+const VALID_CONCEPT = new Set(['challenge', 'reset', 'reintento', 'otro']);
+
+function sanitizePurchase(p) {
+  if (!p) return null;
+  const amount = typeof p.amount === 'number' ? p.amount : (parseFloat(p.amount) || 0);
+  if (!(amount > 0)) return null;
+  return {
+    id: p.id || uuid(),
+    date: p.date || new Date().toISOString().substring(0, 10),
+    amount,
+    concept: VALID_CONCEPT.has(p.concept) ? p.concept : 'challenge',
+    note: String(p.note || '').trim(),
   };
 }
 
@@ -482,6 +501,38 @@ export const state = {
     if (!cuenta) return null;
     return this.updateCuenta(cuentaId, {
       withdrawals: (cuenta.withdrawals || []).filter(w => w.id !== withdrawalId),
+    });
+  },
+
+  // ── Compras / reintentos (historial de inversión de la cuenta) ──
+  addPurchase(cuentaId, purchase) {
+    const cuenta = this.cuentas.find(c => c.id === cuentaId);
+    if (!cuenta) return null;
+    const p = sanitizePurchase(purchase);
+    if (!p) return null;
+    const existing = [...(cuenta.purchases || [])];
+    // Migración: si la cuenta tenía coste legacy y aún no hay compras,
+    // sembrar ese coste como primera compra para no perderlo ni duplicarlo.
+    const patch = {};
+    if (existing.length === 0 && cuenta.cost > 0) {
+      existing.push(sanitizePurchase({
+        date: new Date(cuenta.createdAt || Date.now()).toISOString().substring(0, 10),
+        amount: cuenta.cost,
+        concept: 'challenge',
+        note: 'Coste inicial',
+      }));
+      patch.cost = 0; // el coste ya vive como compra
+    }
+    existing.push(p);
+    patch.purchases = existing;
+    return this.updateCuenta(cuentaId, patch);
+  },
+
+  removePurchase(cuentaId, purchaseId) {
+    const cuenta = this.cuentas.find(c => c.id === cuentaId);
+    if (!cuenta) return null;
+    return this.updateCuenta(cuentaId, {
+      purchases: (cuenta.purchases || []).filter(p => p.id !== purchaseId),
     });
   },
 

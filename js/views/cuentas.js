@@ -79,17 +79,10 @@ function render(container) {
         <div class="kpi-grid" id="portfolioKpis"></div>
 
         <div class="section-title">Cartera</div>
-        <div class="grid-2-1">
-          <div class="card">
-            <div class="card-title">Evolución del equity</div>
-            <div class="card-sub">Suma de cuentas fondeadas activas</div>
-            <div class="chart-wrap" style="height:220px;"><canvas id="portfolioEquity"></canvas></div>
-          </div>
-          <div class="card">
-            <div class="card-title">Payouts mensuales</div>
-            <div class="card-sub">Retiros totales por mes (incl. históricos)</div>
-            <div class="chart-wrap" style="height:220px;"><canvas id="portfolioPayouts"></canvas></div>
-          </div>
+        <div class="card" style="margin-bottom:24px;">
+          <div class="card-title">Evolución del equity</div>
+          <div class="card-sub">Suma de cuentas fondeadas activas</div>
+          <div class="chart-wrap" style="height:240px;"><canvas id="portfolioEquity"></canvas></div>
         </div>
 
         <div class="section-title-row">
@@ -155,13 +148,6 @@ function render(container) {
         { key: 'PORT', label: 'Equity cartera', data: curve },
       ], { formatter: usdAxis });
     }
-    const payoutsCanvas = container.querySelector('#portfolioPayouts');
-    if (payoutsCanvas) {
-      const data = portfolioMonthlyWithdrawals(byType);
-      const labels = data.map(d => MONTHS_ES_SHORT[+d.month.split('-')[1] - 1] + ' ' + d.month.substring(2, 4));
-      const values = data.map(d => +d.usd.toFixed(2));
-      createBar(payoutsCanvas, labels, values, { formatter: usdAxis });
-    }
 
     const faseEl = container.querySelector('#cf-fase');
     if (faseEl) faseEl.addEventListener('change', e => {
@@ -218,26 +204,6 @@ function paintPortfolioKpis(container, cuentas) {
       value: fmtUsd(s.profitFondeado, true),
       sub: 'desde inicio · cuentas activas',
       tone: s.profitFondeado >= 0 ? 'green' : 'red',
-    }),
-    kpiCard({
-      label: 'Retirado total',
-      value: fmtUsd(s.totalWithdrawn),
-      sub: s.totalCommissions > 0
-        ? 'neto · ' + fmtUsd(s.totalCommissions) + ' en comisiones'
-        : 'payouts cobrados (incl. históricos)',
-      tone: 'green',
-    }),
-    kpiCard({
-      label: 'Coste total',
-      value: '-' + fmtUsd(s.totalCost),
-      sub: 'fees + retries',
-      tone: 'red',
-    }),
-    kpiCard({
-      label: 'Neto cobrado',
-      value: fmtUsd(s.netToPocket, true),
-      sub: 'retirado − coste',
-      tone: s.netToPocket >= 0 ? 'green' : 'red',
     }),
   ].join('');
 }
@@ -310,9 +276,7 @@ function card(c) {
 
       <div class="cuenta-stats">
         ${stat('Capital', fmtUsd(s.capital))}
-        ${isFondeada ? stat('Retirado', fmtUsd(s.totalWithdrawnNet)) : ''}
         ${s.ddLimitUsd > 0 ? stat('DD máx', fmtUsd(s.ddLimitUsd)) : ''}
-        ${c.cost > 0 ? stat('Coste', fmtUsd(c.cost)) : ''}
         ${stat('Trades', `${s.count} · ${wr} WR`)}
         ${racha ? stat('Racha', racha) : ''}
       </div>

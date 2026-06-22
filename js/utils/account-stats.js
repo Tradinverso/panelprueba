@@ -331,6 +331,66 @@ export function portfolioMonthlyWithdrawals(cuentas) {
   return Object.keys(months).sort().map(m => ({ month: m, usd: months[m] }));
 }
 
+// ──────────────────────────────────────────────────────────────
+// Inversión (negocio prop): coste de compra/reintentos vs payouts.
+// ──────────────────────────────────────────────────────────────
+
+// Total invertido en una cuenta: suma de compras; si no hay compras,
+// fallback al coste legacy (campo `cost`).
+export function totalInvested(account) {
+  if (!account) return 0;
+  if (Array.isArray(account.purchases) && account.purchases.length) {
+    return account.purchases.reduce((s, p) => s + (p.amount || 0), 0);
+  }
+  return account.cost || 0;
+}
+
+// Agregados del negocio prop sobre TODAS las cuentas.
+export function investmentStats(cuentas) {
+  let gastosTotales = 0, gananciasBrutas = 0, gananciasNetas = 0, comisiones = 0;
+  let evaluaciones = 0, live = 0, pasadas = 0, quemadas = 0;
+  let fondeadas = 0;
+  for (const c of cuentas) {
+    gastosTotales += totalInvested(c);
+    gananciasBrutas += totalWithdrawn(c);
+    gananciasNetas += totalWithdrawnNet(c);
+    comisiones += totalWithdrawalCommissions(c);
+    // "Evaluaciones" = nº de compras (o 1 por cuenta si no hay historial)
+    evaluaciones += (Array.isArray(c.purchases) && c.purchases.length) ? c.purchases.length : 1;
+    if (c.fase === 'fondeada') fondeadas++;
+    if (c.fase === 'fondeada' && c.status === 'activa') live++;
+    if (c.status === 'pasada') pasadas++;
+    if (c.status === 'perdida') quemadas++;
+  }
+  const beneficioNeto = gananciasNetas - gastosTotales;
+  const roi = gastosTotales > 0 ? (beneficioNeto / gastosTotales) * 100 : (beneficioNeto > 0 ? Infinity : 0);
+  const fundingRatio = evaluaciones > 0 ? (fondeadas / evaluaciones) * 100 : 0;
+  return {
+    gastosTotales, gananciasBrutas, gananciasNetas, comisiones,
+    beneficioNeto, roi, fundingRatio,
+    evaluaciones, live, pasadas, quemadas, fondeadas,
+    countTotal: cuentas.length,
+  };
+}
+
+// Compras por mes a lo largo de TODAS las cuentas → [{ month:'YYYY-MM', usd }].
+export function monthlyInvested(cuentas) {
+  const months = {};
+  for (const c of cuentas) {
+    for (const p of (c.purchases || [])) {
+      const m = (p.date || '').substring(0, 7);
+      if (!m) continue;
+      months[m] = (months[m] || 0) + (p.amount || 0);
+    }
+    // Cuentas con coste legacy sin compras: imputar al mes de creación.
+    if ((!c.purchases || !c.purchases.length) && c.cost > 0) {
+      const m = new Date(c.createdAt || Date.now()).toISOString().substring(0, 7);
+      months[m] = (months[m] || 0) + c.cost;
+    }
+  }
+  return Object.keys(months).sort().map(m => ({ month: m, usd: months[m] }));
+}
+
 export function monthlyPnlUsd(account, allTrades) {
   const items = tradesForAccount(account, allTrades);
   const months = {};
