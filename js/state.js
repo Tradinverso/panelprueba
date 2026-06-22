@@ -154,6 +154,7 @@ function sanitizeCuenta(c) {
     maxDdUsd: c.maxDdUsd != null ? (typeof c.maxDdUsd === 'number' ? c.maxDdUsd : parseFloat(c.maxDdUsd) || 0) : 0,
     status: VALID_STATUS.has(c.status) ? c.status : 'activa',
     fase: VALID_FASE.has(c.fase) ? c.fase : 'challenge_1',
+    numFases: c.numFases === 1 ? 1 : 2,   // nº de fases del challenge (1 ó 2)
     withdrawals: Array.isArray(c.withdrawals)
       ? c.withdrawals
           .filter(w => w && w.amount > 0)
@@ -475,6 +476,22 @@ export const state = {
     if (tradesAffected.length) {
       fireAndForget(sync.saveTradesBatch(uid, tradesAffected), 'saveTradesBatch(deleteCuenta cleanup)');
     }
+  },
+
+  // ── Ciclo de vida de la cuenta ───────────────────────────
+  // Avanza de fase: challenge_1 → (1 fase ? fondeada : challenge_2) → fondeada.
+  advanceFase(cuentaId) {
+    const c = this.cuentas.find(x => x.id === cuentaId);
+    if (!c) return null;
+    let next = c.fase;
+    if (c.fase === 'challenge_1') next = c.numFases === 1 ? 'fondeada' : 'challenge_2';
+    else if (c.fase === 'challenge_2') next = 'fondeada';
+    else return c; // ya fondeada
+    return this.updateCuenta(cuentaId, { fase: next, status: 'activa' });
+  },
+
+  markQuemada(cuentaId) {
+    return this.updateCuenta(cuentaId, { status: 'perdida' });
   },
 
   // ── Retiros (siempre dentro de una cuenta) ───────────────

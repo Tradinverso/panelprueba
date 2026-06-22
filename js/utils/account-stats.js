@@ -345,17 +345,53 @@ export function totalInvested(account) {
   return account.cost || 0;
 }
 
-// Agregados del negocio prop sobre TODAS las cuentas.
-export function investmentStats(cuentas) {
-  let gastosTotales = 0, gananciasBrutas = 0, gananciasNetas = 0, comisiones = 0;
-  let evaluaciones = 0, live = 0, pasadas = 0, quemadas = 0;
-  let fondeadas = 0;
+// Compras de una cuenta (con fallback del coste legacy fechado en createdAt).
+function purchasesOf(c) {
+  if (Array.isArray(c.purchases) && c.purchases.length) return c.purchases;
+  if (c.cost > 0) {
+    return [{ id: 'legacy-' + c.id, date: new Date(c.createdAt || Date.now()).toISOString().substring(0, 10), amount: c.cost, concept: 'challenge', note: 'Coste inicial' }];
+  }
+  return [];
+}
+
+// Lista plana de TODOS los retiros con referencia a su cuenta (orden fecha desc).
+export function allWithdrawals(cuentas) {
+  const out = [];
   for (const c of cuentas) {
-    gastosTotales += totalInvested(c);
-    gananciasBrutas += totalWithdrawn(c);
-    gananciasNetas += totalWithdrawnNet(c);
-    comisiones += totalWithdrawalCommissions(c);
-    // "Evaluaciones" = nº de compras (o 1 por cuenta si no hay historial)
+    for (const w of (c.withdrawals || [])) {
+      out.push({ ...w, cuentaId: c.id, cuentaNombre: `${c.empresa} ${c.numero || ''}`.trim() });
+    }
+  }
+  return out.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+}
+
+// Lista plana de TODAS las compras con referencia a su cuenta (orden fecha desc).
+export function allPurchases(cuentas) {
+  const out = [];
+  for (const c of cuentas) {
+    for (const p of purchasesOf(c)) {
+      out.push({ ...p, cuentaId: c.id, cuentaNombre: `${c.empresa} ${c.numero || ''}`.trim() });
+    }
+  }
+  return out.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+}
+
+// Agregados del negocio prop sobre TODAS las cuentas.
+// range opcional {from,to} (YYYY-MM-DD) filtra gastos/ganancias por fecha;
+// los contadores (live/pasadas/quemadas/funding) son SIEMPRE globales.
+export function investmentStats(cuentas, range) {
+  const f = range && range.from, t = range && range.to;
+  const inR = d => (!f || d >= f) && (!t || d <= t);
+  let gastosTotales = 0, gananciasBrutas = 0, gananciasNetas = 0, comisiones = 0;
+  let evaluaciones = 0, live = 0, pasadas = 0, quemadas = 0, fondeadas = 0;
+  for (const c of cuentas) {
+    for (const p of purchasesOf(c)) if (inR(p.date || '')) gastosTotales += p.amount || 0;
+    for (const w of (c.withdrawals || [])) {
+      if (!inR(w.date || '')) continue;
+      const amt = w.amount || 0, com = w.commission || 0;
+      gananciasBrutas += amt; comisiones += com; gananciasNetas += Math.max(0, amt - com);
+    }
+    // contadores globales
     evaluaciones += (Array.isArray(c.purchases) && c.purchases.length) ? c.purchases.length : 1;
     if (c.fase === 'fondeada') fondeadas++;
     if (c.fase === 'fondeada' && c.status === 'activa') live++;

@@ -4,6 +4,7 @@
 import { state } from '../state.js';
 import { router } from '../router.js';
 import { openCuentaEditModal, confirmDeleteCuenta } from '../components/cuenta-edit-modal.js';
+import { openModal } from '../components/modal.js';
 import {
   accountStats, fmtUsd,
   portfolioStats, portfolioEquityCurve, portfolioMonthlyWithdrawals,
@@ -180,6 +181,23 @@ function render(container) {
       if (c) confirmDeleteCuenta(c, () => render(container));
     });
   });
+  container.querySelectorAll('[data-advance]').forEach(b => {
+    b.addEventListener('click', () => state.advanceFase(b.dataset.advance));
+  });
+  container.querySelectorAll('[data-quemada]').forEach(b => {
+    b.addEventListener('click', () => {
+      const c = state.cuentas.find(x => x.id === b.dataset.quemada);
+      if (!c) return;
+      openModal({
+        title: 'Marcar cuenta quemada',
+        body: `¿Marcar <strong>${esc(c.empresa)} ${esc(c.numero || '')}</strong> como <strong>quemada</strong> (perdida)? Puedes revertirlo desde Editar.`,
+        actions: [
+          { label: 'Cancelar', onClick: close => close() },
+          { label: 'Sí, quemada', variant: 'danger', onClick: close => { state.markQuemada(c.id); close(); } },
+        ],
+      });
+    });
+  });
 }
 
 function paintPortfolioKpis(container, cuentas) {
@@ -280,6 +298,12 @@ function card(c) {
         ${stat('Trades', `${s.count} · ${wr} WR`)}
         ${racha ? stat('Racha', racha) : ''}
       </div>
+
+      ${(c.fase !== 'fondeada' || c.status !== 'perdida') ? `
+      <div class="cuenta-card-foot" data-stop>
+        ${c.fase !== 'fondeada' ? `<button class="btn ghost" data-advance="${c.id}" data-stop>✓ Superar fase</button>` : ''}
+        ${c.status !== 'perdida' ? `<button class="btn ghost danger" data-quemada="${c.id}" data-stop>✗ Quemada</button>` : ''}
+      </div>` : ''}
     </div>
   `;
 }

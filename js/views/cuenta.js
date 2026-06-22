@@ -51,6 +51,8 @@ function render(container, cuentaId) {
       </div>
       <div class="page-actions">
         <a class="btn" href="#/cuentas">← Cuentas</a>
+        ${cuenta.fase !== 'fondeada' ? `<button class="btn" id="advanceFaseBtn">✓ Superar fase</button>` : ''}
+        ${cuenta.status !== 'perdida' ? `<button class="btn danger" id="quemadaBtn">✗ Quemada</button>` : ''}
         <button class="btn" id="editCuentaBtn">✏️ Editar</button>
         <button class="btn danger" id="deleteCuentaBtn">× Borrar</button>
       </div>
@@ -106,6 +108,19 @@ function render(container, cuentaId) {
   });
   container.querySelector('#deleteCuentaBtn').addEventListener('click', () => {
     confirmDeleteCuenta(cuenta, () => router.go('#/cuentas'));
+  });
+  const advBtn = container.querySelector('#advanceFaseBtn');
+  if (advBtn) advBtn.addEventListener('click', () => state.advanceFase(cuenta.id));
+  const quemadaBtn = container.querySelector('#quemadaBtn');
+  if (quemadaBtn) quemadaBtn.addEventListener('click', () => {
+    openModal({
+      title: 'Marcar cuenta quemada',
+      body: `¿Marcar <strong>${esc(cuenta.empresa)} ${esc(cuenta.numero || '')}</strong> como <strong>quemada</strong> (perdida)? Puedes revertirlo desde Editar.`,
+      actions: [
+        { label: 'Cancelar', onClick: close => close() },
+        { label: 'Sí, quemada', variant: 'danger', onClick: close => { state.markQuemada(cuenta.id); close(); } },
+      ],
+    });
   });
   const newWBtn = container.querySelector('#newWithdrawalBtn');
   if (newWBtn) {

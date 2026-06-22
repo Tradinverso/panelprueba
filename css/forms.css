@@ -37,6 +37,15 @@
 .pill-group.sens .pill[data-val="Venganza - Rabia"].active    { background: rgba(168,85,247,.5); border-color: #C084FC; color: #fff; }
 .pill-group.sens .pill[data-val="Miedo - Parálisis"].active   { background: rgba(120,120,130,.5); border-color: #9CA3AF; color: #fff; }
 
+/* ── Bloque "Opciones avanzadas" (details) en modales ────── */
+.ce-advanced { border-top: 1px solid var(--border); padding-top: 6px; }
+.ce-advanced > summary { cursor: pointer; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 6px 0; list-style: none; user-select: none; }
+.ce-advanced > summary::-webkit-details-marker { display: none; }
+.ce-advanced > summary::before { content: '▸ '; color: var(--accent); }
+.ce-advanced[open] > summary::before { content: '▾ '; }
+.ce-advanced[open] > summary { margin-bottom: 6px; }
+.ce-advanced > .form-field, .ce-advanced > .form-row { margin-top: 12px; }
+
 /* ── Nuevo trade: secciones en tiles de cristal ──────────── */
 .nt-form { gap: 16px; max-width: 760px; }
 .nt-section {
