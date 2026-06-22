@@ -278,6 +278,11 @@ function card(c) {
   const stat = (label, value, extra = '') =>
     `<div class="cuenta-stat"><span class="cuenta-stat-l">${label}</span><span class="cuenta-stat-v"${extra}>${value}</span></div>`;
 
+  // Objetivo de la fase: % del capital (con $ derivado). Fallback al $ legacy.
+  const objPct = c.targetPct > 0 ? c.targetPct : 0;
+  const objUsd = objPct > 0 ? Math.round(s.capital * objPct / 100) : s.targetUsd;
+  const objText = objPct > 0 ? `${+objPct.toFixed(2)}% · ${fmtUsd(objUsd)}` : (objUsd > 0 ? fmtUsd(objUsd) : '—');
+
   return `
     <div class="cuenta-card st-${c.status}" data-view-cuenta="${c.id}">
       <div class="cuenta-card-head">
@@ -298,6 +303,7 @@ function card(c) {
 
       <div class="cuenta-stats">
         ${stat('Capital', fmtUsd(s.capital))}
+        ${c.fase !== 'fondeada' ? stat('Objetivo', objText) : (objUsd > 0 ? stat('Objetivo', objText) : '')}
         ${s.ddLimitUsd > 0 ? stat('DD máx', fmtUsd(s.ddLimitUsd)) : ''}
         ${stat('Trades', `${s.count} · ${wr} WR`)}
         ${racha ? stat('Racha', racha) : ''}

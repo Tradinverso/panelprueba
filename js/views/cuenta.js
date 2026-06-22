@@ -52,6 +52,7 @@ function render(container, cuentaId) {
       <div class="page-actions">
         <a class="btn" href="#/cuentas">← Cuentas</a>
         ${cuenta.fase !== 'fondeada' ? `<button class="btn" id="advanceFaseBtn">✓ Superar fase</button>` : ''}
+        ${cuenta.fase !== 'fondeada' ? `<button class="btn" id="fondeadaBtn" title="Pasar a Fondeada directamente">★ A Fondeada</button>` : ''}
         ${cuenta.status !== 'perdida' ? `<button class="btn danger" id="quemadaBtn">✗ Quemada</button>` : ''}
         <button class="btn" id="editCuentaBtn">✏️ Editar</button>
         <button class="btn danger" id="deleteCuentaBtn">× Borrar</button>
@@ -111,6 +112,8 @@ function render(container, cuentaId) {
   });
   const advBtn = container.querySelector('#advanceFaseBtn');
   if (advBtn) advBtn.addEventListener('click', () => state.advanceFase(cuenta.id));
+  const fondBtn = container.querySelector('#fondeadaBtn');
+  if (fondBtn) fondBtn.addEventListener('click', () => state.markFondeada(cuenta.id));
   const quemadaBtn = container.querySelector('#quemadaBtn');
   if (quemadaBtn) quemadaBtn.addEventListener('click', () => {
     openModal({

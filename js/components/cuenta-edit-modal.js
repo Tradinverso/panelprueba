@@ -36,7 +36,9 @@ export function openCuentaEditModal(cuenta = null, onSaved = () => {}) {
     capital: cuenta?.capital != null ? String(cuenta.capital) : '',
     initialBalance: cuenta?.initialBalance != null ? String(cuenta.initialBalance) : '',
     cost: cuenta?.cost != null ? String(cuenta.cost) : '',
-    targetUsd: cuenta?.targetUsd != null && cuenta.targetUsd > 0 ? String(cuenta.targetUsd) : '',
+    targetPct: cuenta?.targetPct > 0
+      ? String(cuenta.targetPct)
+      : (cuenta?.targetUsd > 0 && cuenta?.capital ? String(+(cuenta.targetUsd / cuenta.capital * 100).toFixed(2)) : ''),
     maxDdUsd: cuenta?.maxDdUsd != null && cuenta.maxDdUsd > 0 ? String(cuenta.maxDdUsd) : '',
     fase: cuenta?.fase || 'challenge_1',
     status: cuenta?.status || 'activa',
@@ -99,8 +101,9 @@ export function openCuentaEditModal(cuenta = null, onSaved = () => {}) {
           </div>
           <div class="form-row">
             <div class="form-field">
-              <label class="form-label">Target ($)</label>
-              <input class="form-input" type="number" step="100" id="ce-target" value="${esc(data.targetUsd)}" placeholder="ej. 5000">
+              <label class="form-label">Objetivo (% del capital)</label>
+              <input class="form-input" type="number" step="0.5" id="ce-targetpct" value="${esc(data.targetPct)}" placeholder="ej. 8 = 8%">
+              <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:4px;">Profit para superar fase. Se calcula sobre el capital.</div>
             </div>
             <div class="form-field">
               <label class="form-label">DD máximo firma ($)</label>
@@ -184,8 +187,8 @@ export function openCuentaEditModal(cuenta = null, onSaved = () => {}) {
       initialBalanceManual = e.target.value !== '';
     });
 
-    const targetInput = root.querySelector('#ce-target');
-    if (targetInput) targetInput.addEventListener('input', e => data.targetUsd = e.target.value);
+    const targetInput = root.querySelector('#ce-targetpct');
+    if (targetInput) targetInput.addEventListener('input', e => data.targetPct = e.target.value);
     const maxDdInput = root.querySelector('#ce-maxdd');
     if (maxDdInput) maxDdInput.addEventListener('input', e => data.maxDdUsd = e.target.value);
   }, 0);
@@ -208,8 +211,9 @@ function doSave(cuenta, data, close, onSaved) {
   if (isNaN(initialBalance) || initialBalance < 0) return showErr('El saldo inicial no puede ser negativo.');
   const cost = data.cost === '' ? 0 : parseFloat(data.cost);
   if (isNaN(cost) || cost < 0) return showErr('El coste no puede ser negativo.');
-  const targetUsd = data.targetUsd === '' || data.targetUsd == null ? 0 : parseFloat(data.targetUsd);
-  if (isNaN(targetUsd) || targetUsd < 0) return showErr('El target no puede ser negativo.');
+  const targetPct = data.targetPct === '' || data.targetPct == null ? 0 : parseFloat(data.targetPct);
+  if (isNaN(targetPct) || targetPct < 0) return showErr('El objetivo (%) no puede ser negativo.');
+  const targetUsd = targetPct > 0 ? Math.round(capital * targetPct / 100) : 0;
   const maxDdUsd = data.maxDdUsd === '' || data.maxDdUsd == null ? 0 : parseFloat(data.maxDdUsd);
   if (isNaN(maxDdUsd) || maxDdUsd < 0) return showErr('El max DD no puede ser negativo.');
 
@@ -222,6 +226,7 @@ function doSave(cuenta, data, close, onSaved) {
     initialBalance,
     cost,
     targetUsd,
+    targetPct,
     maxDdUsd,
     fase: data.fase || 'challenge_1',
     status: data.status || 'activa',

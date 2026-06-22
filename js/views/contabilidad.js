@@ -8,7 +8,7 @@ import { openModal } from '../components/modal.js';
 import { kpiCard } from '../components/kpi-card.js';
 import { openPurchaseModal } from '../components/purchase-modal.js';
 import { openWithdrawalModal } from '../components/withdrawal-modal.js';
-import { openCuentaEditModal } from '../components/cuenta-edit-modal.js';
+import { openCuentaEditModal, confirmDeleteCuenta } from '../components/cuenta-edit-modal.js';
 import {
   fmtUsd, totalInvested, investmentStats, monthlyInvested,
   totalWithdrawn, totalWithdrawnNet, portfolioMonthlyWithdrawals,
@@ -114,7 +114,7 @@ function renderResumen() {
       ${kpiCard({ label: 'Beneficio neto', value: fmtUsd(s.beneficioNeto, true), sub: 'payouts netos − gastos', tone: s.beneficioNeto >= 0 ? 'green' : 'red' })}
       ${kpiCard({ label: 'ROI', value: fmtRoi(s.roi), sub: 'beneficio ÷ gastos', tone: s.roi >= 0 ? 'green' : 'red' })}
       ${kpiCard({ label: 'Funding ratio', value: s.fundingRatio.toFixed(1) + '%', sub: `${s.fondeadas} fondeada${s.fondeadas !== 1 ? 's' : ''} de ${s.evaluaciones}`, tone: 'blue' })}
-      ${kpiCard({ label: 'Cuentas', value: `${s.live} live`, sub: `${s.pasadas} pasadas · ${s.quemadas} quemadas`, tone: 'purple' })}
+      ${kpiCard({ label: 'Cuentas live', value: `${s.live}`, sub: 'fondeadas activas', tone: 'purple' })}
     </div>
 
     <div class="section-title">Capital invertido vs retornado</div>
@@ -152,8 +152,10 @@ function accountRows(cuentas) {
         <td class="mono" style="color:${roi >= 0 ? 'var(--green)' : 'var(--red)'};">${fmtRoi(roi)}</td>
         <td style="text-align:right;white-space:nowrap;">
           ${c.fase !== 'fondeada' ? `<button class="btn ghost" data-cont-advance="${c.id}" title="Superar fase" style="padding:4px 7px;font-size:11px;">✓</button>` : ''}
+          ${c.fase !== 'fondeada' ? `<button class="btn ghost" data-cont-fondeada="${c.id}" title="Pasar a Fondeada directamente" style="padding:4px 7px;font-size:11px;">★</button>` : ''}
           ${c.status !== 'perdida' ? `<button class="btn ghost danger" data-cont-quemada="${c.id}" title="Marcar quemada" style="padding:4px 7px;font-size:11px;">✗</button>` : ''}
           <button class="btn ghost" data-cont-edit="${c.id}" title="Editar cuenta" style="padding:4px 7px;font-size:11px;">✏️</button>
+          <button class="btn ghost danger" data-cont-delete="${c.id}" title="Borrar cuenta" style="padding:4px 7px;font-size:11px;">🗑</button>
         </td>
       </tr>`;
   }).join('');
@@ -162,10 +164,28 @@ function accountRows(cuentas) {
 function wireResumen(container) {
   container.querySelectorAll('[data-cont-advance]').forEach(b =>
     b.addEventListener('click', () => state.advanceFase(b.dataset.contAdvance)));
+  container.querySelectorAll('[data-cont-fondeada]').forEach(b =>
+    b.addEventListener('click', () => {
+      const c = state.cuentas.find(x => x.id === b.dataset.contFondeada);
+      if (!c) return;
+      openModal({
+        title: 'Pasar a Fondeada',
+        body: `¿Pasar <strong>${esc(c.empresa)} ${esc(c.numero || '')}</strong> directamente a <strong>Fondeada</strong> (saltando fases)?`,
+        actions: [
+          { label: 'Cancelar', onClick: cl => cl() },
+          { label: 'Sí, a Fondeada', variant: 'primary', onClick: cl => { state.markFondeada(c.id); cl(); } },
+        ],
+      });
+    }));
   container.querySelectorAll('[data-cont-edit]').forEach(b =>
     b.addEventListener('click', () => {
       const c = state.cuentas.find(x => x.id === b.dataset.contEdit);
       if (c) openCuentaEditModal(c);
+    }));
+  container.querySelectorAll('[data-cont-delete]').forEach(b =>
+    b.addEventListener('click', () => {
+      const c = state.cuentas.find(x => x.id === b.dataset.contDelete);
+      if (c) confirmDeleteCuenta(c);
     }));
   container.querySelectorAll('[data-cont-quemada]').forEach(b =>
     b.addEventListener('click', () => {

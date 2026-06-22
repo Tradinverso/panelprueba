@@ -151,6 +151,7 @@ function sanitizeCuenta(c) {
     initialBalance,
     cost: typeof c.cost === 'number' ? c.cost : (parseFloat(c.cost) || 0),
     targetUsd: c.targetUsd != null ? (typeof c.targetUsd === 'number' ? c.targetUsd : parseFloat(c.targetUsd) || 0) : 0,
+    targetPct: typeof c.targetPct === 'number' ? c.targetPct : (parseFloat(c.targetPct) || 0),  // objetivo como % del capital
     maxDdUsd: c.maxDdUsd != null ? (typeof c.maxDdUsd === 'number' ? c.maxDdUsd : parseFloat(c.maxDdUsd) || 0) : 0,
     status: VALID_STATUS.has(c.status) ? c.status : 'activa',
     fase: VALID_FASE.has(c.fase) ? c.fase : 'challenge_1',
@@ -298,9 +299,11 @@ export const state = {
         sync.loadTrades(uid),
         sync.loadCuentas(uid),
         sync.loadReflections(uid),
-        sync.loadPerfiles(uid),
-        sync.loadConfig(uid),
-        sync.loadTradingPlan(uid),
+        // Colecciones nuevas: si las reglas de Firestore aún no las cubren, no
+        // deben tumbar la carga entera (caen a su valor por defecto).
+        sync.loadPerfiles(uid).catch(() => []),
+        sync.loadConfig(uid).catch(() => ({})),
+        sync.loadTradingPlan(uid).catch(() => ({})),
       ]);
       this.trades = trades.map(sanitizeTrade).filter(Boolean);
       this.cuentas = cuentas.map(sanitizeCuenta).filter(Boolean);
@@ -334,9 +337,9 @@ export const state = {
         sync.loadStudentTrades(studentUid),
         sync.loadCuentas(studentUid),
         sync.loadReflections(studentUid),
-        sync.loadPerfiles(studentUid),
-        sync.loadConfig(studentUid),
-        sync.loadTradingPlan(studentUid),
+        sync.loadPerfiles(studentUid).catch(() => []),
+        sync.loadConfig(studentUid).catch(() => ({})),
+        sync.loadTradingPlan(studentUid).catch(() => ({})),
       ]);
       this.trades = trades.map(sanitizeTrade).filter(Boolean);
       this.cuentas = cuentas.map(sanitizeCuenta).filter(Boolean);
@@ -499,6 +502,15 @@ export const state = {
     const c = this.cuentas.find(x => x.id === cuentaId);
     const patch = { status: 'perdida' };
     if (c && !c.burnedAt) patch.burnedAt = new Date().toISOString().substring(0, 10);
+    return this.updateCuenta(cuentaId, patch);
+  },
+
+  // Salta directamente a Fondeada (sin pasar fase a fase).
+  markFondeada(cuentaId) {
+    const c = this.cuentas.find(x => x.id === cuentaId);
+    if (!c) return null;
+    const patch = { fase: 'fondeada', status: 'activa' };
+    if (!c.fundedAt) patch.fundedAt = new Date().toISOString().substring(0, 10);
     return this.updateCuenta(cuentaId, patch);
   },
 
