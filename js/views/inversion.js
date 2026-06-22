@@ -88,7 +88,7 @@ function render(container) {
 function renderPanel(container) {
   const panel = container.querySelector('#invPanel');
   if (!panel) return;
-  if (activeTab === 'resumen') { panel.innerHTML = renderResumen(); paintChart(container); }
+  if (activeTab === 'resumen') { panel.innerHTML = renderResumen(); requestAnimationFrame(() => paintChart(container)); }
   else if (activeTab === 'retiros') { panel.innerHTML = renderLista('retiros'); wireLista(container); }
   else { panel.innerHTML = renderLista('compras'); wireLista(container); }
 }

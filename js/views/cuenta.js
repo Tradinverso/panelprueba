@@ -145,9 +145,12 @@ function render(container, cuentaId) {
     });
   });
 
-  // Charts
-  paintEquityChart(container, curve);
-  if (monthly.length) paintMonthlyChart(container, monthly);
+  // Charts — en el siguiente frame (layout listo) para evitar lienzo en blanco.
+  requestAnimationFrame(() => {
+    if (!container.querySelector('#cuenta-equity')) return;
+    paintEquityChart(container, curve);
+    if (monthly.length) paintMonthlyChart(container, monthly);
+  });
 }
 
 function renderWithdrawalsSection(cuenta, stats) {

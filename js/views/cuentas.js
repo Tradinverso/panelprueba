@@ -142,13 +142,15 @@ function render(container) {
       if (abs >= 1000) return (v < 0 ? '-' : '') + '$' + (abs / 1000).toFixed(abs >= 10000 ? 0 : 1) + 'K';
       return (v < 0 ? '-' : '') + '$' + abs.toFixed(0);
     };
-    const equityCanvas = container.querySelector('#portfolioEquity');
-    if (equityCanvas) {
+    // Gráfico en el siguiente frame (layout listo) para evitar lienzo en blanco.
+    requestAnimationFrame(() => {
+      const equityCanvas = container.querySelector('#portfolioEquity');
+      if (!equityCanvas) return;
       const curve = portfolioEquityCurve(byType, state.trades);
       createEquity(equityCanvas, [
         { key: 'PORT', label: 'Equity cartera', data: curve },
       ], { formatter: usdAxis });
-    }
+    });
 
     const faseEl = container.querySelector('#cf-fase');
     if (faseEl) faseEl.addEventListener('change', e => {

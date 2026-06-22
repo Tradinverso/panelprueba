@@ -55,14 +55,22 @@ function render(container) {
     });
   }
 
+  // KPIs y tablas (HTML puro) se pintan ya.
   paintKpis(container, filtered);
-  paintEquity(container, filtered);
-  paintMonthly(container, allTrades);
-  ['ZONAS', 'LIQUIDEZ', 'NASDAQ'].forEach(s => paintStrategy(container, s, filtered));
-  paintTiming(container, filtered);
-  paintDirectionAndPairs(container, filtered);
   paintStreaks(container, filtered);
   paintDurations(container, filtered);
+
+  // Gráficos (Chart.js): en el siguiente frame, cuando el layout del contenedor
+  // ya está calculado. Crearlos en el mismo tick que el innerHTML provoca que a
+  // veces midan tamaño 0 y salgan en blanco hasta refrescar.
+  requestAnimationFrame(() => {
+    if (!container.querySelector('#equityChart')) return; // la vista cambió
+    paintEquity(container, filtered);
+    paintMonthly(container, allTrades);
+    ['ZONAS', 'LIQUIDEZ', 'NASDAQ'].forEach(s => paintStrategy(container, s, filtered));
+    paintTiming(container, filtered);
+    paintDirectionAndPairs(container, filtered);
+  });
 }
 
 function impersonationBanner() {
