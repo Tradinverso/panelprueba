@@ -155,6 +155,8 @@ function sanitizeCuenta(c) {
     status: VALID_STATUS.has(c.status) ? c.status : 'activa',
     fase: VALID_FASE.has(c.fase) ? c.fase : 'challenge_1',
     numFases: c.numFases === 1 ? 1 : 2,   // nº de fases del challenge (1 ó 2)
+    fundedAt: c.fundedAt || null,         // fecha en que pasó a fondeada (calendario)
+    burnedAt: c.burnedAt || null,         // fecha en que se quemó (calendario)
     withdrawals: Array.isArray(c.withdrawals)
       ? c.withdrawals
           .filter(w => w && w.amount > 0)
@@ -487,11 +489,17 @@ export const state = {
     if (c.fase === 'challenge_1') next = c.numFases === 1 ? 'fondeada' : 'challenge_2';
     else if (c.fase === 'challenge_2') next = 'fondeada';
     else return c; // ya fondeada
-    return this.updateCuenta(cuentaId, { fase: next, status: 'activa' });
+    const patch = { fase: next, status: 'activa' };
+    // Registrar la fecha de fondeo la primera vez (para el calendario de Contabilidad).
+    if (next === 'fondeada' && !c.fundedAt) patch.fundedAt = new Date().toISOString().substring(0, 10);
+    return this.updateCuenta(cuentaId, patch);
   },
 
   markQuemada(cuentaId) {
-    return this.updateCuenta(cuentaId, { status: 'perdida' });
+    const c = this.cuentas.find(x => x.id === cuentaId);
+    const patch = { status: 'perdida' };
+    if (c && !c.burnedAt) patch.burnedAt = new Date().toISOString().substring(0, 10);
+    return this.updateCuenta(cuentaId, patch);
   },
 
   // ── Retiros (siempre dentro de una cuenta) ───────────────

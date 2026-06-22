@@ -376,6 +376,20 @@ export function allPurchases(cuentas) {
   return out.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 }
 
+// Lista plana de TODOS los eventos contables (compra / retiro / fondeada /
+// quemada) con su fecha, para el calendario de Contabilidad.
+export function accountingEvents(cuentas) {
+  const out = [];
+  for (const c of cuentas) {
+    const nombre = `${c.empresa} ${c.numero || ''}`.trim();
+    for (const p of purchasesOf(c)) out.push({ date: p.date, type: 'compra', cuentaId: c.id, cuentaNombre: nombre, amount: p.amount || 0 });
+    for (const w of (c.withdrawals || [])) out.push({ date: w.date, type: 'retiro', cuentaId: c.id, cuentaNombre: nombre, amount: w.amount || 0 });
+    if (c.fundedAt) out.push({ date: c.fundedAt, type: 'fondeada', cuentaId: c.id, cuentaNombre: nombre, amount: 0 });
+    if (c.burnedAt) out.push({ date: c.burnedAt, type: 'quemada', cuentaId: c.id, cuentaNombre: nombre, amount: 0 });
+  }
+  return out.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+}
+
 // Agregados del negocio prop sobre TODAS las cuentas.
 // range opcional {from,to} (YYYY-MM-DD) filtra gastos/ganancias por fecha;
 // los contadores (live/pasadas/quemadas/funding) son SIEMPRE globales.

@@ -24,7 +24,7 @@ import { cuentasListView } from './views/cuentas.js';
 import { cuentaDetailView } from './views/cuenta.js';
 import { riesgoView } from './views/riesgo.js';
 import { tradingPlanView } from './views/plan.js';
-import { inversionView } from './views/inversion.js';
+import { contabilidadView } from './views/contabilidad.js';
 
 theme.init();
 
@@ -54,7 +54,7 @@ router
   .add('#/cuenta',      (params, c) => cuentaDetailView(c, params.id))
   .add('#/riesgo',      (_, c) => riesgoView(c))
   .add('#/plan',        (_, c) => tradingPlanView(c))
-  .add('#/inversion',   (_, c) => inversionView(c));
+  .add('#/contabilidad', (_, c) => contabilidadView(c));
 
 router.onChange(() => renderSidebar(sidebar));
 

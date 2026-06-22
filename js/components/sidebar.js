@@ -17,9 +17,8 @@ const NAV_BASE = [
   { path: '#/nasdaq',     label: 'Nasdaq',   icon: '🚀', class: 'nasdaq',   sheet: 'NASDAQ' },
 
   { section: 'Gestión' },
-  { path: '#/cuentas',    label: 'Cuentas',    icon: '🏦', class: '', countActiveCuentas: true },
-  { path: '#/riesgo',     label: 'Riesgo',     icon: '🛡️', class: '', riskModule: true },
-  { path: '#/inversion',  label: 'Inversión',  icon: '💰', class: '' },
+  { path: '#/cuentas',      label: 'Cuentas',      icon: '🏦', class: '', countActiveCuentas: true },
+  { path: '#/contabilidad', label: 'Contabilidad', icon: '🧮', class: '' },
 
   { section: 'Análisis' },
   { path: '#/diagnostico', label: 'Diagnóstico', icon: '🩺', class: '' },

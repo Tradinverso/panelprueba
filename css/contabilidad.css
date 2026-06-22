@@ -1,0 +1,38 @@
+/* Vista Contabilidad — tabla de detalle + calendario de eventos.
+   Reutiliza .kpi-grid, .card, .data-table, .badge y los tokens var(--*). */
+.inv-table td.mono, .inv-table th { font-family: var(--mono); }
+.inv-table td.mono { font-size: 12px; }
+.inv-table th:nth-child(n+3), .inv-table td:nth-child(n+3) { text-align: right; }
+.inv-table .badge { font-size: 10px; }
+
+/* ── Calendario de eventos (rejilla mensual de 7 columnas) ── */
+.cont-cal { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.cont-cal-dow { display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--border); }
+.cont-cal-dow > div { padding: 10px 8px; text-align: center; font-size: 10px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
+.cont-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.cont-cal-cell {
+  min-height: 92px; padding: 6px 7px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.cont-cal-cell:nth-child(7n) { border-right: none; }
+.cont-cal-cell.empty { background: var(--card2); }
+.cont-cal-cell.has { background: var(--hover); }
+.cont-cal-cell.today { outline: 2px solid var(--accent); outline-offset: -2px; }
+.cont-cal-num { font-size: 11px; font-weight: 600; color: var(--muted); font-family: var(--mono); }
+.cont-cal-cell.has .cont-cal-num { color: var(--text); }
+.cont-cal-evs { display: flex; flex-direction: column; gap: 3px; }
+
+.cont-ev {
+  font-size: 9px; font-family: var(--mono); font-weight: 600; padding: 2px 5px;
+  border-radius: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  border: 1px solid transparent;
+}
+.cont-ev.ev-compra { background: var(--red-bg);   color: var(--red); }
+.cont-ev.ev-retiro { background: var(--green-bg); color: var(--green); }
+.cont-ev.ev-fond   { background: var(--accent-bg); color: var(--accent); }
+.cont-ev.ev-quem   { background: var(--red-bg);   color: var(--red); border-color: var(--red); }
+
+@media (max-width: 640px) {
+  .cont-cal-cell { min-height: 64px; }
+  .cont-ev { font-size: 8px; }
+}

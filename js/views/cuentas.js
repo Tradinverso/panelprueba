@@ -5,6 +5,7 @@ import { state } from '../state.js';
 import { router } from '../router.js';
 import { openCuentaEditModal, confirmDeleteCuenta } from '../components/cuenta-edit-modal.js';
 import { openModal } from '../components/modal.js';
+import { gestionTabs } from '../components/gestion-tabs.js';
 import {
   accountStats, fmtUsd,
   portfolioStats, portfolioEquityCurve, portfolioMonthlyWithdrawals,
@@ -63,6 +64,7 @@ function render(container) {
   const activas = byType.filter(c => c.status === 'activa').length;
 
   container.innerHTML = `
+    ${gestionTabs('cuentas')}
     <div class="page-header">
       <div>
         <h1>Mis cuentas</h1>

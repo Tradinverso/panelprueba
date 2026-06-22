@@ -12,6 +12,7 @@
 import { state } from '../state.js';
 import { openModal } from '../components/modal.js';
 import { renderPills } from '../components/pills.js';
+import { gestionTabs } from '../components/gestion-tabs.js';
 import { accountStats, fmtUsd } from '../utils/account-stats.js';
 import {
   calcNiveles, calcNivelActivo, resolveRiesgoConfig,
@@ -100,6 +101,7 @@ function render(container) {
   const cuentas = cuentasModulo();
 
   container.innerHTML = `
+    ${gestionTabs('riesgo')}
     <div class="page-header">
       <div>
         <h1>Riesgo / Rotación</h1>
