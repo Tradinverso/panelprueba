@@ -172,8 +172,9 @@ function accountRows(cuentas) {
         <td class="mono" style="color:${ben >= 0 ? 'var(--green)' : 'var(--red)'};font-weight:600;">${fmtUsd(ben, true)}</td>
         <td class="mono" style="color:${roi >= 0 ? 'var(--green)' : 'var(--red)'};">${fmtRoi(roi)}</td>
         <td style="text-align:right;white-space:nowrap;">
-          ${c.fase !== 'fondeada' ? `<button class="btn ghost" data-cont-advance="${c.id}" title="Superar fase" style="padding:4px 7px;font-size:11px;">✓</button>` : ''}
-          ${c.fase !== 'fondeada' ? `<button class="btn ghost" data-cont-fondeada="${c.id}" title="Pasar a Fondeada directamente" style="padding:4px 7px;font-size:11px;">★</button>` : ''}
+          ${(c.fase !== 'fondeada' && c.status !== 'perdida') ? `<button class="btn ghost" data-cont-advance="${c.id}" title="Superar fase" style="padding:4px 7px;font-size:11px;">✓</button>` : ''}
+          ${(c.fase !== 'fondeada' && c.status !== 'perdida') ? `<button class="btn ghost" data-cont-fondeada="${c.id}" title="Pasar a Fondeada directamente" style="padding:4px 7px;font-size:11px;">★</button>` : ''}
+          ${(c.fase === 'fondeada' && c.status !== 'perdida') ? `<button class="btn ghost" data-cont-retiro="${c.id}" title="Registrar retiro" style="padding:4px 7px;font-size:11px;">💵</button>` : ''}
           ${c.status !== 'perdida' ? `<button class="btn ghost danger" data-cont-quemada="${c.id}" title="Marcar quemada" style="padding:4px 7px;font-size:11px;">✗</button>` : ''}
           <button class="btn ghost" data-cont-edit="${c.id}" title="Editar cuenta" style="padding:4px 7px;font-size:11px;">✏️</button>
           <button class="btn ghost danger" data-cont-delete="${c.id}" title="Borrar cuenta" style="padding:4px 7px;font-size:11px;">🗑</button>
@@ -199,6 +200,11 @@ function wireResumen(container) {
           { label: 'Sí, a Fondeada', variant: 'primary', onClick: cl => { state.markFondeada(c.id); cl(); } },
         ],
       });
+    }));
+  container.querySelectorAll('[data-cont-retiro]').forEach(b =>
+    b.addEventListener('click', () => {
+      const c = state.cuentas.find(x => x.id === b.dataset.contRetiro);
+      if (c) openWithdrawalModal(c);
     }));
   container.querySelectorAll('[data-cont-edit]').forEach(b =>
     b.addEventListener('click', () => {
