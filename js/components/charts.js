@@ -5,17 +5,10 @@
 
 const READ = key => getComputedStyle(document.documentElement).getPropertyValue(key).trim();
 
-// Plugin global (se registra una sola vez al cargar): tras inicializar CUALQUIER
-// gráfico, fuerza un re-medido en el siguiente frame. Evita que un canvas creado
-// antes de que el layout esté listo (cambio de pestaña/navegación) salga en
-// blanco hasta refrescar. Cubre también los gráficos inline (cuenta/contabilidad).
-if (typeof Chart !== 'undefined' && !Chart.__resizeFix) {
-  Chart.__resizeFix = true;
-  Chart.register({
-    id: 'resizeFix',
-    afterInit(chart) { requestAnimationFrame(() => { try { chart.resize(); } catch (_) {} }); },
-  });
-}
+// Desactivar la animación de Chart.js globalmente. El motor de animación daba
+// "this._fn is not a function" y dejaba el gráfico en blanco hasta refrescar.
+// Sin animación, cada gráfico se dibuja entero y al instante (más fiable).
+if (typeof Chart !== 'undefined') Chart.defaults.animation = false;
 
 // Convierte un color (#rgb / #rrggbb) a rgba con alpha. Si ya es rgb/rgba lo deja.
 function rgba(color, a) {
@@ -43,7 +36,6 @@ function defaults() {
   Chart.defaults.borderColor = READ('--border');
   Chart.defaults.font.family = "'DM Mono', monospace";
   Chart.defaults.font.size = 11;
-  Chart.defaults.animation = { duration: 650, easing: 'easeOutQuart' };
   // Tooltips de cristal, legibles (cuerpo en Inter)
   const tt = Chart.defaults.plugins.tooltip;
   tt.backgroundColor = rgba(READ('--card'), 0.92);

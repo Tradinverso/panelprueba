@@ -31,6 +31,13 @@ theme.init();
 const view = document.getElementById('view');
 const sidebar = document.getElementById('sidebar');
 
+// ── Sidebar móvil (off-canvas con hamburguesa) ──────────────
+const navToggle = document.getElementById('navToggle');
+const navScrim = document.getElementById('navScrim');
+const closeNav = () => document.body.classList.remove('sidebar-open');
+if (navToggle) navToggle.addEventListener('click', () => document.body.classList.toggle('sidebar-open'));
+if (navScrim) navScrim.addEventListener('click', closeNav);
+
 // Splash mientras Firebase resuelve la sesión inicial
 showSplash();
 
@@ -56,7 +63,7 @@ router
   .add('#/plan',        (_, c) => tradingPlanView(c))
   .add('#/contabilidad', (_, c) => contabilidadView(c));
 
-router.onChange(() => renderSidebar(sidebar));
+router.onChange(() => { renderSidebar(sidebar); closeNav(); });
 
 // Cuando cambia el estado de auth: cargar datos + arrancar router
 let started = false;

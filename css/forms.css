@@ -3,6 +3,9 @@
 .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .form-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
 .form-row.cols-1 { grid-template-columns: 1fr; }
+@media (max-width: 640px) {
+  .form-row, .form-row.cols-3 { grid-template-columns: 1fr; }
+}
 .form-field { display: flex; flex-direction: column; gap: 6px; }
 .form-label { font-size: 11px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
 .form-label .required { color: var(--red); margin-left: 2px; }
