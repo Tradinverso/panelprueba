@@ -20,6 +20,7 @@ let activeTab = 'resumen';   // resumen | calendario | retiros | compras
 let yearFilter = 'all';
 let monthFilter = 'all';
 let filterCuenta = 'all';
+let sortBy = 'beneficio';    // beneficio | estado | invertido | roi
 let calAll = false;          // calendario: ver todos los eventos (lista) en vez de la rejilla
 let calYear = null, calMonth = null;
 
@@ -124,7 +125,15 @@ function renderResumen() {
       <div class="chart-wrap" style="height:240px;"><canvas id="invChart"></canvas></div>
     </div>
 
-    <div class="section-title">Detalle por cuenta</div>
+    <div class="section-title-row">
+      <div class="section-title" style="margin:0;">Detalle por cuenta</div>
+      <select id="invSort" class="select">
+        <option value="beneficio" ${sortBy === 'beneficio' ? 'selected' : ''}>Ordenar: Beneficio</option>
+        <option value="estado" ${sortBy === 'estado' ? 'selected' : ''}>Ordenar: Estado</option>
+        <option value="invertido" ${sortBy === 'invertido' ? 'selected' : ''}>Ordenar: Invertido</option>
+        <option value="roi" ${sortBy === 'roi' ? 'selected' : ''}>Ordenar: ROI</option>
+      </select>
+    </div>
     <div class="card" style="padding:0;overflow:hidden;">
       <table class="data-table inv-table">
         <thead><tr><th>Cuenta</th><th>Estado</th><th>Invertido</th><th>Payouts</th><th>Neto</th><th>Beneficio</th><th>ROI</th><th>Acciones</th></tr></thead>
@@ -133,8 +142,20 @@ function renderResumen() {
     </div>`;
 }
 
+const ST_ORDER = { activa: 0, pausada: 1, pasada: 2, perdida: 3 };
+function sortCuentas(cuentas) {
+  const ben = c => totalWithdrawnNet(c) - totalInvested(c);
+  const roiVal = c => { const inv = totalInvested(c); const r = inv > 0 ? ben(c) / inv : (ben(c) > 0 ? Infinity : 0); return isFinite(r) ? r : 1e9; };
+  const arr = [...cuentas];
+  if (sortBy === 'estado') arr.sort((a, b) => (ST_ORDER[a.status] ?? 9) - (ST_ORDER[b.status] ?? 9) || ben(b) - ben(a));
+  else if (sortBy === 'invertido') arr.sort((a, b) => totalInvested(b) - totalInvested(a));
+  else if (sortBy === 'roi') arr.sort((a, b) => roiVal(b) - roiVal(a));
+  else arr.sort((a, b) => ben(b) - ben(a));
+  return arr;
+}
+
 function accountRows(cuentas) {
-  const sorted = [...cuentas].sort((a, b) => (totalWithdrawnNet(b) - totalInvested(b)) - (totalWithdrawnNet(a) - totalInvested(a)));
+  const sorted = sortCuentas(cuentas);
   return sorted.map(c => {
     const inv = totalInvested(c);
     const bruto = totalWithdrawn(c);
@@ -162,6 +183,8 @@ function accountRows(cuentas) {
 }
 
 function wireResumen(container) {
+  const sortSel = container.querySelector('#invSort');
+  if (sortSel) sortSel.addEventListener('change', e => { sortBy = e.target.value; render(container); });
   container.querySelectorAll('[data-cont-advance]').forEach(b =>
     b.addEventListener('click', () => state.advanceFase(b.dataset.contAdvance)));
   container.querySelectorAll('[data-cont-fondeada]').forEach(b =>

@@ -120,6 +120,13 @@
 .stat-trend.up { background: var(--green-bg); color: var(--green); }
 .stat-trend.down { background: var(--red-bg); color: var(--red); }
 
+/* Chart.js a veces no pinta su <canvas> dentro de un elemento con
+   backdrop-filter (bug de compositing en Chromium → "se ve al refrescar").
+   Se quita el blur SOLO en las tarjetas que contienen un gráfico. */
+.card:has(.chart-wrap), .tile:has(.chart-wrap), .kpi-card:has(.chart-wrap) {
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+
 /* ── Markdown renderizado (Plan de trading) ── */
 .md-content { line-height: 1.7; }
 .md-content > *:first-child { margin-top: 0; }
