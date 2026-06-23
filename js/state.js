@@ -505,6 +505,14 @@ export const state = {
     return this.updateCuenta(cuentaId, patch);
   },
 
+  // Reordena la rotación: asigna rotacionOrden = posición a cada id de la lista.
+  reorderRotacion(orderedIds) {
+    orderedIds.forEach((id, i) => {
+      const c = this.cuentas.find(x => x.id === id);
+      if (c && c.rotacionOrden !== i) this.updateCuenta(id, { rotacionOrden: i });
+    });
+  },
+
   // Salta directamente a Fondeada (sin pasar fase a fase).
   markFondeada(cuentaId) {
     const c = this.cuentas.find(x => x.id === cuentaId);

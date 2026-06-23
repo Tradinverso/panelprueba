@@ -125,6 +125,14 @@ a.rg-tab { text-decoration: none; display: inline-flex; align-items: center; }
 .rg-niv-table td { text-align: center; }
 .rg-niv-table tr.arow td { background: var(--accent-bg); }
 
+/* ── Orden de rotación (reordenar ▲▼) ── */
+.rg-orden { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.rg-orden-item { display: flex; align-items: center; gap: 12px; background: var(--card2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; }
+.rg-orden-num { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--muted); min-width: 18px; text-align: center; }
+.rg-orden-name { flex: 1; font-size: 13px; font-weight: 600; }
+.rg-orden-actions { display: flex; gap: 4px; }
+.rg-orden-actions .btn { padding: 4px 9px; font-size: 12px; }
+
 /* ── Toggle en rotación ── */
 .rg-toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; color: var(--muted); }
 .rg-toggle input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }

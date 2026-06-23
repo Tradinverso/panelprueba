@@ -38,7 +38,7 @@ export function periodStats(trades, cuentas, dateFrom, dateTo) {
     be: counts.be,
     wr: winrate(sub),
     pnlSistema: pnlPct(sub),
-    pnlReal: pnlPctReal(sub, cuentaMap),
+    pnlReal: pnlPctReal(sub),
     usdFondeadas: usd,
     trades: sub,
   };

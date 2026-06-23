@@ -405,12 +405,40 @@ function renderGestionarTab() {
       </div>`;
   }).join('');
 
+  const ordenBlock = rot.length > 1 ? `
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title">Orden de rotación</div>
+      <div class="card-sub">Sube o baja las cuentas para fijar el orden. Con SL salta a la siguiente.</div>
+      <div class="rg-orden">
+        ${rot.map((c, i) => `
+          <div class="rg-orden-item">
+            <span class="rg-orden-num">${i + 1}</span>
+            <span class="rg-orden-name">${esc(c.empresa)}${c.numero ? ' #' + esc(c.numero) : ''}</span>
+            <div class="rg-orden-actions">
+              <button class="btn ghost" data-rot-up="${c.id}" ${i === 0 ? 'disabled' : ''} title="Subir">▲</button>
+              <button class="btn ghost" data-rot-down="${c.id}" ${i === rot.length - 1 ? 'disabled' : ''} title="Bajar">▼</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>` : '';
+
   return `
+    ${ordenBlock}
     <div class="rg-hint">La cuenta activa avanza con "Siguiente (SL)" sin registrar ningún trade. Cambiar el perfil o los valores recalcula los niveles al instante.</div>
     ${acordeones}`;
 }
 
 function wireGestionarTab(container) {
+  const rotIds = () => rotacionList().map(c => c.id);
+  container.querySelectorAll('[data-rot-up]').forEach(b => b.addEventListener('click', () => {
+    const ids = rotIds(); const i = ids.indexOf(b.dataset.rotUp);
+    if (i > 0) { [ids[i - 1], ids[i]] = [ids[i], ids[i - 1]]; state.reorderRotacion(ids); }
+  }));
+  container.querySelectorAll('[data-rot-down]').forEach(b => b.addEventListener('click', () => {
+    const ids = rotIds(); const i = ids.indexOf(b.dataset.rotDown);
+    if (i >= 0 && i < ids.length - 1) { [ids[i + 1], ids[i]] = [ids[i], ids[i + 1]]; state.reorderRotacion(ids); }
+  }));
+
   container.querySelectorAll('[data-acc]').forEach(h => {
     h.addEventListener('click', e => {
       if (e.target.closest('input,button,select,a,label')) return;

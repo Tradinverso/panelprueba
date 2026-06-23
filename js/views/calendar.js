@@ -105,7 +105,6 @@ function navigate(container, dir) {
 
 function buildDayIndex(trades) {
   const map = {};
-  const cm = state.cuentaMap();
   for (const t of trades) {
     if (!map[t.date]) map[t.date] = { trades: [], pnl: 0, pnlReal: 0, count: 0, tp: 0, sl: 0, be: 0 };
     const d = map[t.date];
@@ -113,7 +112,7 @@ function buildDayIndex(trades) {
     d.count++;
     if (t.result !== 'BE') {
       d.pnl += t.pnl_pct || 0;
-      d.pnlReal += tradeRealPnl(t, cm);
+      d.pnlReal += tradeRealPnl(t);
     }
     if (t.result === 'TP') d.tp++;
     else if (t.result === 'SL') d.sl++;

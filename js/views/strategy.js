@@ -40,7 +40,7 @@ function render(container, sheet) {
   const c = tradeCounts(all);
   const wr = winrate(all);
   const pnl = pnlPct(all);
-  const pnlReal = pnlPctReal(all, state.cuentaMap());
+  const pnlReal = pnlPctReal(all);
   const pf = profitFactor(all);
   const dd = maxDrawdown(all);
   const tpS = maxStreak(all, 'TP');
@@ -181,15 +181,14 @@ function render(container, sheet) {
   }
 
   // Charts — en el siguiente frame (layout listo) para evitar lienzo en blanco.
-  const cm = state.cuentaMap();
-  const eqCurve = perfMode === 'real' ? (x => equityCurveReal(x, cm)) : equityCurve;
+  const eqCurve = perfMode === 'real' ? equityCurveReal : equityCurve;
   requestAnimationFrame(() => {
     if (!container.querySelector('#equityChart')) return;
     createEquity(container.querySelector('#equityChart'),
       [{ key: sheet, label: meta.label, data: eqCurve(all) },
        { key: 'ALL', label: 'Global', data: eqCurve(all) }].slice(0, 1));
     createDonut(container.querySelector('#donut'), c.tp, c.sl, c.be);
-    const m = monthlyPnl(all, cm);
+    const m = monthlyPnl(all);
     createBar(container.querySelector('#monthlyChart'),
       m.map(d => MONTHS_ES_SHORT[+d.month.split('-')[1] - 1] + ' ' + d.month.substring(2, 4)),
       m.map(d => +(perfMode === 'real' ? d.pnlReal : d.pnl).toFixed(2)));
@@ -235,8 +234,7 @@ function render(container, sheet) {
   const ls = longVsShort(all);
   const longSub = all.filter(t => t.setup === 'LONG');
   const shortSub = all.filter(t => t.setup === 'SHORT');
-  const cmLs = state.cuentaMap();
-  const lsReal = { long: pnlPctReal(longSub, cmLs), short: pnlPctReal(shortSub, cmLs) };
+  const lsReal = { long: pnlPctReal(longSub), short: pnlPctReal(shortSub) };
   container.querySelector('#lsTbody').innerHTML = ['long', 'short'].map(d => {
     const x = ls[d];
     return tableRow([d.toUpperCase(), x.n, coloredPct(x.wr, 50), coloredSignedPct(x.pnl), coloredSignedPct(lsReal[d])]);

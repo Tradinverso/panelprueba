@@ -51,8 +51,11 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--glow-card);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
 }
+/* El cristal (backdrop-filter) solo en KPIs: en .card rompe el pintado de los
+   <canvas> de Chart.js en Chromium (gráficos en blanco hasta refrescar). */
+.kpi-card { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.card { backdrop-filter: none; -webkit-backdrop-filter: none; }
 .kpi-card { transition: transform var(--dur) var(--ease), border-color var(--dur), box-shadow var(--dur); }
 .kpi-card:hover {
   transform: translateY(-2px);

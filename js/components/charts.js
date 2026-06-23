@@ -5,6 +5,18 @@
 
 const READ = key => getComputedStyle(document.documentElement).getPropertyValue(key).trim();
 
+// Plugin global (se registra una sola vez al cargar): tras inicializar CUALQUIER
+// gráfico, fuerza un re-medido en el siguiente frame. Evita que un canvas creado
+// antes de que el layout esté listo (cambio de pestaña/navegación) salga en
+// blanco hasta refrescar. Cubre también los gráficos inline (cuenta/contabilidad).
+if (typeof Chart !== 'undefined' && !Chart.__resizeFix) {
+  Chart.__resizeFix = true;
+  Chart.register({
+    id: 'resizeFix',
+    afterInit(chart) { requestAnimationFrame(() => { try { chart.resize(); } catch (_) {} }); },
+  });
+}
+
 // Convierte un color (#rgb / #rrggbb) a rgba con alpha. Si ya es rgb/rgba lo deja.
 function rgba(color, a) {
   const c = (color || '').trim();
