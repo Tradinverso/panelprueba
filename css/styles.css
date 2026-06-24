@@ -359,8 +359,10 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
 .empty .big { font-size: 28px; margin-bottom: 12px; }
 .empty .btn { margin-top: 20px; }
 
-/* ── Responsive ──────────────────────────────────────────── */
-@media (max-width: 1100px) {
+/* ── Responsive (tablet: barra lateral compacta a iconos) ──── */
+/* Solo 901–1100px: por debajo de 900px manda el sidebar off-canvas
+   (ver bloque @media max-width:900px arriba), no esta rejilla de 68px. */
+@media (min-width: 901px) and (max-width: 1100px) {
   body { grid-template-columns: 68px 1fr; }
   :root { --sidebar-w: 68px; }
   .brand-text, .nav-label, .nav-meta, .nav-section, .theme-toggle span { display: none; }
@@ -368,11 +370,6 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
   .nav-item.active::before { left: -8px; }
   .theme-toggle { justify-content: center; padding: 10px 0; }
   .brand { justify-content: center; padding: 4px 0 24px; }
-}
-@media (max-width: 800px) {
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .grid-3, .grid-2, .grid-2-1, .grid-1-2 { grid-template-columns: 1fr; }
-  #view { padding: 20px 16px; }
 }
 
 /* ── Tabla de datos (editor inline tipo Excel) ────────────── */
