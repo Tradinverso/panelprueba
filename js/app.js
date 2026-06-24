@@ -108,6 +108,14 @@ auth.on(async () => {
 
 auth.init();
 
+// ── PWA: registrar service worker (habilita "Instalar app") ──
+// Ruta relativa para que funcione bajo cualquier subcarpeta (p. ej. /panelprueba/).
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
 // ── Splash helpers ──────────────────────────────────────────
 function showSplash() {
   if (document.getElementById('boot-splash')) return;
