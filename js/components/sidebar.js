@@ -82,7 +82,7 @@ export function renderSidebar(container) {
     <a href="${auth.isAdmin() && !inViewAs ? '#/admin' : '#/dashboard'}" class="brand">
       <div class="brand-logo">T</div>
       <div class="brand-text">
-        <span class="brand-line1">Aplicación · V2.0</span>
+        <span class="brand-line1">Trading Journal · V2.0</span>
         <span class="brand-line2">Tradinverso</span>
       </div>
     </a>
