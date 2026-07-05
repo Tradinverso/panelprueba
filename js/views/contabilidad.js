@@ -585,7 +585,14 @@ function buildMonthCells(byDate) {
     const marks = `${hasFond ? '<span class="cont-day-mark f" title="Fondeada">★</span>' : ''}${hasQuem ? '<span class="cont-day-mark q" title="Quemada">✗</span>' : ''}`;
     const amounts = `${ingresos > 0 ? `<div class="cont-day-in">+${fmtUsd(ingresos)}</div>` : ''}${gastos > 0 ? `<div class="cont-day-out">-${fmtUsd(gastos)}</div>` : ''}`;
     const hasData = ingresos > 0 || gastos > 0 || hasFond || hasQuem;
-    cells.push(`<div class="cont-cal-cell ${hasData ? 'has' : ''} ${isToday ? 'today' : ''}">
+    // Color de la casilla según el neto del día (como el calendario de trades):
+    // verde si entra más de lo que sale, rojo si sale más.
+    let netCls = '';
+    if (ingresos > 0 || gastos > 0) {
+      const net = ingresos - gastos;
+      netCls = net > 0 ? 'ingreso' : net < 0 ? 'gasto' : 'be';
+    }
+    cells.push(`<div class="cont-cal-cell ${hasData ? 'has' : ''} ${netCls} ${isToday ? 'today' : ''}">
       <span class="cont-cal-num">${d}${marks}</span>
       <div class="cont-cal-amts">${amounts}</div>
     </div>`);

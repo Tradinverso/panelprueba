@@ -17,15 +17,19 @@
 .cont-cal-cell:nth-child(7n) { border-right: none; }
 .cont-cal-cell.empty { background: var(--card2); }
 .cont-cal-cell.has { background: var(--hover); }
+/* Color de la casilla según el neto del día (estilo calendario de trades) */
+.cont-cal-cell.ingreso { background: rgba(0,160,110,.14); outline: 1px solid rgba(16,185,129,.35); outline-offset: -1px; }
+.cont-cal-cell.gasto   { background: rgba(180,30,50,.14); outline: 1px solid rgba(239,68,68,.35); outline-offset: -1px; }
+.cont-cal-cell.be      { background: rgba(200,120,0,.14); outline: 1px solid rgba(255,165,2,.35); outline-offset: -1px; }
 .cont-cal-cell.today { outline: 2px solid var(--accent); outline-offset: -2px; }
 .cont-cal-num { font-size: 11px; font-weight: 600; color: var(--muted); font-family: var(--mono); }
 .cont-cal-cell.has .cont-cal-num { color: var(--text); }
 .cont-cal-evs { display: flex; flex-direction: column; gap: 3px; }
 
-/* Totales del día: ingresos (verde) y gastos (rojo), en grande */
-.cont-cal-amts { display: flex; flex-direction: column; gap: 2px; margin-top: auto; align-items: flex-start; }
+/* Totales del día: ingresos (verde) y gastos (rojo), grandes y centrados */
+.cont-cal-amts { flex: 1; display: flex; flex-direction: column; gap: 3px; align-items: center; justify-content: center; }
 .cont-day-in, .cont-day-out {
-  font-family: var(--font-display); font-weight: 700; font-size: 14px; letter-spacing: -.3px; line-height: 1.1;
+  font-family: var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: -.4px; line-height: 1.05;
 }
 .cont-day-in { color: var(--green); }
 .cont-day-out { color: var(--red); }
@@ -75,5 +79,5 @@
 @media (max-width: 640px) {
   .cont-cal-cell { min-height: 64px; padding: 5px 5px; }
   .cont-ev { font-size: 8px; }
-  .cont-day-in, .cont-day-out { font-size: 11px; }
+  .cont-day-in, .cont-day-out { font-size: 13px; }
 }
