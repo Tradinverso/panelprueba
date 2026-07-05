@@ -298,7 +298,7 @@ function renderResumenTab() {
       </div>`).join('')}</div>
 
     <div class="section-title">Detalle</div>
-    <div class="card" style="padding:0;overflow:hidden;">
+    <div class="card table-card" style="padding:0;">
       <table class="data-table rg-table">
         <thead><tr><th>Cuenta</th><th>Capital</th><th>Balance</th><th>P&L</th><th>%</th><th>Nivel</th><th>Próx. riesgo</th></tr></thead>
         <tbody>${filas}</tbody>

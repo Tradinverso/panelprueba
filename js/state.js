@@ -188,7 +188,7 @@ function sanitizeCuenta(c) {
   };
 }
 
-const VALID_CONCEPT = new Set(['challenge', 'reset', 'reintento', 'otro']);
+const VALID_CONCEPT = new Set(['challenge', 'reset', 'reintento', 'suscripcion', 'otro']);
 
 function sanitizePurchase(p) {
   if (!p) return null;
@@ -579,6 +579,15 @@ export const state = {
     return this.updateCuenta(cuentaId, {
       purchases: (cuenta.purchases || []).filter(p => p.id !== purchaseId),
     });
+  },
+
+  updatePurchase(cuentaId, purchaseId, patch) {
+    const cuenta = this.cuentas.find(c => c.id === cuentaId);
+    if (!cuenta) return null;
+    const purchases = (cuenta.purchases || []).map(p =>
+      p.id === purchaseId ? (sanitizePurchase({ ...p, ...patch, id: purchaseId }) || p) : p
+    );
+    return this.updateCuenta(cuentaId, { purchases });
   },
 
   // ── Reflexiones de psicología ────────────────────────────

@@ -9,15 +9,19 @@ const CONCEPTOS = [
   { value: 'challenge', label: 'Challenge / evaluación' },
   { value: 'reset', label: 'Reset' },
   { value: 'reintento', label: 'Reintento' },
+  { value: 'suscripcion', label: 'Suscripción (mensual)' },
   { value: 'otro', label: 'Otro' },
 ];
 
-export function openPurchaseModal(cuenta = null, onSaved = () => {}) {
+// `existing` (opcional): compra ya guardada → el modal entra en modo edición
+// (precarga los campos, oculta el selector de cuenta y actualiza en vez de crear).
+export function openPurchaseModal(cuenta = null, onSaved = () => {}, existing = null) {
+  const isEdit = !!existing;
   const today = new Date().toISOString().substring(0, 10);
   const cuentas = state.cuentas;
   if (!cuenta && !cuentas.length) return;
 
-  const cuentaSelector = cuenta ? '' : `
+  const cuentaSelector = (cuenta || isEdit) ? '' : `
     <div class="form-field">
       <label class="form-label">Cuenta <span class="required">*</span></label>
       <select class="form-input" id="p-cuenta">
@@ -25,30 +29,37 @@ export function openPurchaseModal(cuenta = null, onSaved = () => {}) {
       </select>
     </div>`;
 
+  const dateVal = isEdit ? (existing.date || today) : today;
+  const amountVal = isEdit ? existing.amount : '';
+  const noteVal = isEdit ? (existing.note || '') : '';
+  const conceptVal = isEdit ? existing.concept : '';
+
   openModal({
-    title: cuenta ? `Registrar compra · ${esc(cuenta.empresa)} ${esc(cuenta.numero || '')}` : 'Registrar compra',
+    title: isEdit
+      ? 'Editar compra'
+      : (cuenta ? `Registrar compra · ${esc(cuenta.empresa)} ${esc(cuenta.numero || '')}` : 'Registrar compra'),
     body: `
       <div class="form" style="max-width:none;gap:14px;">
         ${cuentaSelector}
         <div class="form-row">
           <div class="form-field">
             <label class="form-label">Fecha <span class="required">*</span></label>
-            <input class="form-input" type="date" id="p-date" value="${today}">
+            <input class="form-input" type="date" id="p-date" value="${esc(dateVal)}">
           </div>
           <div class="form-field">
             <label class="form-label">Importe pagado ($) <span class="required">*</span></label>
-            <input class="form-input" type="number" step="0.01" min="0.01" id="p-amount" placeholder="99.00">
+            <input class="form-input" type="number" step="0.01" min="0.01" id="p-amount" placeholder="99.00" value="${esc(amountVal)}">
           </div>
         </div>
         <div class="form-field">
           <label class="form-label">Concepto</label>
           <select class="form-input" id="p-concept">
-            ${CONCEPTOS.map(c => `<option value="${c.value}">${c.label}</option>`).join('')}
+            ${CONCEPTOS.map(c => `<option value="${c.value}" ${c.value === conceptVal ? 'selected' : ''}>${c.label}</option>`).join('')}
           </select>
         </div>
         <div class="form-field">
           <label class="form-label">Nota</label>
-          <input class="form-input" type="text" id="p-note" placeholder="Opcional…">
+          <input class="form-input" type="text" id="p-note" placeholder="Opcional…" value="${esc(noteVal)}">
         </div>
         <div id="p-err" class="auth-error" style="display:none;"></div>
       </div>
@@ -56,7 +67,7 @@ export function openPurchaseModal(cuenta = null, onSaved = () => {}) {
     actions: [
       { label: 'Cancelar', onClick: close => close() },
       {
-        label: 'Registrar compra',
+        label: isEdit ? 'Guardar cambios' : 'Registrar compra',
         variant: 'primary',
         onClick: close => {
           const root = document.getElementById('modal-root');
@@ -64,7 +75,7 @@ export function openPurchaseModal(cuenta = null, onSaved = () => {}) {
           const showErr = msg => { errEl.textContent = '⚠ ' + msg; errEl.style.display = 'flex'; };
           errEl.style.display = 'none';
 
-          const cuentaId = cuenta ? cuenta.id : root.querySelector('#p-cuenta').value;
+          const cuentaId = isEdit ? cuenta.id : (cuenta ? cuenta.id : root.querySelector('#p-cuenta').value);
           const date = root.querySelector('#p-date').value;
           const amount = parseFloat(root.querySelector('#p-amount').value);
           const concept = root.querySelector('#p-concept').value;
@@ -74,7 +85,8 @@ export function openPurchaseModal(cuenta = null, onSaved = () => {}) {
           if (!date) return showErr('Falta la fecha.');
           if (!amount || amount <= 0) return showErr('El importe debe ser mayor que 0.');
 
-          state.addPurchase(cuentaId, { date, amount, concept, note });
+          if (isEdit) state.updatePurchase(cuentaId, existing.id, { date, amount, concept, note });
+          else state.addPurchase(cuentaId, { date, amount, concept, note });
           close();
           if (typeof onSaved === 'function') onSaved();
         },

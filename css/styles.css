@@ -78,6 +78,26 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* Tarjeta que contiene una tabla: recorta a las esquinas redondeadas en
+   escritorio; en móvil pasa a scroll horizontal (ver media query). */
+.table-card { overflow: hidden; }
+
+/* Ajustes finos de móvil (tablas con scroll, modales, anti-zoom iOS) */
+@media (max-width: 600px) {
+  /* Las tablas anchas (Contabilidad/Riesgo) se desplazan en horizontal dentro
+     de su tarjeta en vez de recortarse. nowrap SOLO dentro de .table-card:
+     el resto de tablas (dashboard, etc.) siguen envolviendo texto sin desbordar. */
+  .table-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table-card .data-table th, .table-card .data-table td { white-space: nowrap; }
+
+  /* Modales: menos padding para recuperar ancho en pantallas estrechas */
+  .modal-overlay { padding: 10px; }
+  .modal, .modal.modal-lg, .modal.modal-xl { padding: 16px; max-height: 88vh; }
+
+  /* iOS Safari hace zoom al enfocar inputs con fuente < 16px → forzamos 16px */
+  .form-input, .form-textarea, select.form-input, .select { font-size: 16px; }
+}
+
 /* ── Sidebar ─────────────────────────────────────────────── */
 .brand { display: flex; align-items: center; gap: 12px; padding: 4px 8px 28px; text-decoration: none; color: var(--text); }
 .brand-logo {

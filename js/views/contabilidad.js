@@ -25,7 +25,7 @@ let calAll = false;          // calendario: ver todos los eventos (lista) en vez
 let calYear = null, calMonth = null;
 
 const STATUS_LABEL = { activa: 'Activa', pausada: 'Pausada', pasada: 'Pasada', perdida: 'Quemada' };
-const CONCEPT_LABEL = { challenge: 'Challenge', reset: 'Reset', reintento: 'Reintento', otro: 'Otro' };
+const CONCEPT_LABEL = { challenge: 'Challenge', reset: 'Reset', reintento: 'Reintento', suscripcion: 'Suscripción', otro: 'Otro' };
 const fmtRoi = v => !isFinite(v) ? '∞' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
 
 function currentRange() {
@@ -134,7 +134,7 @@ function renderResumen() {
         <option value="roi" ${sortBy === 'roi' ? 'selected' : ''}>Ordenar: ROI</option>
       </select>
     </div>
-    <div class="card" style="padding:0;overflow:hidden;">
+    <div class="card table-card" style="padding:0;">
       <table class="data-table inv-table">
         <thead><tr><th>Cuenta</th><th>Estado</th><th>Invertido</th><th>Payouts</th><th>Neto</th><th>Beneficio</th><th>ROI</th><th>Acciones</th></tr></thead>
         <tbody>${accountRows(cuentas)}</tbody>
@@ -251,7 +251,7 @@ function renderLista(kind) {
   if (kind === 'retiros') {
     const total = items.reduce((s, w) => s + Math.max(0, (w.amount || 0) - (w.commission || 0)), 0);
     return filtro + `
-      <div class="card" style="padding:0;overflow:hidden;">
+      <div class="card table-card" style="padding:0;">
         <table class="data-table inv-table">
           <thead><tr><th>Fecha</th><th>Cuenta</th><th>Bruto</th><th>Comisión</th><th>Neto</th><th>Nota</th><th></th></tr></thead>
           <tbody>${items.map(w => {
@@ -274,7 +274,7 @@ function renderLista(kind) {
   // compras
   const total = items.reduce((s, p) => s + (p.amount || 0), 0);
   return filtro + `
-    <div class="card" style="padding:0;overflow:hidden;">
+    <div class="card table-card" style="padding:0;">
       <table class="data-table inv-table">
         <thead><tr><th>Fecha</th><th>Cuenta</th><th>Concepto</th><th>Importe</th><th></th></tr></thead>
         <tbody>${items.map(p => {
@@ -284,7 +284,9 @@ function renderLista(kind) {
             <td>${esc(p.cuentaNombre)}</td>
             <td><span class="badge">${CONCEPT_LABEL[p.concept] || p.concept || '–'}</span></td>
             <td class="mono" style="color:var(--red);">${fmtUsd(p.amount)}</td>
-            <td style="text-align:right;">${legacy ? '' : `<button class="btn ghost danger" data-del-p="${p.id}" data-cid="${p.cuentaId}" style="padding:4px 8px;font-size:11px;">×</button>`}</td>
+            <td style="text-align:right;white-space:nowrap;">${legacy ? '' : `
+              <button class="btn ghost" data-edit-p="${p.id}" data-cid="${p.cuentaId}" title="Editar compra" style="padding:4px 8px;font-size:11px;">✏️</button>
+              <button class="btn ghost danger" data-del-p="${p.id}" data-cid="${p.cuentaId}" title="Borrar compra" style="padding:4px 8px;font-size:11px;">×</button>`}</td>
           </tr>`;
         }).join('')}</tbody>
         <tfoot><tr><td colspan="3" style="text-align:right;color:var(--muted);font-size:11px;">Total</td><td class="mono" style="color:var(--red);font-weight:600;">${fmtUsd(total)}</td><td></td></tr></tfoot>
@@ -306,6 +308,11 @@ function wireLista(container) {
       { label: 'Cancelar', onClick: c => c() },
       { label: 'Borrar', variant: 'danger', onClick: c => { state.removePurchase(b.dataset.cid, b.dataset.delP); c(); } },
     ] });
+  }));
+  container.querySelectorAll('[data-edit-p]').forEach(b => b.addEventListener('click', () => {
+    const cuenta = state.cuentas.find(c => c.id === b.dataset.cid);
+    const compra = cuenta && (cuenta.purchases || []).find(p => p.id === b.dataset.editP);
+    if (cuenta && compra) openPurchaseModal(cuenta, () => render(container), compra);
   }));
 }
 
@@ -409,7 +416,7 @@ function renderCalendario() {
     const html = Object.keys(groups).sort().reverse().map(mk => {
       const [y, mo] = mk.split('-');
       return `<div class="section-title">${MONTHS_ES[+mo - 1]} ${y}</div>
-        <div class="card" style="padding:0;overflow:hidden;"><table class="data-table inv-table">
+        <div class="card table-card" style="padding:0;"><table class="data-table inv-table">
           <tbody>${groups[mk].map(e => `<tr>
             <td>${formatDateShort(e.date)}</td>
             <td>${esc(e.cuentaNombre)}</td>

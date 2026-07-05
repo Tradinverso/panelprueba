@@ -36,6 +36,7 @@ export function openCuentaEditModal(cuenta = null, onSaved = () => {}) {
     capital: cuenta?.capital != null ? String(cuenta.capital) : '',
     initialBalance: cuenta?.initialBalance != null ? String(cuenta.initialBalance) : '',
     cost: cuenta?.cost != null ? String(cuenta.cost) : '',
+    costDate: new Date().toISOString().substring(0, 10),
     targetPct: cuenta?.targetPct > 0
       ? String(cuenta.targetPct)
       : (cuenta?.targetUsd > 0 && cuenta?.capital ? String(+(cuenta.targetUsd / cuenta.capital * 100).toFixed(2)) : ''),
@@ -88,9 +89,18 @@ export function openCuentaEditModal(cuenta = null, onSaved = () => {}) {
           <div class="form-field">
             <label class="form-label">Coste pagado ($)</label>
             <input class="form-input" type="number" step="1" id="ce-cost" value="${esc(data.cost)}" placeholder="99">
-            ${isNew ? `<div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:4px;">Se registra como la primera compra de la cuenta (Inversión).</div>` : ''}
+            ${isNew ? `<div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:4px;">Se registra como la primera compra de la cuenta (Contabilidad).</div>` : ''}
           </div>
         </div>
+        ${isNew ? `
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Fecha del pago</label>
+            <input class="form-input" type="date" id="ce-cost-date" value="${esc(data.costDate)}">
+            <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:4px;">Fecha de esa primera compra. Editable luego en Contabilidad → Compras.</div>
+          </div>
+          <div class="form-field"></div>
+        </div>` : ''}
 
         <details class="ce-advanced">
           <summary>Opciones avanzadas</summary>
@@ -164,6 +174,7 @@ export function openCuentaEditModal(cuenta = null, onSaved = () => {}) {
     root.querySelector('#ce-empresa').addEventListener('input', e => data.empresa = e.target.value);
     root.querySelector('#ce-numero').addEventListener('input', e => data.numero = e.target.value);
     root.querySelector('#ce-cost').addEventListener('input', e => data.cost = e.target.value);
+    root.querySelector('#ce-cost-date')?.addEventListener('input', e => data.costDate = e.target.value);
     root.querySelector('#ce-notes').addEventListener('input', e => data.notes = e.target.value);
 
     // Capital con aviso si ha cambiado y hay trades, y auto-sync de saldo inicial
@@ -241,7 +252,7 @@ function doSave(cuenta, data, close, onSaved) {
     // Coste inicial → primera compra (no como campo `cost` legacy).
     if (cost > 0) {
       payload.purchases = [{
-        date: new Date().toISOString().substring(0, 10),
+        date: data.costDate || new Date().toISOString().substring(0, 10),
         amount: cost, concept: 'challenge', note: 'Coste inicial',
       }];
       payload.cost = 0;

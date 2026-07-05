@@ -19,7 +19,7 @@
 
 /* ── Cuentas: tablero por fase (columnas) ────────────────── */
 .cuenta-cols {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px; align-items: start; margin-bottom: 24px;
 }
 .cuenta-col {
