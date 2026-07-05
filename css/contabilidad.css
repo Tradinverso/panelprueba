@@ -22,6 +22,17 @@
 .cont-cal-cell.has .cont-cal-num { color: var(--text); }
 .cont-cal-evs { display: flex; flex-direction: column; gap: 3px; }
 
+/* Totales del día: ingresos (verde) y gastos (rojo), en grande */
+.cont-cal-amts { display: flex; flex-direction: column; gap: 2px; margin-top: auto; align-items: flex-start; }
+.cont-day-in, .cont-day-out {
+  font-family: var(--font-display); font-weight: 700; font-size: 14px; letter-spacing: -.3px; line-height: 1.1;
+}
+.cont-day-in { color: var(--green); }
+.cont-day-out { color: var(--red); }
+.cont-day-mark { font-size: 9px; margin-left: 4px; vertical-align: middle; }
+.cont-day-mark.f { color: var(--accent); }
+.cont-day-mark.q { color: var(--red); }
+
 .cont-ev {
   font-size: 9px; font-family: var(--mono); font-weight: 600; padding: 2px 5px;
   border-radius: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -62,6 +73,7 @@
 .emp-empty { text-align: center; padding: 48px 20px; }
 
 @media (max-width: 640px) {
-  .cont-cal-cell { min-height: 64px; }
+  .cont-cal-cell { min-height: 64px; padding: 5px 5px; }
   .cont-ev { font-size: 8px; }
+  .cont-day-in, .cont-day-out { font-size: 11px; }
 }

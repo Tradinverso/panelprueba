@@ -577,9 +577,17 @@ function buildMonthCells(byDate) {
     const ds = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     const evs = byDate[ds] || [];
     const isToday = today.getFullYear() === calYear && today.getMonth() === calMonth && today.getDate() === d;
-    cells.push(`<div class="cont-cal-cell ${evs.length ? 'has' : ''} ${isToday ? 'today' : ''}">
-      <span class="cont-cal-num">${d}</span>
-      <div class="cont-cal-evs">${evs.map(eventChip).join('')}</div>
+    // Totales del día: ingresos (retiros, verde) y gastos (compras, rojo), en grande.
+    const ingresos = evs.reduce((s, e) => s + (e.type === 'retiro' ? (e.amount || 0) : 0), 0);
+    const gastos = evs.reduce((s, e) => s + (e.type === 'compra' ? (e.amount || 0) : 0), 0);
+    const hasFond = evs.some(e => e.type === 'fondeada');
+    const hasQuem = evs.some(e => e.type === 'quemada');
+    const marks = `${hasFond ? '<span class="cont-day-mark f" title="Fondeada">★</span>' : ''}${hasQuem ? '<span class="cont-day-mark q" title="Quemada">✗</span>' : ''}`;
+    const amounts = `${ingresos > 0 ? `<div class="cont-day-in">+${fmtUsd(ingresos)}</div>` : ''}${gastos > 0 ? `<div class="cont-day-out">-${fmtUsd(gastos)}</div>` : ''}`;
+    const hasData = ingresos > 0 || gastos > 0 || hasFond || hasQuem;
+    cells.push(`<div class="cont-cal-cell ${hasData ? 'has' : ''} ${isToday ? 'today' : ''}">
+      <span class="cont-cal-num">${d}${marks}</span>
+      <div class="cont-cal-amts">${amounts}</div>
     </div>`);
   }
   return cells.join('');
