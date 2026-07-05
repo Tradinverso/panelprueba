@@ -584,7 +584,22 @@ export const state = {
   updatePurchase(cuentaId, purchaseId, patch) {
     const cuenta = this.cuentas.find(c => c.id === cuentaId);
     if (!cuenta) return null;
-    const purchases = (cuenta.purchases || []).map(p =>
+    const existing = cuenta.purchases || [];
+    const isReal = existing.some(p => p.id === purchaseId);
+    // Compra "legacy": el coste vive en el campo viejo `cost` (no en purchases[]),
+    // se muestra como fila sintética `legacy-<id>`. Al editarla la materializamos
+    // como primera compra real con los valores editados y ponemos cost a 0.
+    if (!isReal) {
+      const p = sanitizePurchase({
+        date: patch.date,
+        amount: patch.amount != null ? patch.amount : cuenta.cost,
+        concept: patch.concept || 'challenge',
+        note: patch.note != null ? patch.note : 'Coste inicial',
+      });
+      if (!p) return null;
+      return this.updateCuenta(cuentaId, { purchases: [p, ...existing], cost: 0 });
+    }
+    const purchases = existing.map(p =>
       p.id === purchaseId ? (sanitizePurchase({ ...p, ...patch, id: purchaseId }) || p) : p
     );
     return this.updateCuenta(cuentaId, { purchases });

@@ -10,16 +10,17 @@ import { openPurchaseModal } from '../components/purchase-modal.js';
 import { openWithdrawalModal } from '../components/withdrawal-modal.js';
 import { openCuentaEditModal, confirmDeleteCuenta } from '../components/cuenta-edit-modal.js';
 import {
-  fmtUsd, totalInvested, investmentStats, monthlyInvested,
+  fmtUsd, totalInvested, investmentStats, monthlyInvested, empresaStats,
   totalWithdrawn, totalWithdrawnNet, portfolioMonthlyWithdrawals,
   allWithdrawals, allPurchases, accountingEvents,
 } from '../utils/account-stats.js';
 import { MONTHS_ES_SHORT, MONTHS_ES, formatDateShort } from '../utils/date-helpers.js';
 
-let activeTab = 'resumen';   // resumen | calendario | retiros | compras
+let activeTab = 'resumen';   // resumen | empresas | calendario | retiros | compras
 let yearFilter = 'all';
 let monthFilter = 'all';
 let filterCuenta = 'all';
+let empresaSel = '';         // pestaña Empresas: prop seleccionada ('' = ninguna)
 let sortBy = 'beneficio';    // beneficio | estado | invertido | roi
 let calAll = false;          // calendario: ver todos los eventos (lista) en vez de la rejilla
 let calYear = null, calMonth = null;
@@ -72,6 +73,7 @@ function render(container) {
     ${cuentas.length === 0 ? emptyState() : `
       <div class="rg-tabs" id="invTabs">
         <button class="rg-tab ${activeTab === 'resumen' ? 'active' : ''}" data-tab="resumen">Resumen</button>
+        <button class="rg-tab ${activeTab === 'empresas' ? 'active' : ''}" data-tab="empresas">Empresas</button>
         <button class="rg-tab ${activeTab === 'calendario' ? 'active' : ''}" data-tab="calendario">Calendario</button>
         <button class="rg-tab ${activeTab === 'retiros' ? 'active' : ''}" data-tab="retiros">Retiros</button>
         <button class="rg-tab ${activeTab === 'compras' ? 'active' : ''}" data-tab="compras">Compras</button>
@@ -99,9 +101,30 @@ function renderPanel(container) {
   const panel = container.querySelector('#invPanel');
   if (!panel) return;
   if (activeTab === 'resumen') { panel.innerHTML = renderResumen(); wireResumen(container); requestAnimationFrame(() => paintChart(container)); }
+  else if (activeTab === 'empresas') { panel.innerHTML = renderEmpresas(); wireEmpresas(container); }
   else if (activeTab === 'calendario') { panel.innerHTML = renderCalendario(); wireCalendario(container); }
   else if (activeTab === 'retiros') { panel.innerHTML = renderLista('retiros'); wireLista(container); }
   else { panel.innerHTML = renderLista('compras'); wireLista(container); }
+}
+
+// Ranking de props (agregado por empresa), ordenado por beneficio.
+function renderRankingProps(cuentas) {
+  const props = empresaStats(cuentas, currentRange());
+  if (!props.length) return `<div class="prop-empty">No hay datos de props para el periodo seleccionado.</div>`;
+  return `<div class="prop-rank">${props.map((p, i) => `
+    <div class="prop-row">
+      <div class="prop-rank-n">${i + 1}</div>
+      <div class="prop-main">
+        <div class="prop-name">${esc(p.empresa)}</div>
+        <div class="prop-meta">
+          <span>Retiradas <b>${fmtUsd(p.retiradoBruto)}</b></span>
+          <span>Coste <b>${fmtUsd(p.invertido)}</b></span>
+          <span>Media retiro <b>${fmtUsd(p.mediaRetiro)}</b></span>
+          <span>${p.nCuentas} cuenta${p.nCuentas !== 1 ? 's' : ''} · ${p.fondeadas} fondeada${p.fondeadas !== 1 ? 's' : ''}</span>
+        </div>
+      </div>
+      <div class="prop-ben ${p.beneficio >= 0 ? 'pos' : 'neg'}">${fmtUsd(p.beneficio, true)}</div>
+    </div>`).join('')}</div>`;
 }
 
 function renderResumen() {
@@ -110,19 +133,25 @@ function renderResumen() {
   const periodNote = currentRange() ? ' · periodo seleccionado' : '';
   return `
     <div class="kpi-grid">
-      ${kpiCard({ label: 'Gastos totales', value: '-' + fmtUsd(s.gastosTotales), sub: 'compras' + periodNote, tone: 'red' })}
-      ${kpiCard({ label: 'Ganancias (payouts)', value: fmtUsd(s.gananciasBrutas), sub: s.comisiones > 0 ? fmtUsd(s.comisiones) + ' en comisiones' : 'retiros brutos', tone: 'green' })}
-      ${kpiCard({ label: 'Beneficio neto', value: fmtUsd(s.beneficioNeto, true), sub: 'payouts netos − gastos', tone: s.beneficioNeto >= 0 ? 'green' : 'red' })}
-      ${kpiCard({ label: 'ROI', value: fmtRoi(s.roi), sub: 'beneficio ÷ gastos', tone: s.roi >= 0 ? 'green' : 'red' })}
-      ${kpiCard({ label: 'Funding ratio', value: s.fundingRatio.toFixed(1) + '%', sub: `${s.fondeadas} fondeada${s.fondeadas !== 1 ? 's' : ''} de ${s.evaluaciones}`, tone: 'blue' })}
-      ${kpiCard({ label: 'Cuentas live', value: `${s.live}`, sub: 'fondeadas activas', tone: 'purple' })}
+      ${kpiCard({ label: 'Gastos totales', value: '-' + fmtUsd(s.gastosTotales), sub: 'compras' + periodNote, tone: 'red', icon: '🏦' })}
+      ${kpiCard({ label: 'Ganancias (payouts)', value: fmtUsd(s.gananciasBrutas), sub: s.comisiones > 0 ? fmtUsd(s.comisiones) + ' en comisiones' : 'retiros brutos', tone: 'green', icon: '💵' })}
+      ${kpiCard({ label: 'Beneficio neto', value: fmtUsd(s.beneficioNeto, true), sub: 'payouts netos − gastos', tone: s.beneficioNeto >= 0 ? 'green' : 'red', icon: '📈' })}
+      ${kpiCard({ label: 'ROI', value: fmtRoi(s.roi), sub: 'beneficio ÷ gastos', tone: s.roi >= 0 ? 'green' : 'red', icon: '🎯' })}
+      ${kpiCard({ label: 'Funding ratio', value: s.fundingRatio.toFixed(1) + '%', sub: `${s.fondeadas} fondeada${s.fondeadas !== 1 ? 's' : ''} de ${s.evaluaciones}`, tone: 'blue', icon: '⚡' })}
+      ${kpiCard({ label: 'Cuentas live', value: `${s.live}`, sub: 'fondeadas activas', tone: 'purple', icon: '🟢' })}
     </div>
 
-    <div class="section-title">Capital invertido vs retornado</div>
-    <div class="card" style="margin-bottom:24px;">
-      <div class="card-title">Gastos vs ganancias por mes</div>
-      <div class="card-sub">Compras (rojo) y payouts cobrados (verde) · histórico</div>
-      <div class="chart-wrap" style="height:240px;"><canvas id="invChart"></canvas></div>
+    <div class="bento">
+      <div class="card col-7">
+        <div class="card-title">Evolución mensual</div>
+        <div class="card-sub">Comparativa de gastos (compras) vs ganancias (payouts)${periodNote}</div>
+        <div class="chart-wrap" style="height:300px;"><canvas id="invChart"></canvas></div>
+      </div>
+      <div class="card col-5">
+        <div class="card-title">Ranking de props</div>
+        <div class="card-sub">Orden por beneficio acumulado${periodNote}</div>
+        ${renderRankingProps(cuentas)}
+      </div>
     </div>
 
     <div class="section-title-row">
@@ -284,9 +313,9 @@ function renderLista(kind) {
             <td>${esc(p.cuentaNombre)}</td>
             <td><span class="badge">${CONCEPT_LABEL[p.concept] || p.concept || '–'}</span></td>
             <td class="mono" style="color:var(--red);">${fmtUsd(p.amount)}</td>
-            <td style="text-align:right;white-space:nowrap;">${legacy ? '' : `
+            <td style="text-align:right;white-space:nowrap;">
               <button class="btn ghost" data-edit-p="${p.id}" data-cid="${p.cuentaId}" title="Editar compra" style="padding:4px 8px;font-size:11px;">✏️</button>
-              <button class="btn ghost danger" data-del-p="${p.id}" data-cid="${p.cuentaId}" title="Borrar compra" style="padding:4px 8px;font-size:11px;">×</button>`}</td>
+              ${legacy ? '' : `<button class="btn ghost danger" data-del-p="${p.id}" data-cid="${p.cuentaId}" title="Borrar compra" style="padding:4px 8px;font-size:11px;">×</button>`}</td>
           </tr>`;
         }).join('')}</tbody>
         <tfoot><tr><td colspan="3" style="text-align:right;color:var(--muted);font-size:11px;">Total</td><td class="mono" style="color:var(--red);font-weight:600;">${fmtUsd(total)}</td><td></td></tr></tfoot>
@@ -311,9 +340,97 @@ function wireLista(container) {
   }));
   container.querySelectorAll('[data-edit-p]').forEach(b => b.addEventListener('click', () => {
     const cuenta = state.cuentas.find(c => c.id === b.dataset.cid);
-    const compra = cuenta && (cuenta.purchases || []).find(p => p.id === b.dataset.editP);
-    if (cuenta && compra) openPurchaseModal(cuenta, () => render(container), compra);
+    if (!cuenta) return;
+    const pid = b.dataset.editP;
+    let compra = (cuenta.purchases || []).find(p => p.id === pid);
+    // Compra legacy: no está en purchases[], reconstruimos su objeto desde el coste.
+    if (!compra && pid.startsWith('legacy-')) {
+      compra = { id: pid, date: new Date(cuenta.createdAt || Date.now()).toISOString().substring(0, 10), amount: cuenta.cost || 0, concept: 'challenge', note: 'Coste inicial' };
+    }
+    if (compra) openPurchaseModal(cuenta, () => render(container), compra);
   }));
+}
+
+// ── Pestaña Empresas: elegir una prop y ver sus movimientos ──
+function renderEmpresas() {
+  const cuentas = state.cuentas;
+  const empresas = [...new Set(cuentas.map(c => (c.empresa || '').trim()).filter(Boolean))].sort();
+  const selector = `
+    <div class="emp-toolbar">
+      <select id="empSelect" class="select">
+        <option value="">Seleccionar empresa…</option>
+        ${empresas.map(e => `<option value="${esc(e)}" ${empresaSel === e ? 'selected' : ''}>${esc(e)}</option>`).join('')}
+      </select>
+    </div>`;
+
+  if (!empresaSel) {
+    return selector + `
+      <div class="card emp-empty">
+        <div style="font-size:34px;margin-bottom:10px;">🏢</div>
+        <div style="font-weight:600;color:var(--text);">Elige una empresa para ver su actividad</div>
+        <div style="font-size:12px;font-family:var(--mono);color:var(--muted);margin-top:6px;">Al seleccionar una prop verás sus retiros y compras filtrados.</div>
+      </div>`;
+  }
+
+  const ids = new Set(cuentas.filter(c => (c.empresa || '').trim() === empresaSel).map(c => c.id));
+  const retiros = allWithdrawals(cuentas).filter(w => ids.has(w.cuentaId) && inRange(w.date || ''));
+  const compras = allPurchases(cuentas).filter(p => ids.has(p.cuentaId) && inRange(p.date || ''));
+  const totRet = retiros.reduce((s, w) => s + Math.max(0, (w.amount || 0) - (w.commission || 0)), 0);
+  const totCom = compras.reduce((s, p) => s + (p.amount || 0), 0);
+
+  const retirosTable = retiros.length ? `
+    <div class="card table-card" style="padding:0;">
+      <table class="data-table inv-table">
+        <thead><tr><th>Fecha</th><th>Cuenta</th><th>Bruto</th><th>Comisión</th><th>Neto</th><th>Nota</th><th></th></tr></thead>
+        <tbody>${retiros.map(w => {
+          const com = +(w.commission || 0);
+          const net = Math.max(0, (w.amount || 0) - com);
+          return `<tr>
+            <td>${formatDateShort(w.date)}</td>
+            <td>${esc(w.cuentaNombre)}</td>
+            <td class="mono">${fmtUsd(w.amount)}</td>
+            <td class="mono" style="color:var(--orange);">${com > 0 ? '−' + fmtUsd(com) : '–'}</td>
+            <td class="mono" style="color:var(--green);">${fmtUsd(net)}</td>
+            <td style="color:var(--muted);font-family:var(--mono);font-size:11px;">${esc(w.note || '–')}</td>
+            <td style="text-align:right;"><button class="btn ghost danger" data-del-w="${w.id}" data-cid="${w.cuentaId}" style="padding:4px 8px;font-size:11px;">×</button></td>
+          </tr>`;
+        }).join('')}</tbody>
+        <tfoot><tr><td colspan="4" style="text-align:right;color:var(--muted);font-size:11px;">Neto total</td><td class="mono" style="color:var(--green);font-weight:600;">${fmtUsd(totRet)}</td><td colspan="2"></td></tr></tfoot>
+      </table>
+    </div>` : `<div class="card emp-empty" style="padding:24px;">Sin retiros para esta empresa${currentRange() ? ' en el periodo' : ''}.</div>`;
+
+  const comprasTable = compras.length ? `
+    <div class="card table-card" style="padding:0;">
+      <table class="data-table inv-table">
+        <thead><tr><th>Fecha</th><th>Cuenta</th><th>Concepto</th><th>Importe</th><th></th></tr></thead>
+        <tbody>${compras.map(p => {
+          const legacy = String(p.id || '').startsWith('legacy-');
+          return `<tr>
+            <td>${formatDateShort(p.date)}</td>
+            <td>${esc(p.cuentaNombre)}</td>
+            <td><span class="badge">${CONCEPT_LABEL[p.concept] || p.concept || '–'}</span></td>
+            <td class="mono" style="color:var(--red);">${fmtUsd(p.amount)}</td>
+            <td style="text-align:right;white-space:nowrap;">
+              <button class="btn ghost" data-edit-p="${p.id}" data-cid="${p.cuentaId}" title="Editar compra" style="padding:4px 8px;font-size:11px;">✏️</button>
+              ${legacy ? '' : `<button class="btn ghost danger" data-del-p="${p.id}" data-cid="${p.cuentaId}" title="Borrar compra" style="padding:4px 8px;font-size:11px;">×</button>`}</td>
+          </tr>`;
+        }).join('')}</tbody>
+        <tfoot><tr><td colspan="3" style="text-align:right;color:var(--muted);font-size:11px;">Total</td><td class="mono" style="color:var(--red);font-weight:600;">${fmtUsd(totCom)}</td><td></td></tr></tfoot>
+      </table>
+    </div>` : `<div class="card emp-empty" style="padding:24px;">Sin compras para esta empresa${currentRange() ? ' en el periodo' : ''}.</div>`;
+
+  return selector + `
+    <div class="section-title">Retiros · ${esc(empresaSel)}</div>
+    ${retirosTable}
+    <div class="section-title" style="margin-top:24px;">Compras · ${esc(empresaSel)}</div>
+    ${comprasTable}`;
+}
+
+function wireEmpresas(container) {
+  const sel = container.querySelector('#empSelect');
+  if (sel) sel.addEventListener('change', e => { empresaSel = e.target.value; render(container); });
+  // Reutiliza el cableado de borrar/editar de retiros y compras.
+  wireLista(container);
 }
 
 function openRetiroChooser() {
@@ -345,7 +462,12 @@ function paintChart(container) {
   const cuentas = state.cuentas;
   const gastos = monthlyInvested(cuentas);
   const ganancias = portfolioMonthlyWithdrawals(cuentas);
-  const months = [...new Set([...gastos.map(g => g.month), ...ganancias.map(g => g.month)])].sort();
+  const r = currentRange();
+  // Respetar el filtro de periodo (Año/Mes): un mes 'YYYY-MM' entra si su primer
+  // día cae dentro del rango seleccionado.
+  const monthInRange = m => !r || (m + '-01' >= r.from && m + '-01' <= r.to);
+  const months = [...new Set([...gastos.map(g => g.month), ...ganancias.map(g => g.month)])]
+    .filter(monthInRange).sort();
   if (!months.length) return;
   const gMap = Object.fromEntries(gastos.map(g => [g.month, g.usd]));
   const wMap = Object.fromEntries(ganancias.map(g => [g.month, g.usd]));

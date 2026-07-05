@@ -423,6 +423,44 @@ export function investmentStats(cuentas, range) {
   };
 }
 
+// Agregado por EMPRESA (prop firm) para el "Ranking de props".
+// range opcional {from,to} filtra importes (invertido/retirado); los contadores
+// de cuentas (nCuentas/fondeadas/live/quemadas) reflejan el estado actual.
+// Devuelve un array ordenado por beneficio desc.
+export function empresaStats(cuentas, range) {
+  const f = range && range.from, t = range && range.to;
+  const inR = d => (!f || d >= f) && (!t || d <= t);
+  const map = new Map();
+  for (const c of cuentas) {
+    const key = (c.empresa || '—').trim() || '—';
+    if (!map.has(key)) map.set(key, {
+      empresa: key, invertido: 0, retiradoBruto: 0, retiradoNeto: 0,
+      nRetiros: 0, nCompras: 0, nCuentas: 0, fondeadas: 0, live: 0, quemadas: 0,
+    });
+    const e = map.get(key);
+    e.nCuentas++;
+    if (c.fase === 'fondeada') e.fondeadas++;
+    if (c.fase === 'fondeada' && c.status === 'activa') e.live++;
+    if (c.status === 'perdida') e.quemadas++;
+    for (const p of purchasesOf(c)) if (inR(p.date || '')) { e.invertido += p.amount || 0; e.nCompras++; }
+    for (const w of (c.withdrawals || [])) {
+      if (!inR(w.date || '')) continue;
+      const amt = w.amount || 0, com = w.commission || 0;
+      e.retiradoBruto += amt; e.retiradoNeto += Math.max(0, amt - com); e.nRetiros++;
+    }
+  }
+  return [...map.values()].map(e => {
+    const beneficio = e.retiradoNeto - e.invertido;
+    return {
+      ...e,
+      beneficio,
+      roi: e.invertido > 0 ? (beneficio / e.invertido) * 100 : (beneficio > 0 ? Infinity : 0),
+      mediaRetiro: e.nRetiros ? e.retiradoBruto / e.nRetiros : 0,
+      mediaExamen: e.nCompras ? e.invertido / e.nCompras : 0,
+    };
+  }).sort((a, b) => b.beneficio - a.beneficio);
+}
+
 // Compras por mes a lo largo de TODAS las cuentas → [{ month:'YYYY-MM', usd }].
 export function monthlyInvested(cuentas) {
   const months = {};

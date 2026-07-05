@@ -29,14 +29,24 @@ export function openCuentaEditModal(cuenta = null, onSaved = () => {}) {
   const isNew = !cuenta;
   // Si es edición y la cuenta tiene trades asignados, advertir al cambiar capital
   const tradesUsing = cuenta ? tradesForAccount(cuenta, state.trades).length : 0;
+  const today = new Date().toISOString().substring(0, 10);
+  // Primera compra (coste inicial) para poder editar su fecha/importe al editar la
+  // cuenta. Puede ser real (purchases[0]) o legacy (el campo `cost` sintetizado).
+  const initialPurchase = cuenta
+    ? (cuenta.purchases && cuenta.purchases.length
+        ? cuenta.purchases[0]
+        : (cuenta.cost > 0
+            ? { id: 'legacy-' + cuenta.id, date: new Date(cuenta.createdAt || Date.now()).toISOString().substring(0, 10), amount: cuenta.cost }
+            : null))
+    : null;
   const data = {
     empresa: cuenta?.empresa || '',
     tipo: cuenta?.tipo || 'CFD',
     numero: cuenta?.numero || '',
     capital: cuenta?.capital != null ? String(cuenta.capital) : '',
     initialBalance: cuenta?.initialBalance != null ? String(cuenta.initialBalance) : '',
-    cost: cuenta?.cost != null ? String(cuenta.cost) : '',
-    costDate: new Date().toISOString().substring(0, 10),
+    cost: initialPurchase ? String(initialPurchase.amount) : (cuenta?.cost != null && cuenta.cost > 0 ? String(cuenta.cost) : ''),
+    costDate: initialPurchase ? (initialPurchase.date || today) : today,
     targetPct: cuenta?.targetPct > 0
       ? String(cuenta.targetPct)
       : (cuenta?.targetUsd > 0 && cuenta?.capital ? String(+(cuenta.targetUsd / cuenta.capital * 100).toFixed(2)) : ''),
@@ -87,20 +97,19 @@ export function openCuentaEditModal(cuenta = null, onSaved = () => {}) {
             <div data-field="fases"></div>
           </div>
           <div class="form-field">
-            <label class="form-label">Coste pagado ($)</label>
+            <label class="form-label">${isNew ? 'Coste pagado ($)' : 'Primera compra · coste ($)'}</label>
             <input class="form-input" type="number" step="1" id="ce-cost" value="${esc(data.cost)}" placeholder="99">
-            ${isNew ? `<div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:4px;">Se registra como la primera compra de la cuenta (Contabilidad).</div>` : ''}
+            <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:4px;">${isNew ? 'Se registra como la primera compra de la cuenta (Contabilidad).' : 'Edita el coste inicial (primera compra).'}</div>
           </div>
         </div>
-        ${isNew ? `
         <div class="form-row">
           <div class="form-field">
-            <label class="form-label">Fecha del pago</label>
+            <label class="form-label">${isNew ? 'Fecha del pago' : 'Fecha de la primera compra'}</label>
             <input class="form-input" type="date" id="ce-cost-date" value="${esc(data.costDate)}">
-            <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:4px;">Fecha de esa primera compra. Editable luego en Contabilidad → Compras.</div>
+            <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:4px;">${isNew ? 'Fecha de esa primera compra. Editable luego en Contabilidad → Compras.' : 'Cambia la fecha en la que compraste la cuenta.'}</div>
           </div>
           <div class="form-field"></div>
-        </div>` : ''}
+        </div>
 
         <details class="ce-advanced">
           <summary>Opciones avanzadas</summary>
@@ -247,7 +256,18 @@ function doSave(cuenta, data, close, onSaved) {
 
   let saved;
   if (cuenta) {
+    // La primera compra (coste inicial) puede editarse aquí. El coste vive en
+    // purchases[], no en el campo legacy `cost`. Calculamos la primera compra
+    // ANTES de updateCuenta (que pone cost a 0).
+    const first = (cuenta.purchases && cuenta.purchases.length)
+      ? cuenta.purchases[0]
+      : (cuenta.cost > 0 ? { id: 'legacy-' + cuenta.id } : null);
+    payload.cost = 0;
     saved = state.updateCuenta(cuenta.id, payload);
+    if (cost > 0) {
+      if (first) state.updatePurchase(cuenta.id, first.id, { date: data.costDate, amount: cost });
+      else state.addPurchase(cuenta.id, { date: data.costDate, amount: cost, concept: 'challenge', note: 'Coste inicial' });
+    }
   } else {
     // Coste inicial → primera compra (no como campo `cost` legacy).
     if (cost > 0) {
