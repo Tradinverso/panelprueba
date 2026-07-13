@@ -31,6 +31,16 @@ function vGrad(canvas, color, a0, a1) {
   return g;
 }
 
+// Degradado vertical entre DOS colores sólidos (para los aros del donut).
+function grad2(canvas, c0, c1) {
+  const ctx = canvas.getContext('2d');
+  const h = canvas.clientHeight || canvas.height || 200;
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, c0);
+  g.addColorStop(1, c1);
+  return g;
+}
+
 function defaults() {
   Chart.defaults.color = READ('--muted');
   Chart.defaults.borderColor = READ('--border');
@@ -125,26 +135,32 @@ function centerText(primary, secondary, primaryColor) {
 export function createDonut(canvas, tp, sl, be) {
   defaults();
   Chart.getChart(canvas)?.destroy();
-  const GREEN = READ('--green'), RED = READ('--red'), DIM = READ('--dim');
+  const DIM = READ('--dim'), GOLD = READ('--gold'), RED = READ('--red');
   const total = tp + sl + be;
   const wr = (tp + sl) > 0 ? (tp / (tp + sl)) * 100 : 0;
-  const wrColor = wr >= 55 ? GREEN : wr < 45 ? RED : READ('--orange');
+  // Regla winrate: dorado siempre, rojo solo si < 40%.
+  const wrColor = (tp + sl) > 0 && wr < 40 ? RED : GOLD;
+  // Aros anchos con degradado; se descartan segmentos a 0 (sin punto flotante).
+  const defs = [
+    { v: tp, label: 'TP', color: grad2(canvas, '#7DF3C4', '#2FB889') },
+    { v: sl, label: 'SL', color: grad2(canvas, '#FF9DB4', '#DE4A6E') },
+    { v: be, label: 'BE', color: rgba(DIM, 0.55) },
+  ].filter(d => d.v > 0);
   return new Chart(canvas, {
     type: 'doughnut',
     data: {
-      labels: ['TP', 'SL', 'BE'],
+      labels: defs.map(d => d.label),
       datasets: [{
-        data: [tp, sl, be],
-        backgroundColor: [vGrad(canvas, GREEN, 1, 0.55), vGrad(canvas, RED, 1, 0.55), rgba(DIM, 0.5)],
-        borderColor: READ('--card'),
-        borderWidth: 2,
-        spacing: 3,
-        hoverOffset: 8,
-        borderRadius: 8,
+        data: defs.map(d => d.v),
+        backgroundColor: defs.map(d => d.color),
+        borderWidth: 0,
+        spacing: defs.length > 1 ? 4 : 0,
+        hoverOffset: 6,
+        borderRadius: 22,
       }],
     },
     options: {
-      responsive: true, maintainAspectRatio: false, cutout: '72%',
+      responsive: true, maintainAspectRatio: false, cutout: '64%',
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}` } } },
     },
     plugins: [centerText((tp + sl) > 0 ? wr.toFixed(0) + '%' : '–', total + (total === 1 ? ' trade' : ' trades'), wrColor)],

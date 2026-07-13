@@ -1,23 +1,23 @@
 /* Tokens de tema — sistema de diseño "Glass Command Center".
    Toda la app referencia estas variables, así que el look global se controla aquí. */
 :root {
-  /* Fondos / superficies */
-  --bg: #0A0E1A;
-  --surface: #121a2e;
-  --card: #141d33;
-  --card2: #0e1626;
-  --text: #E6ECF5;
+  /* Fondos / superficies — negro cálido premium (neutro con leve sesgo hacia el oro) */
+  --bg: #0A0A0E;
+  --surface: #131319;
+  --card: #16161E;
+  --card2: #0F0F15;
+  --text: #ECEBF0;
   --text-strong: #FFFFFF;
-  --muted: #97A3BE;
-  --dim: #5B6884;
-  --border: rgba(255,255,255,0.08);
-  --border-strong: rgba(120,160,255,0.22);
-  --hover: rgba(120,160,255,0.06);
+  --muted: #979AA6;
+  --dim: #5C5F6B;
+  --border: rgba(240,230,210,0.08);          /* hairline cálida (elegida, no gris puro) */
+  --border-strong: rgba(240,230,210,0.16);
+  --hover: rgba(240,230,210,0.05);
 
   /* Cristal (glassmorphism) */
-  --glass: rgba(18,26,46,0.6);
-  --glass-2: rgba(255,255,255,0.04);   /* highlight interior */
-  --glass-border: rgba(120,180,255,0.18);
+  --glass: rgba(22,22,30,0.62);
+  --glass-2: rgba(255,255,255,0.035);   /* highlight interior */
+  --glass-border: rgba(240,230,210,0.14);
 
   /* Acentos */
   --green: #10E0A0;
@@ -31,11 +31,11 @@
   --cyan: #22D3EE;
   --cyan-bg: rgba(34,211,238,0.14);
 
-  /* Oro premium (identidad de marca — NO es semántica de datos) */
-  --gold: #E8B341;
-  --gold-2: #FFD97A;
-  --gold-bg: rgba(232,179,65,0.14);
-  --glow-gold: 0 0 26px -6px rgba(232,179,65,0.5);
+  /* Oro CHAMPÁN premium (metálico, no amarillo chillón — identidad de marca) */
+  --gold: #D7B15C;
+  --gold-2: #F1D693;
+  --gold-bg: rgba(215,177,92,0.13);
+  --glow-gold: 0 0 30px -8px rgba(215,177,92,0.5);
 
   /* Estrategias */
   --zonas: #A855F7;

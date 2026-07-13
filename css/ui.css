@@ -89,6 +89,7 @@
 .kpi-card.blue::before   { background: linear-gradient(90deg, var(--accent), var(--cyan)); }
 .kpi-card.purple::before { background: linear-gradient(90deg, var(--zonas), transparent); }
 .kpi-card.gold::before   { background: linear-gradient(90deg, var(--gold), var(--gold-2)); }
+.kpi-value.gold { color: var(--gold-2); }
 
 /* ── Botones ── */
 .btn { border-radius: var(--radius-sm); transition: transform var(--dur) var(--ease), background var(--dur), border-color var(--dur), box-shadow var(--dur), filter var(--dur); }
@@ -106,29 +107,26 @@
 /* ── Pills de tema sidebar (theme-toggle) ── */
 .theme-toggle { border-radius: var(--radius-sm); }
 
-/* ── CTA "Formación": enlace externo destacado (dorado, membresía premium) ── */
+/* ── CTA "Formación": tarjeta oscura con acento oro (membresía premium) ── */
 .formacion-cta {
-  display: flex; align-items: center; gap: 11px;
-  margin: 6px 0 10px; padding: 11px 13px; border-radius: var(--radius-sm);
-  text-decoration: none; color: #1a1204;
-  background: linear-gradient(135deg, var(--gold), var(--gold-2));
-  box-shadow: var(--glow-gold);
-  border: 1px solid rgba(255,217,122,0.5);
-  transition: transform var(--dur) var(--ease), box-shadow var(--dur), filter var(--dur);
-  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 12px;
+  margin: 6px 0 10px; padding: 12px 13px; border-radius: 14px;
+  text-decoration: none; color: var(--text);
+  background: linear-gradient(150deg, var(--gold-bg), rgba(255,255,255,0.02));
+  border: 1px solid rgba(215,177,92,0.30);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur), border-color var(--dur);
 }
-.formacion-cta::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
-  transform: translateX(-120%); transition: transform .6s var(--ease);
+.formacion-cta:hover { transform: translateY(-1px); border-color: rgba(215,177,92,0.6); box-shadow: var(--glow-gold); }
+.formacion-cta .fc-icon {
+  width: 34px; height: 34px; border-radius: 10px; flex: none;
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+  background: linear-gradient(140deg, var(--gold-2), var(--gold)); color: #1c1607;
 }
-.formacion-cta:hover { transform: translateY(-2px); filter: brightness(1.04); box-shadow: var(--glow-gold), 0 8px 22px -8px rgba(232,179,65,0.6); }
-.formacion-cta:hover::after { transform: translateX(120%); }
-.formacion-cta .fc-icon { font-size: 19px; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
-.formacion-cta .fc-text { display: flex; flex-direction: column; line-height: 1.15; flex: 1; min-width: 0; }
-.formacion-cta .fc-text strong { font-family: var(--font-display); font-weight: 700; font-size: 14px; letter-spacing: -0.2px; }
-.formacion-cta .fc-text small { font-family: var(--mono); font-size: 9.5px; opacity: 0.8; letter-spacing: 0.02em; }
-.formacion-cta .fc-arrow { font-size: 15px; font-weight: 700; opacity: 0.7; }
+.formacion-cta .fc-text { display: flex; flex-direction: column; line-height: 1.18; flex: 1; min-width: 0; }
+.formacion-cta .fc-text strong { font-family: var(--font-display); font-weight: 650; font-size: 13.5px; letter-spacing: -0.1px; }
+.formacion-cta .fc-text small { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 0.02em; }
+.formacion-cta .fc-arrow { margin-left: auto; color: var(--gold); font-size: 14px; }
 
 /* ════════════════════════════════════════════════════════════════
    Utilidades reutilizables para fases siguientes (bento, tiles, stats)
