@@ -106,6 +106,11 @@ export function renderSidebar(container) {
           </a>`;
       }).join('')}
     </nav>
+    <a class="formacion-cta" href="https://tradinverso.thinkific.com/enrollments" target="_blank" rel="noopener noreferrer" title="Acceder a la formación">
+      <span class="fc-icon">🎓</span>
+      <span class="fc-text"><strong>Formación</strong><small>Cursos · directos · más</small></span>
+      <span class="fc-arrow">↗</span>
+    </a>
     <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
       <span class="theme-toggle-icon">${theme.current() === 'dark' ? '🌙' : '☀️'}</span>
       <span>${theme.current() === 'dark' ? 'Modo oscuro' : 'Modo claro'}</span>

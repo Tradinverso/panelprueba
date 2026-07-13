@@ -22,9 +22,9 @@ body[data-auth="false"] #view {
 }
 .auth-logo {
   width: 58px; height: 58px; border-radius: 16px;
-  background: linear-gradient(135deg, var(--cyan), var(--accent));
+  background: linear-gradient(135deg, var(--gold-2), var(--gold));
   display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display); font-weight: 700; color: #04121a; font-size: 24px;
+  font-family: var(--font-display); font-weight: 700; color: #1a1204; font-size: 24px;
   box-shadow: var(--glow-accent);
 }
 .auth-tagline { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .14em; text-transform: uppercase; }

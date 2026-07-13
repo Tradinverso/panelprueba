@@ -31,6 +31,12 @@
   --cyan: #22D3EE;
   --cyan-bg: rgba(34,211,238,0.14);
 
+  /* Oro premium (identidad de marca — NO es semántica de datos) */
+  --gold: #E8B341;
+  --gold-2: #FFD97A;
+  --gold-bg: rgba(232,179,65,0.14);
+  --glow-gold: 0 0 26px -6px rgba(232,179,65,0.5);
+
   /* Estrategias */
   --zonas: #A855F7;
   --zonas-bg: rgba(168,85,247,0.15);
@@ -92,6 +98,12 @@
   --accent-bg: rgba(37,99,235,0.12);
   --cyan: #0891B2;
   --cyan-bg: rgba(8,145,178,0.12);
+
+  /* Oro en claro: tono bronce para contraste sobre blanco (más discreto) */
+  --gold: #B8860B;
+  --gold-2: #DDA92E;
+  --gold-bg: rgba(184,134,11,0.12);
+  --glow-gold: 0 0 22px -8px rgba(184,134,11,0.35);
 
   --zonas-bg: rgba(168,85,247,0.12);
   --liquidez: #0EA5E9;

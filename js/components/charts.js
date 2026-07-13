@@ -62,7 +62,7 @@ export function createEquity(canvas, datasets, opts = {}) {
   defaults();
   Chart.getChart(canvas)?.destroy();
   const GREEN = READ('--green'), Z = READ('--zonas'), L = READ('--liquidez'), N = READ('--nasdaq');
-  const palette = { ALL: GREEN, ZONAS: Z, LIQUIDEZ: L, NASDAQ: N, PORT: READ('--cyan') };
+  const palette = { ALL: GREEN, ZONAS: Z, LIQUIDEZ: L, NASDAQ: N, PORT: READ('--gold') };
   const fmt = typeof opts.formatter === 'function' ? opts.formatter : (v => v.toFixed(1) + '%');
   return new Chart(canvas, {
     type: 'line',
@@ -99,27 +99,55 @@ export function createEquity(canvas, datasets, opts = {}) {
   });
 }
 
+// Plugin: texto en el centro del donut (número grande + etiqueta) → look premium.
+function centerText(primary, secondary, primaryColor) {
+  return {
+    id: 'centerText',
+    afterDraw(chart) {
+      const el = chart.getDatasetMeta(0)?.data?.[0];
+      if (!el) return;
+      const { ctx } = chart;
+      ctx.save();
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = primaryColor || READ('--text-strong');
+      ctx.font = "700 24px 'Space Grotesk', sans-serif";
+      ctx.fillText(primary, el.x, el.y - (secondary ? 9 : 0));
+      if (secondary) {
+        ctx.fillStyle = READ('--muted');
+        ctx.font = "500 10px 'DM Mono', monospace";
+        ctx.fillText(secondary, el.x, el.y + 14);
+      }
+      ctx.restore();
+    },
+  };
+}
+
 export function createDonut(canvas, tp, sl, be) {
   defaults();
   Chart.getChart(canvas)?.destroy();
+  const GREEN = READ('--green'), RED = READ('--red'), DIM = READ('--dim');
+  const total = tp + sl + be;
+  const wr = (tp + sl) > 0 ? (tp / (tp + sl)) * 100 : 0;
+  const wrColor = wr >= 55 ? GREEN : wr < 45 ? RED : READ('--orange');
   return new Chart(canvas, {
     type: 'doughnut',
     data: {
       labels: ['TP', 'SL', 'BE'],
       datasets: [{
         data: [tp, sl, be],
-        backgroundColor: [READ('--green'), READ('--red'), READ('--dim')],
-        borderColor: READ('--card2'),
-        borderWidth: 3,
-        spacing: 2,
-        hoverOffset: 6,
-        borderRadius: 6,
+        backgroundColor: [vGrad(canvas, GREEN, 1, 0.55), vGrad(canvas, RED, 1, 0.55), rgba(DIM, 0.5)],
+        borderColor: READ('--card'),
+        borderWidth: 2,
+        spacing: 3,
+        hoverOffset: 8,
+        borderRadius: 8,
       }],
     },
     options: {
-      responsive: true, maintainAspectRatio: false, cutout: '74%',
+      responsive: true, maintainAspectRatio: false, cutout: '72%',
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}` } } },
     },
+    plugins: [centerText((tp + sl) > 0 ? wr.toFixed(0) + '%' : '–', total + (total === 1 ? ' trade' : ' trades'), wrColor)],
   });
 }
 
@@ -148,7 +176,7 @@ export function createBar(canvas, labels, data, opts = {}) {
 export function createHourBar(canvas, hourData) {
   defaults();
   Chart.getChart(canvas)?.destroy();
-  const GREEN = READ('--green'), RED = READ('--red'), ORANGE = READ('--orange'), BLUE = READ('--cyan');
+  const GREEN = READ('--green'), RED = READ('--red'), ORANGE = READ('--orange'), BLUE = READ('--gold');
   return new Chart(canvas, {
     type: 'bar',
     data: {
@@ -187,7 +215,7 @@ export function createHourBar(canvas, hourData) {
 export function createDayBar(canvas, dayData) {
   defaults();
   Chart.getChart(canvas)?.destroy();
-  const GREEN = READ('--green'), RED = READ('--red'), ORANGE = READ('--orange'), BLUE = READ('--cyan');
+  const GREEN = READ('--green'), RED = READ('--red'), ORANGE = READ('--orange'), BLUE = READ('--gold');
   return new Chart(canvas, {
     type: 'bar',
     data: {
