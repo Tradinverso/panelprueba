@@ -10,6 +10,7 @@ const CONCEPTOS = [
   { value: 'reset', label: 'Reset' },
   { value: 'reintento', label: 'Reintento' },
   { value: 'suscripcion', label: 'Suscripción (mensual)' },
+  { value: 'activacion', label: 'Activación' },
   { value: 'otro', label: 'Otro' },
 ];
 

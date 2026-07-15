@@ -106,6 +106,11 @@ export function renderSidebar(container) {
           </a>`;
       }).join('')}
     </nav>
+    <div class="news-lbl">Noticias</div>
+    <div class="news-links">
+      <a class="news-link" href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer" title="Calendario económico de ForexFactory"><span>📰</span> ForexFactory</a>
+      <a class="news-link" href="https://www.investing.com/economic-calendar/" target="_blank" rel="noopener noreferrer" title="Calendario económico de Investing"><span>📰</span> Investing</a>
+    </div>
     <a class="formacion-cta" href="https://tradinverso.thinkific.com/enrollments" target="_blank" rel="noopener noreferrer" title="Acceder a la formación">
       <span class="fc-icon">🎓</span>
       <span class="fc-text"><strong>Formación</strong><small>Cursos · directos · más</small></span>

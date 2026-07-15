@@ -195,7 +195,7 @@ function sanitizeCuenta(c) {
   };
 }
 
-const VALID_CONCEPT = new Set(['challenge', 'reset', 'reintento', 'suscripcion', 'otro']);
+const VALID_CONCEPT = new Set(['challenge', 'reset', 'reintento', 'suscripcion', 'activacion', 'otro']);
 
 function sanitizePurchase(p) {
   if (!p) return null;
