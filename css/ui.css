@@ -109,7 +109,7 @@
 
 /* ── Noticias: dos accesos compactos al calendario económico ── */
 .news-lbl { font-family: var(--mono); font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); padding: 2px 10px 6px; }
-.news-links { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+.news-links { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .news-link {
   flex: 1 1 0; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   padding: 8px 6px; border-radius: var(--radius-sm); text-decoration: none;
