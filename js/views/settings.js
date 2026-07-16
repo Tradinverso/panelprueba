@@ -9,6 +9,7 @@ import { router } from '../router.js';
 import { IMPORT_HEADERS } from '../utils/sheet-parsers.js';
 import { formatDateEs } from '../utils/date-helpers.js';
 import { TIMEZONES, tzLabel, guessTz } from '../utils/timezone.js';
+import { ajustesTabs } from '../components/ajustes-tabs.js';
 
 export function settingsView(container) {
   const inViewAs = !!state.viewAsUid;
@@ -135,6 +136,7 @@ export function settingsView(container) {
   ` : '';
 
   container.innerHTML = `
+    ${ajustesTabs('ajustes')}
     <div class="page-header">
       <div>
         <h1>Ajustes</h1>

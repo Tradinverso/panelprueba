@@ -25,12 +25,12 @@ const NAV_BASE = [
   { path: '#/diagnostico', label: 'Diagnóstico', icon: '🩺', class: '' },
   { path: '#/psicologia',  label: 'Reflexiones', icon: '🧘', class: '' },
   { path: '#/plan',        label: 'Plan de trading', icon: '📋', class: '' },
-
-  { section: 'Datos' },
-  { path: '#/importar', label: 'Importar', icon: '📥', class: '' },
-  { path: '#/tabla',    label: 'Tabla',    icon: '🗃️', class: '' },
-  { path: '#/ajustes',  label: 'Ajustes',  icon: '⚙️', class: '' },
+  // Ajustes (que ahora engloba Importar y Tabla como pestañas) se renderiza
+  // aparte, al final del sidebar, encima del tema (ver renderSidebar).
 ];
+
+// Rutas que "viven dentro" de Ajustes (pestañas): marcan activo el ítem Ajustes.
+const AJUSTES_ROUTES = ['#/ajustes', '#/importar', '#/tabla'];
 
 const NAV_ADMIN = [
   { section: 'Admin' },
@@ -117,6 +117,10 @@ export function renderSidebar(container) {
       <a class="news-link" href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer" title="Calendario económico de ForexFactory"><span>📰</span> ForexFactory</a>
       <a class="news-link" href="https://es.investing.com/economic-calendar" target="_blank" rel="noopener noreferrer" title="Calendario económico de Investing"><span>📰</span> Investing</a>
     </div>
+    <a href="#/ajustes" class="nav-item ${AJUSTES_ROUTES.includes(current) ? 'active' : ''}" title="Ajustes · Importar · Tabla">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">Ajustes</span>
+    </a>
     <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
       <span class="theme-toggle-icon">${theme.current() === 'dark' ? '🌙' : '☀️'}</span>
       <span>${theme.current() === 'dark' ? 'Modo oscuro' : 'Modo claro'}</span>
