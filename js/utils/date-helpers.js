@@ -113,9 +113,13 @@ export const MONTHS_ES_SHORT = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago',
 export const HOUR_FROM = 6;   // rango por defecto cuando aún no hay datos
 export const HOUR_TO = 22;    // exclusivo: la última banda es 21-22h
 
-const slot = h => ({ label: String(h).padStart(2, '0'), from: h, to: h + 1 });
+const pad2 = h => String(h).padStart(2, '0');
 
-export function hourSlots(trades) {
+// `step` = tamaño de la banda en horas. La gráfica de barras usa 1h; el mapa de
+// calor usa 2h a propósito: al dividir por hora Y por día, sus celdas tienen ~5
+// veces menos trades, y con 1h la mayoría quedaría con 1-2 trades (un 0%/100%
+// que parece señal pero es ruido).
+export function hourSlots(trades, step = 1) {
   let lo = null, hi = null;
   if (Array.isArray(trades)) {
     for (const t of trades) {
@@ -128,10 +132,15 @@ export function hourSlots(trades) {
   }
   // Sin datos → rango por defecto, para no dejar el gráfico vacío del todo.
   if (lo === null) { lo = HOUR_FROM; hi = HOUR_TO; }
-  lo = Math.max(0, Math.min(lo, 23));
-  hi = Math.min(24, Math.max(hi, lo + 1));
+  // Alinear a múltiplos del paso (con 2h: 06-08, 08-10…, no 07-09).
+  lo = Math.max(0, Math.floor(lo / step) * step);
+  hi = Math.min(24, Math.ceil(hi / step) * step);
+  if (hi <= lo) hi = Math.min(24, lo + step);
   const out = [];
-  for (let h = lo; h < hi; h++) out.push(slot(h));
+  for (let h = lo; h < hi; h += step) {
+    const to = Math.min(24, h + step);
+    out.push({ label: step === 1 ? pad2(h) : `${pad2(h)}-${pad2(to)}`, from: h, to });
+  }
   return out;
 }
 

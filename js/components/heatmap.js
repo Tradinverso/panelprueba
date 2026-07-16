@@ -4,10 +4,13 @@ import { winrate } from '../utils/calculations.js';
 export function renderHeatmap(container, trades) {
   container.className = 'heatmap';
   container.innerHTML = '';
-  // Bandas de 1h ajustadas SOLO a los trades que este mapa pinta (lun-vie con
-  // hora): si no, un trade de fin de semana crearía una fila vacía en el borde.
+  // Bandas de 2h (no 1h como las barras): este mapa divide por hora Y por día,
+  // así que sus celdas tienen ~5x menos trades; con 1h la mayoría quedaría con
+  // 1-2 trades y un 0%/100% que parece señal pero es ruido.
+  // Ajustadas SOLO a los trades que pinta (lun-vie con hora): si no, un trade de
+  // fin de semana crearía una fila vacía en el borde.
   const counted = (trades || []).filter(t => dayOfWeekIndex(t.date) != null && t.open_hour != null);
-  const SLOTS = hourSlots(counted);
+  const SLOTS = hourSlots(counted, 2);
   const matrix = SLOTS.map(() => DAYS_ES.map(() => ({ tp: 0, sl: 0, total: 0 })));
   for (const t of trades) {
     const di = dayOfWeekIndex(t.date);
