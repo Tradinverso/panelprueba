@@ -109,37 +109,12 @@ export function createEquity(canvas, datasets, opts = {}) {
   });
 }
 
-// Plugin: texto en el centro del donut (número grande + etiqueta) → look premium.
-function centerText(primary, secondary, primaryColor) {
-  return {
-    id: 'centerText',
-    afterDraw(chart) {
-      const el = chart.getDatasetMeta(0)?.data?.[0];
-      if (!el) return;
-      const { ctx } = chart;
-      ctx.save();
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillStyle = primaryColor || READ('--text-strong');
-      ctx.font = "700 24px 'Space Grotesk', sans-serif";
-      ctx.fillText(primary, el.x, el.y - (secondary ? 9 : 0));
-      if (secondary) {
-        ctx.fillStyle = READ('--muted');
-        ctx.font = "500 10px 'DM Mono', monospace";
-        ctx.fillText(secondary, el.x, el.y + 14);
-      }
-      ctx.restore();
-    },
-  };
-}
-
 export function createDonut(canvas, tp, sl, be) {
   defaults();
   Chart.getChart(canvas)?.destroy();
-  const DIM = READ('--dim'), CYAN = READ('--cyan'), RED = READ('--red');
-  const total = tp + sl + be;
-  const wr = (tp + sl) > 0 ? (tp / (tp + sl)) * 100 : 0;
-  // Regla winrate: cian de marca siempre, rojo solo si < 40%.
-  const wrColor = (tp + sl) > 0 && wr < 40 ? RED : CYAN;
+  const DIM = READ('--dim');
+  // El centro va vacío a propósito: el WR y el nº de trades ya se muestran
+  // arriba en la tarjeta, no hace falta repetirlos dentro del aro.
   // Aros anchos con degradado; se descartan segmentos a 0 (sin punto flotante).
   const defs = [
     { v: tp, label: 'TP', color: grad2(canvas, '#7DF3C4', '#2FB889') },
@@ -163,7 +138,6 @@ export function createDonut(canvas, tp, sl, be) {
       responsive: true, maintainAspectRatio: false, cutout: '64%',
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}` } } },
     },
-    plugins: [centerText((tp + sl) > 0 ? wr.toFixed(0) + '%' : '–', total + (total === 1 ? ' trade' : ' trades'), wrColor)],
   });
 }
 

@@ -97,11 +97,12 @@ export function settingsView(container) {
             ${!auth.hasTimezone() ? `<br><span style="color:var(--orange);">⚠ Sin configurar. Detectada: <strong>${escapeHtml(guessTz())}</strong> — confírmala para que tus horas cuadren.</span>` : ''}
           </div>
         </div>
-        <div class="setting-control">
-          <select class="select" id="tzSel">
+        <div class="setting-control" style="display:flex;gap:8px;">
+          <select class="select" id="tzSel" style="flex:1;">
             ${TIMEZONES.map(t => `<option value="${escapeHtml(t.tz)}" ${currentTz === t.tz ? 'selected' : ''}>${escapeHtml(tzLabel(t.tz))}</option>`).join('')}
             ${TIMEZONES.some(t => t.tz === currentTz) ? '' : `<option value="${escapeHtml(currentTz)}" selected>${escapeHtml(tzLabel(currentTz))}</option>`}
           </select>
+          <button class="btn primary" id="saveTzBtn">Guardar</button>
         </div>
       </div>
     </div>
@@ -233,14 +234,20 @@ export function settingsView(container) {
   const themeSel = container.querySelector('#themeSel');
   if (themeSel) themeSel.addEventListener('change', e => theme.apply(e.target.value));
 
-  const tzSel = container.querySelector('#tzSel');
-  if (tzSel) tzSel.addEventListener('change', async e => {
-    const tz = e.target.value;
+  const saveTzBtn = container.querySelector('#saveTzBtn');
+  if (saveTzBtn) saveTzBtn.addEventListener('click', async () => {
+    const sel = container.querySelector('#tzSel');
+    if (!sel) return;
+    const tz = sel.value;
+    saveTzBtn.disabled = true;
     try {
       await auth.updateTimezone(tz);
       flashOk(container, 'Zona horaria guardada: ' + tzLabel(tz));
-    } catch (err) {
-      console.error('[settings] Error guardando zona horaria:', err);
+    } catch (e) {
+      // Antes esto solo iba a la consola: si fallaba, parecía que "no confirmaba".
+      flashErr(container, 'Error guardando la zona horaria: ' + (e.message || e));
+    } finally {
+      saveTzBtn.disabled = false;
     }
   });
 

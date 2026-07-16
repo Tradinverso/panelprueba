@@ -105,26 +105,29 @@ export const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Juli
 export const MONTHS_ES_SHORT = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
 // ── Franjas horarias: bandas de 1 hora ─────────────────────────
-// Rango base 06–22 (la sesión que interesa), pero se AMPLÍA automáticamente para
-// cubrir cualquier trade fuera de él: un alumno de LATAM opera la sesión europea
-// de madrugada en su hora local y antes esos trades se perdían silenciosamente.
-export const HOUR_FROM = 6;
-export const HOUR_TO = 22;   // exclusivo: la última banda es 21-22h
+// El rango se AJUSTA A LOS DATOS: va de la primera a la última hora con trades.
+// Así no se malgasta espacio en horas vacías de los extremos (si operas de 7 a
+// 20, no se pintan las 0-6 ni las 21-23), pero los huecos INTERMEDIOS sí se
+// mantienen (si no operas a las 12 pero sí a las 11 y 13, las 12 aparecen
+// vacías: esa ausencia es información).
+export const HOUR_FROM = 6;   // rango por defecto cuando aún no hay datos
+export const HOUR_TO = 22;    // exclusivo: la última banda es 21-22h
 
 const slot = h => ({ label: String(h).padStart(2, '0'), from: h, to: h + 1 });
 
-// Bandas de 1h para un conjunto de trades. Sin trades → rango base 06–22.
 export function hourSlots(trades) {
-  let lo = HOUR_FROM, hi = HOUR_TO;
+  let lo = null, hi = null;
   if (Array.isArray(trades)) {
     for (const t of trades) {
       const h = t && t.open_hour;
       if (h == null || isNaN(h)) continue;
       const f = Math.floor(h);
-      if (f < lo) lo = f;
-      if (f + 1 > hi) hi = f + 1;
+      if (lo === null || f < lo) lo = f;
+      if (hi === null || f + 1 > hi) hi = f + 1;
     }
   }
+  // Sin datos → rango por defecto, para no dejar el gráfico vacío del todo.
+  if (lo === null) { lo = HOUR_FROM; hi = HOUR_TO; }
   lo = Math.max(0, Math.min(lo, 23));
   hi = Math.min(24, Math.max(hi, lo + 1));
   const out = [];
