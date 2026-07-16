@@ -1,16 +1,17 @@
-import { dayOfWeekIndex, HOUR_SLOTS, DAYS_ES } from '../utils/date-helpers.js';
+import { dayOfWeekIndex, hourSlots, DAYS_ES } from '../utils/date-helpers.js';
 import { winrate } from '../utils/calculations.js';
 
 export function renderHeatmap(container, trades) {
   container.className = 'heatmap';
   container.innerHTML = '';
-  const matrix = HOUR_SLOTS.map(() => DAYS_ES.map(() => ({ tp: 0, sl: 0, total: 0 })));
+  const SLOTS = hourSlots(trades);   // bandas de 1h ajustadas a los datos
+  const matrix = SLOTS.map(() => DAYS_ES.map(() => ({ tp: 0, sl: 0, total: 0 })));
   for (const t of trades) {
     const di = dayOfWeekIndex(t.date);
     if (di == null) continue;
     if (t.open_hour == null) continue;
-    for (let h = 0; h < HOUR_SLOTS.length; h++) {
-      const s = HOUR_SLOTS[h];
+    for (let h = 0; h < SLOTS.length; h++) {
+      const s = SLOTS[h];
       if (t.open_hour >= s.from && t.open_hour < s.to) {
         matrix[h][di].total++;
         if (t.result === 'TP') matrix[h][di].tp++;
@@ -23,8 +24,8 @@ export function renderHeatmap(container, trades) {
   container.appendChild(div('hm-corner', ''));
   for (const d of DAYS_ES) container.appendChild(div('hm-day-label', d));
   // Body
-  HOUR_SLOTS.forEach((slot, hi) => {
-    container.appendChild(div('hm-hour-label', slot.label.replace('h', '')));
+  SLOTS.forEach((slot, hi) => {
+    container.appendChild(div('hm-hour-label', slot.label + 'h'));
     matrix[hi].forEach(cell => {
       const c = div('hm-cell', '');
       if (cell.total === 0) {

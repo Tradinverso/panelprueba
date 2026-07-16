@@ -2,6 +2,7 @@ import { theme } from '../theme.js';
 import { router } from '../router.js';
 import { state } from '../state.js';
 import { auth } from '../auth.js';
+import { tzLabel } from '../utils/timezone.js';
 
 // hideInViewAs: oculto cuando admin está viendo/editando a un alumno
 // (Ajustes muestra info personal del admin, así que no tiene sentido).
@@ -114,7 +115,7 @@ export function renderSidebar(container) {
     <div class="news-lbl">Noticias</div>
     <div class="news-links">
       <a class="news-link" href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener noreferrer" title="Calendario económico de ForexFactory"><span>📰</span> ForexFactory</a>
-      <a class="news-link" href="https://www.investing.com/economic-calendar/" target="_blank" rel="noopener noreferrer" title="Calendario económico de Investing"><span>📰</span> Investing</a>
+      <a class="news-link" href="https://es.investing.com/economic-calendar" target="_blank" rel="noopener noreferrer" title="Calendario económico de Investing"><span>📰</span> Investing</a>
     </div>
     <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
       <span class="theme-toggle-icon">${theme.current() === 'dark' ? '🌙' : '☀️'}</span>
@@ -125,6 +126,9 @@ export function renderSidebar(container) {
       <div class="user-info">
         <div class="user-name">${escapeHtml(auth.displayName())}</div>
         <div class="user-email">${escapeHtml(auth.currentUser.email)}</div>
+        ${auth.hasTimezone()
+          ? `<a class="user-tz" href="#/ajustes" title="Cambiar zona horaria">🕗 ${escapeHtml(tzLabel(auth.timezone()))}</a>`
+          : `<a class="user-tz warn" href="#/ajustes" title="Configura tu zona horaria">⚠ Configura tu zona horaria</a>`}
       </div>
       <button class="user-logout" id="logoutBtn" title="Cerrar sesión">⏻</button>
     </div>

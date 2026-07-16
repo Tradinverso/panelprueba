@@ -13,7 +13,7 @@
 .section-title { color: var(--text); }
 .section-title::before {
   content: ''; flex-shrink: 0; width: 3px; height: 13px; border-radius: 2px;
-  background: linear-gradient(180deg, var(--gold-2), var(--gold));
+  background: linear-gradient(180deg, var(--cyan), var(--accent));
 }
 
 /* ── Shell: sidebar de cristal ── */
@@ -23,23 +23,23 @@
   border-right: 1px solid var(--border);
 }
 .brand-logo {
-  background: linear-gradient(135deg, var(--gold-2), var(--gold));
-  color: #1a1204; font-family: var(--font-display);
-  box-shadow: var(--glow-gold);
+  background: linear-gradient(135deg, var(--cyan), var(--accent));
+  color: #04121a; font-family: var(--font-display);
+  box-shadow: var(--glow-accent);
 }
 
-/* Nav activo: indicador y fondo con acento ORO + glow */
+/* Nav activo: indicador y fondo con acento cian/azul + glow */
 .nav-item { transition: background var(--dur) var(--ease), color var(--dur), transform var(--dur); }
 .nav-item.active {
-  background: linear-gradient(90deg, var(--gold-bg), transparent 80%);
+  background: linear-gradient(90deg, var(--cyan-bg), transparent 80%);
   color: var(--text-strong);
   box-shadow: 0 1px 0 var(--glass-2) inset;
 }
 .nav-item.active::before {
-  background: linear-gradient(180deg, var(--gold-2), var(--gold));
-  box-shadow: var(--glow-gold);
+  background: linear-gradient(180deg, var(--cyan), var(--accent));
+  box-shadow: var(--glow-accent);
 }
-.nav-item.active .nav-icon { background: var(--gold-bg); border-color: var(--glass-border); }
+.nav-item.active .nav-icon { background: var(--cyan-bg); border-color: var(--glass-border); }
 /* Conservar el color por estrategia en el indicador activo */
 .nav-item.zonas.active::before    { background: var(--zonas); }
 .nav-item.liquidez.active::before { background: var(--liquidez); }
@@ -79,7 +79,6 @@
 .kpi-icon.orange { background: var(--orange-bg); }
 .kpi-icon.blue   { background: var(--cyan-bg); }
 .kpi-icon.purple { background: var(--zonas-bg); }
-.kpi-icon.gold   { background: var(--gold-bg); }
 /* Deja sitio al icono para que no pise el valor */
 .kpi-card .kpi-label { padding-right: 42px; }
 .kpi-card::before { height: 3px; opacity: .9; }
@@ -88,18 +87,17 @@
 .kpi-card.orange::before { background: linear-gradient(90deg, var(--orange), transparent); }
 .kpi-card.blue::before   { background: linear-gradient(90deg, var(--accent), var(--cyan)); }
 .kpi-card.purple::before { background: linear-gradient(90deg, var(--zonas), transparent); }
-.kpi-card.gold::before   { background: linear-gradient(90deg, var(--gold), var(--gold-2)); }
-.kpi-value.gold { color: var(--gold-2); }
+.kpi-value.blue { color: var(--cyan); }
 
 /* ── Botones ── */
 .btn { border-radius: var(--radius-sm); transition: transform var(--dur) var(--ease), background var(--dur), border-color var(--dur), box-shadow var(--dur), filter var(--dur); }
 .btn:hover { transform: translateY(-1px); }
 .btn.primary {
-  background: linear-gradient(135deg, var(--gold), var(--gold-2));
-  border: 1px solid transparent; color: #1a1204; font-weight: 700;
-  box-shadow: var(--glow-gold);
+  background: linear-gradient(135deg, var(--accent), var(--cyan));
+  border: 1px solid transparent; color: #04121a; font-weight: 600;
+  box-shadow: var(--glow-accent);
 }
-.btn.primary:hover { filter: brightness(1.05); box-shadow: var(--glow-gold), 0 6px 18px -8px rgba(232,179,65,.5); }
+.btn.primary:hover { filter: brightness(1.06); box-shadow: var(--glow-accent), 0 6px 18px -8px rgba(34,211,238,.5); }
 
 /* ── Selects / inputs: foco con acento ── */
 .select:focus, .form-input:focus, .form-textarea:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-bg); }
@@ -118,28 +116,28 @@
   transition: color var(--dur), border-color var(--dur), background var(--dur), transform var(--dur) var(--ease);
 }
 .news-link span { font-size: 12px; }
-.news-link:hover { color: var(--text); border-color: rgba(215,177,92,0.4); background: var(--gold-bg); transform: translateY(-1px); }
+.news-link:hover { color: var(--text); border-color: var(--glass-border); background: var(--cyan-bg); transform: translateY(-1px); }
 
-/* ── CTA "Formación": tarjeta oscura con acento oro (membresía premium) ── */
+/* ── CTA "Formación": tarjeta con acento cian/azul de marca ── */
 .formacion-cta {
   display: flex; align-items: center; gap: 12px;
   margin: 6px 0 10px; padding: 12px 13px; border-radius: 14px;
   text-decoration: none; color: var(--text);
-  background: linear-gradient(150deg, var(--gold-bg), rgba(255,255,255,0.02));
-  border: 1px solid rgba(215,177,92,0.30);
+  background: linear-gradient(150deg, var(--cyan-bg), rgba(255,255,255,0.02));
+  border: 1px solid var(--glass-border);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
   transition: transform var(--dur) var(--ease), box-shadow var(--dur), border-color var(--dur);
 }
-.formacion-cta:hover { transform: translateY(-1px); border-color: rgba(215,177,92,0.6); box-shadow: var(--glow-gold); }
+.formacion-cta:hover { transform: translateY(-1px); border-color: var(--cyan); box-shadow: var(--glow-accent); }
 .formacion-cta .fc-icon {
   width: 34px; height: 34px; border-radius: 10px; flex: none;
   display: flex; align-items: center; justify-content: center; font-size: 16px;
-  background: linear-gradient(140deg, var(--gold-2), var(--gold)); color: #1c1607;
+  background: linear-gradient(140deg, var(--cyan), var(--accent)); color: #04121a;
 }
 .formacion-cta .fc-text { display: flex; flex-direction: column; line-height: 1.18; flex: 1; min-width: 0; }
 .formacion-cta .fc-text strong { font-family: var(--font-display); font-weight: 650; font-size: 13.5px; letter-spacing: -0.1px; }
 .formacion-cta .fc-text small { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 0.02em; }
-.formacion-cta .fc-arrow { margin-left: auto; color: var(--gold); font-size: 14px; }
+.formacion-cta .fc-arrow { margin-left: auto; color: var(--cyan); font-size: 14px; }
 
 /* ════════════════════════════════════════════════════════════════
    Utilidades reutilizables para fases siguientes (bento, tiles, stats)

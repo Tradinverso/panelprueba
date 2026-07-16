@@ -104,19 +104,40 @@ export const DAYS_ES_FULL = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes
 export const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 export const MONTHS_ES_SHORT = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
-// Hour-slot label for decimal hour
-export const HOUR_SLOTS = [
-  { label: '07-09h', from: 7, to: 9 },
-  { label: '09-11h', from: 9, to: 11 },
-  { label: '11-13h', from: 11, to: 13 },
-  { label: '13-15h', from: 13, to: 15 },
-  { label: '15-17h', from: 15, to: 17 },
-  { label: '17-19h', from: 17, to: 19 },
-];
+// ── Franjas horarias: bandas de 1 hora ─────────────────────────
+// Rango base 06–22 (la sesión que interesa), pero se AMPLÍA automáticamente para
+// cubrir cualquier trade fuera de él: un alumno de LATAM opera la sesión europea
+// de madrugada en su hora local y antes esos trades se perdían silenciosamente.
+export const HOUR_FROM = 6;
+export const HOUR_TO = 22;   // exclusivo: la última banda es 21-22h
 
-export function hourSlot(decimalHour) {
+const slot = h => ({ label: String(h).padStart(2, '0'), from: h, to: h + 1 });
+
+// Bandas de 1h para un conjunto de trades. Sin trades → rango base 06–22.
+export function hourSlots(trades) {
+  let lo = HOUR_FROM, hi = HOUR_TO;
+  if (Array.isArray(trades)) {
+    for (const t of trades) {
+      const h = t && t.open_hour;
+      if (h == null || isNaN(h)) continue;
+      const f = Math.floor(h);
+      if (f < lo) lo = f;
+      if (f + 1 > hi) hi = f + 1;
+    }
+  }
+  lo = Math.max(0, Math.min(lo, 23));
+  hi = Math.min(24, Math.max(hi, lo + 1));
+  const out = [];
+  for (let h = lo; h < hi; h++) out.push(slot(h));
+  return out;
+}
+
+// Rango base fijo (por si algo lo necesita sin datos).
+export const HOUR_SLOTS = hourSlots(null);
+
+export function hourSlot(decimalHour, slots = HOUR_SLOTS) {
   if (decimalHour == null) return null;
-  for (const s of HOUR_SLOTS) if (decimalHour >= s.from && decimalHour < s.to) return s.label;
+  for (const s of slots) if (decimalHour >= s.from && decimalHour < s.to) return s.label;
   return null;
 }
 

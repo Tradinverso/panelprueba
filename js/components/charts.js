@@ -72,7 +72,7 @@ export function createEquity(canvas, datasets, opts = {}) {
   defaults();
   Chart.getChart(canvas)?.destroy();
   const GREEN = READ('--green'), Z = READ('--zonas'), L = READ('--liquidez'), N = READ('--nasdaq');
-  const palette = { ALL: GREEN, ZONAS: Z, LIQUIDEZ: L, NASDAQ: N, PORT: READ('--gold') };
+  const palette = { ALL: GREEN, ZONAS: Z, LIQUIDEZ: L, NASDAQ: N, PORT: READ('--cyan') };
   const fmt = typeof opts.formatter === 'function' ? opts.formatter : (v => v.toFixed(1) + '%');
   return new Chart(canvas, {
     type: 'line',
@@ -135,11 +135,11 @@ function centerText(primary, secondary, primaryColor) {
 export function createDonut(canvas, tp, sl, be) {
   defaults();
   Chart.getChart(canvas)?.destroy();
-  const DIM = READ('--dim'), GOLD = READ('--gold'), RED = READ('--red');
+  const DIM = READ('--dim'), CYAN = READ('--cyan'), RED = READ('--red');
   const total = tp + sl + be;
   const wr = (tp + sl) > 0 ? (tp / (tp + sl)) * 100 : 0;
-  // Regla winrate: dorado siempre, rojo solo si < 40%.
-  const wrColor = (tp + sl) > 0 && wr < 40 ? RED : GOLD;
+  // Regla winrate: cian de marca siempre, rojo solo si < 40%.
+  const wrColor = (tp + sl) > 0 && wr < 40 ? RED : CYAN;
   // Aros anchos con degradado; se descartan segmentos a 0 (sin punto flotante).
   const defs = [
     { v: tp, label: 'TP', color: grad2(canvas, '#7DF3C4', '#2FB889') },
@@ -192,7 +192,7 @@ export function createBar(canvas, labels, data, opts = {}) {
 export function createHourBar(canvas, hourData) {
   defaults();
   Chart.getChart(canvas)?.destroy();
-  const GREEN = READ('--green'), RED = READ('--red'), ORANGE = READ('--orange'), BLUE = READ('--gold');
+  const GREEN = READ('--green'), RED = READ('--red'), ORANGE = READ('--orange'), BLUE = READ('--cyan');
   return new Chart(canvas, {
     type: 'bar',
     data: {
@@ -220,7 +220,9 @@ export function createHourBar(canvas, hourData) {
       interaction: { mode: 'index', intersect: false },
       plugins: { legend: { display: false } },
       scales: {
-        x: { grid: { display: false }, border: { display: false } },
+        // Bandas de 1h → hasta ~17+ etiquetas. Sin autoSkip:false, Chart.js
+        // esconde etiquetas silenciosamente.
+        x: { grid: { display: false }, border: { display: false }, ticks: { autoSkip: false, maxRotation: 90, minRotation: 0, font: { size: 9 } } },
         y: { ticks: { callback: v => v + '%' }, grid: { color: READ('--border') }, border: { display: false }, min: 0, max: 110 },
         y2: { position: 'right', grid: { display: false }, border: { display: false }, ticks: { color: BLUE } },
       },
@@ -231,7 +233,7 @@ export function createHourBar(canvas, hourData) {
 export function createDayBar(canvas, dayData) {
   defaults();
   Chart.getChart(canvas)?.destroy();
-  const GREEN = READ('--green'), RED = READ('--red'), ORANGE = READ('--orange'), BLUE = READ('--gold');
+  const GREEN = READ('--green'), RED = READ('--red'), ORANGE = READ('--orange'), BLUE = READ('--cyan');
   return new Chart(canvas, {
     type: 'bar',
     data: {

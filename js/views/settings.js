@@ -8,6 +8,7 @@ import { openModal } from '../components/modal.js';
 import { router } from '../router.js';
 import { IMPORT_HEADERS } from '../utils/sheet-parsers.js';
 import { formatDateEs } from '../utils/date-helpers.js';
+import { TIMEZONES, tzLabel, guessTz } from '../utils/timezone.js';
 
 export function settingsView(container) {
   const inViewAs = !!state.viewAsUid;
@@ -16,6 +17,7 @@ export function settingsView(container) {
   const tradeCount = state.trades.length;
   const countSheet = sheet => state.trades.filter(t => t.sheet === sheet).length;
   const profile = auth.profile || {};
+  const currentTz = auth.timezone();
 
   // Personal sections (Mi cuenta, URL, Tema) solo se muestran cuando NO estás
   // viendo como otro alumno. En viewAs solo se muestra Mantenimiento (acciones
@@ -79,6 +81,26 @@ export function settingsView(container) {
           <select class="select" id="themeSel">
             <option value="dark"  ${theme.current() === 'dark'  ? 'selected' : ''}>Oscuro</option>
             <option value="light" ${theme.current() === 'light' ? 'selected' : ''}>Claro</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Zona horaria</div>
+    <div class="card">
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-label">Tu zona horaria</div>
+          <div class="setting-desc">
+            Metes los trades en <strong>tu hora local</strong> y las estadísticas por hora se muestran en tu horario.
+            Tu profesor verá tus horas convertidas automáticamente a la suya.
+            ${!auth.hasTimezone() ? `<br><span style="color:var(--orange);">⚠ Sin configurar. Detectada: <strong>${escapeHtml(guessTz())}</strong> — confírmala para que tus horas cuadren.</span>` : ''}
+          </div>
+        </div>
+        <div class="setting-control">
+          <select class="select" id="tzSel">
+            ${TIMEZONES.map(t => `<option value="${escapeHtml(t.tz)}" ${currentTz === t.tz ? 'selected' : ''}>${escapeHtml(tzLabel(t.tz))}</option>`).join('')}
+            ${TIMEZONES.some(t => t.tz === currentTz) ? '' : `<option value="${escapeHtml(currentTz)}" selected>${escapeHtml(tzLabel(currentTz))}</option>`}
           </select>
         </div>
       </div>
@@ -210,6 +232,17 @@ export function settingsView(container) {
 
   const themeSel = container.querySelector('#themeSel');
   if (themeSel) themeSel.addEventListener('change', e => theme.apply(e.target.value));
+
+  const tzSel = container.querySelector('#tzSel');
+  if (tzSel) tzSel.addEventListener('change', async e => {
+    const tz = e.target.value;
+    try {
+      await auth.updateTimezone(tz);
+      flashOk(container, 'Zona horaria guardada: ' + tzLabel(tz));
+    } catch (err) {
+      console.error('[settings] Error guardando zona horaria:', err);
+    }
+  });
 
   const riskSel = container.querySelector('#riskModuleSel');
   if (riskSel) riskSel.addEventListener('change', e => {

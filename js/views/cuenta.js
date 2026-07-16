@@ -107,7 +107,7 @@ function render(container, cuentaId) {
         tone: 'purple',
       }) : ''}
       ${kpiCard({ label: 'Trades', value: s.count, sub: `${s.tp} TP · ${s.sl} SL · ${s.be} BE`, tone: 'orange' })}
-      ${kpiCard({ label: 'Winrate', value: (s.tp + s.sl > 0 ? s.wr.toFixed(0) + '%' : '–'), sub: 'TP / (TP+SL)', tone: (s.tp + s.sl) > 0 && s.wr < 40 ? 'red' : 'gold' })}
+      ${kpiCard({ label: 'Winrate', value: (s.tp + s.sl > 0 ? s.wr.toFixed(0) + '%' : '–'), sub: 'TP / (TP+SL)', tone: (s.tp + s.sl) > 0 && s.wr < 40 ? 'red' : 'blue' })}
       ${kpiCard({ label: 'Profit Factor', value: isFinite(s.pf) ? s.pf.toFixed(2) : '∞', sub: '$ wins / |$ losses|', tone: 'green' })}
       ${cuenta.cost > 0 && isFondeada ? kpiCard({ label: 'Net to pocket', value: fmtUsd(s.netToPocket, true), sub: 'retirado − coste', tone: s.netToPocket >= 0 ? 'green' : 'red' }) : ''}
     </div>
