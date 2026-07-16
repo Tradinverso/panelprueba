@@ -182,6 +182,25 @@
 }
 
 /* ── Markdown renderizado (Plan de trading) ── */
+/* ── Plan de trading: vista previa embebida + CTA de documento ── */
+.plan-embed { width: 100%; height: 68vh; min-height: 420px; border: 0; display: block; background: var(--card2); }
+.plan-embed-note { padding: 10px 16px; font-size: 11px; font-family: var(--mono); color: var(--muted); border-top: 1px solid var(--border); }
+.plan-doc-cta {
+  display: flex; align-items: center; gap: 16px; text-decoration: none; color: var(--text);
+  padding: 22px 24px; margin-bottom: 16px;
+  transition: transform var(--dur) var(--ease), border-color var(--dur), box-shadow var(--dur);
+}
+.plan-doc-cta:hover { transform: translateY(-2px); border-color: var(--cyan); box-shadow: var(--glow-card), var(--glow-accent); }
+.plan-doc-cta .pd-icon {
+  width: 54px; height: 54px; flex: none; border-radius: 15px;
+  display: flex; align-items: center; justify-content: center; font-size: 26px;
+  background: linear-gradient(140deg, var(--cyan), var(--accent));
+}
+.plan-doc-cta .pd-text { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.plan-doc-cta .pd-text strong { font-family: var(--font-display); font-size: 18px; font-weight: 600; letter-spacing: -.3px; }
+.plan-doc-cta .pd-text small { font-size: 12px; color: var(--muted); }
+.plan-doc-cta .pd-arrow { font-size: 22px; color: var(--cyan); flex: none; }
+
 .md-content { line-height: 1.7; }
 .md-content > *:first-child { margin-top: 0; }
 .md-content h1 { font-family: var(--font-display); font-size: 22px; font-weight: 600; letter-spacing: -.3px; margin: 4px 0 12px; }
