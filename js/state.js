@@ -247,12 +247,35 @@ function sanitizeDocText(p) {
   };
 }
 
-// El Plan de trading incluye, en el mismo doc, los Protocolos del alumno (sub-
-// objeto `protocolos`). Así reutilizamos users/{uid}/tradingPlan/data (ya
+// Un protocolo del alumno: título + texto Markdown + enlace opcional.
+function sanitizeProtocolo(p) {
+  p = p || {};
+  const docUrl = String(p.docUrl || '').trim();
+  return {
+    id: p.id || uuid(),
+    titulo: String(p.titulo || '').trim(),
+    content: String(p.content || ''),
+    docUrl: /^https?:\/\//i.test(docUrl) ? docUrl : '',
+    updatedAt: typeof p.updatedAt === 'number' ? p.updatedAt : 0,
+  };
+}
+
+// Lista de protocolos propios del alumno. Migra el formato antiguo (un único
+// objeto {content,docUrl}) a un array de un elemento para no perder nada.
+function sanitizeProtocolosList(v) {
+  if (Array.isArray(v)) return v.map(sanitizeProtocolo);
+  if (v && (v.content || v.docUrl)) {
+    return [sanitizeProtocolo({ titulo: 'Mi protocolo', content: v.content, docUrl: v.docUrl, updatedAt: v.updatedAt })];
+  }
+  return [];
+}
+
+// El Plan de trading incluye, en el mismo doc, los Protocolos PROPIOS del alumno
+// (array `protocolos`). Así reutilizamos users/{uid}/tradingPlan/data (ya
 // permitido y ya cubierto por los backups) sin crear un doc nuevo.
 function sanitizeTradingPlan(p) {
   p = p || {};
-  return { ...sanitizeDocText(p), protocolos: sanitizeDocText(p.protocolos) };
+  return { ...sanitizeDocText(p), protocolos: sanitizeProtocolosList(p.protocolos) };
 }
 
 function sanitizeReflection(r) {
@@ -770,10 +793,19 @@ export const state = {
     return next;
   },
 
-  // Protocolos del alumno: viven dentro del doc del Plan (sub-objeto).
-  saveProtocolos(patch) {
-    const protocolos = sanitizeDocText({ ...(this.tradingPlan && this.tradingPlan.protocolos), ...patch });
-    return this.saveTradingPlan({ protocolos });
+  // Protocolos propios del alumno (lista dentro del doc del Plan).
+  _protocolos() { return (this.tradingPlan && Array.isArray(this.tradingPlan.protocolos)) ? this.tradingPlan.protocolos : []; },
+  addProtocolo(data) {
+    const p = sanitizeProtocolo({ ...data, updatedAt: Date.now() });
+    return this.saveTradingPlan({ protocolos: [...this._protocolos(), p] });
+  },
+  updateProtocolo(id, patch) {
+    const list = this._protocolos().map(p =>
+      p.id === id ? sanitizeProtocolo({ ...p, ...patch, id, updatedAt: Date.now() }) : p);
+    return this.saveTradingPlan({ protocolos: list });
+  },
+  removeProtocolo(id) {
+    return this.saveTradingPlan({ protocolos: this._protocolos().filter(p => p.id !== id) });
   },
 
   // ── Bus de eventos ───────────────────────────────────────

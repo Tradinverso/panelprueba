@@ -366,7 +366,8 @@ function showBackupV2Selector(resultEl, parsed) {
   const perfiles = Array.isArray(parsed.perfiles) ? parsed.perfiles : [];
   const tradingPlan = (parsed.tradingPlan && typeof parsed.tradingPlan === 'object') ? parsed.tradingPlan : null;
   const proto = tradingPlan && tradingPlan.protocolos;
-  const hasPlan = !!(tradingPlan && (tradingPlan.content || tradingPlan.docUrl || (proto && (proto.content || proto.docUrl))));
+  const hasProto = Array.isArray(proto) ? proto.length > 0 : !!(proto && (proto.content || proto.docUrl));
+  const hasPlan = !!(tradingPlan && (tradingPlan.content || tradingPlan.docUrl || hasProto));
   const exportedAt = parsed.exportedAt ? new Date(parsed.exportedAt).toLocaleString('es-ES') : '—';
   const exportedBy = parsed.exportedBy || '—';
 
