@@ -6,8 +6,10 @@ import { storage } from '../storage.js';
 import { tzLabel } from '../utils/timezone.js';
 import { icon } from './icons.js';
 import { STRATEGY_ROUTES } from './strategy-tabs.js';
+import { PSICO_ROUTES } from './psicotrading-tabs.js';
 
 const STRATEGY_ROUTES_LIST = Object.values(STRATEGY_ROUTES);
+const PSICO_ROUTES_LIST = Object.values(PSICO_ROUTES);
 
 // hideInViewAs: oculto cuando admin está viendo/editando a un alumno
 // (Ajustes muestra info personal del admin, así que no tiene sentido).
@@ -27,7 +29,8 @@ const NAV_BASE = [
 
   { section: 'Análisis' },
   { path: '#/diagnostico', label: 'Diagnóstico', icon: 'diagnostico', class: '' },
-  { path: '#/psicologia',  label: 'Reflexiones', icon: 'reflexiones', class: '' },
+  // Psicotrading agrupa Reflexiones + Meditaciones + Protocolos (pestañas dentro).
+  { path: '#/psicologia', label: 'Psicotrading', icon: 'reflexiones', class: '', match: PSICO_ROUTES_LIST },
   { path: '#/plan',        label: 'Plan de trading', icon: 'plan', class: '' },
   // Ajustes (que ahora engloba Importar y Tabla como pestañas) se renderiza
   // aparte, al final del sidebar, encima del tema (ver renderSidebar).

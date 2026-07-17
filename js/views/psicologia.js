@@ -12,6 +12,7 @@ import {
 } from '../utils/period-stats.js';
 import { MONTHS_ES, MONTHS_ES_SHORT } from '../utils/date-helpers.js';
 import { fmtPct } from '../utils/number-format-es.js';
+import { psicotradingTabs } from '../components/psicotrading-tabs.js';
 
 let tab = 'daily'; // 'daily' | 'weekly' | 'monthly'
 let calYear = null;
@@ -42,9 +43,10 @@ export function psicologiaView(container) {
 
 function render(container) {
   container.innerHTML = `
+    ${psicotradingTabs('reflexiones')}
     <div class="page-header">
       <div>
-        <h1>Psicología</h1>
+        <h1>Reflexiones</h1>
         <div class="sub">Reflexiones diaria · semanal · mensual con stats del período</div>
       </div>
       <div class="page-actions">

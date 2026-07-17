@@ -191,6 +191,27 @@
   backdrop-filter: none; -webkit-backdrop-filter: none;
 }
 
+/* ── Meditaciones: tarjetas de audio ── */
+.medita-list { display: flex; flex-direction: column; gap: 14px; }
+.medita-card {
+  background: var(--glass); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--glow-card); padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.medita-head { display: flex; align-items: flex-start; gap: 14px; }
+.medita-icon {
+  width: 46px; height: 46px; flex: none; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center; font-size: 22px;
+  background: var(--cyan-bg); border: 1px solid var(--glass-border);
+}
+.medita-meta { flex: 1; min-width: 0; }
+.medita-title { font-family: var(--font-display); font-size: 16px; font-weight: 600; letter-spacing: -.2px; color: var(--text-strong); }
+.medita-author { font-family: var(--mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--cyan); margin-top: 3px; }
+.medita-desc { font-size: 12.5px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+.medita-audio { width: 100%; height: 40px; }
+/* En navegadores WebKit el reproductor nativo trae fondo claro: lo suavizamos */
+.medita-audio::-webkit-media-controls-panel { background: var(--card2); }
+
 /* ── Markdown renderizado (Plan de trading) ── */
 /* ── Plan de trading: vista previa embebida + CTA de documento ── */
 .plan-embed { width: 100%; height: 68vh; min-height: 420px; border: 0; display: block; background: var(--card2); }

@@ -365,7 +365,8 @@ function showBackupV2Selector(resultEl, parsed) {
   const reflections = Array.isArray(parsed.reflections) ? parsed.reflections : [];
   const perfiles = Array.isArray(parsed.perfiles) ? parsed.perfiles : [];
   const tradingPlan = (parsed.tradingPlan && typeof parsed.tradingPlan === 'object') ? parsed.tradingPlan : null;
-  const hasPlan = !!(tradingPlan && (tradingPlan.content || tradingPlan.docUrl));
+  const proto = tradingPlan && tradingPlan.protocolos;
+  const hasPlan = !!(tradingPlan && (tradingPlan.content || tradingPlan.docUrl || (proto && (proto.content || proto.docUrl))));
   const exportedAt = parsed.exportedAt ? new Date(parsed.exportedAt).toLocaleString('es-ES') : '—';
   const exportedBy = parsed.exportedBy || '—';
 
@@ -395,7 +396,7 @@ function showBackupV2Selector(resultEl, parsed) {
         </label>
         <label style="display:flex;gap:8px;align-items:center;cursor:${hasPlan ? 'pointer' : 'not-allowed'};opacity:${hasPlan ? 1 : 0.5};">
           <input type="checkbox" id="bkPlan" ${hasPlan ? '' : 'disabled'}>
-          <span><strong>Plan de trading</strong> — sobrescribe el plan actual</span>
+          <span><strong>Plan de trading y protocolos</strong> — sobrescribe el plan y los protocolos actuales</span>
         </label>
       </div>
       <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end;">

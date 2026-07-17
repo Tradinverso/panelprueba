@@ -236,7 +236,8 @@ function sanitizePerfil(p) {
   };
 }
 
-function sanitizeTradingPlan(p) {
+// Doc con texto + enlace opcional (Plan de trading y Protocolos comparten forma).
+function sanitizeDocText(p) {
   p = p || {};
   const docUrl = String(p.docUrl || '').trim();
   return {
@@ -244,6 +245,14 @@ function sanitizeTradingPlan(p) {
     docUrl: /^https?:\/\//i.test(docUrl) ? docUrl : '',
     updatedAt: typeof p.updatedAt === 'number' ? p.updatedAt : 0,
   };
+}
+
+// El Plan de trading incluye, en el mismo doc, los Protocolos del alumno (sub-
+// objeto `protocolos`). Así reutilizamos users/{uid}/tradingPlan/data (ya
+// permitido y ya cubierto por los backups) sin crear un doc nuevo.
+function sanitizeTradingPlan(p) {
+  p = p || {};
+  return { ...sanitizeDocText(p), protocolos: sanitizeDocText(p.protocolos) };
 }
 
 function sanitizeReflection(r) {
@@ -759,6 +768,12 @@ export const state = {
     this.emit();
     fireAndForget(sync.saveTradingPlan(targetUid(), next), 'saveTradingPlan');
     return next;
+  },
+
+  // Protocolos del alumno: viven dentro del doc del Plan (sub-objeto).
+  saveProtocolos(patch) {
+    const protocolos = sanitizeDocText({ ...(this.tradingPlan && this.tradingPlan.protocolos), ...patch });
+    return this.saveTradingPlan({ protocolos });
   },
 
   // ── Bus de eventos ───────────────────────────────────────
