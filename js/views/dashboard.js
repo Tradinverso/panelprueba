@@ -133,7 +133,7 @@ function loadingState() {
   return `
     <div class="page-header">
       <div>
-        <h1>Tradinverso <span>·</span> Dashboard</h1>
+        <h1>Dashboard</h1>
         <div class="sub">Cargando…</div>
       </div>
     </div>
@@ -157,7 +157,7 @@ function emptyState() {
   return `
     <div class="page-header">
       <div>
-        <h1>Tradinverso <span>·</span> Dashboard${userSuffix}</h1>
+        <h1>Dashboard${userSuffix}</h1>
         <div class="sub">Sin datos aún</div>
       </div>
     </div>
@@ -217,7 +217,7 @@ function renderShell(allTrades, filtered) {
   return `
     <div class="page-header">
       <div>
-        <h1>Tradinverso <span>·</span> Dashboard${userName ? ` <span style="color:var(--muted);font-weight:400;">·</span> <span style="color:var(--text);font-weight:500;">${escapeHtml(userName)}</span>` : ''}</h1>
+        <h1>Dashboard${userName ? ` <span style="color:var(--muted);font-weight:400;">·</span> <span style="color:var(--text);font-weight:500;">${escapeHtml(userName)}</span>` : ''}</h1>
         <div class="sub">${filtered.length} trades · ${first} → ${last}</div>
       </div>
       <div class="page-actions">
