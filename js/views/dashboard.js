@@ -4,7 +4,7 @@ import { router } from '../router.js';
 import {
   winrate, pnlPct, pnlPctReal, profitFactor, maxDrawdown, maxStreak, bestTpStreakPnl,
   equityCurve, equityCurveReal, monthlyPnl, activeDays, tradeCounts, durationStats,
-  wrByHour, wrByDay, statsByGroup, longVsShort, avgRR, expectancy,
+  wrByHour, wrByDay, statsByGroup, longVsShort, avgRR, expectancy, planStats,
 } from '../utils/calculations.js';
 import { fmtPct, fmtPctNoSign, fmtNum } from '../utils/number-format-es.js';
 import {
@@ -355,6 +355,7 @@ function paintKpis(container, trades, allTrades) {
   const pf = profitFactor(trades);
   const exp = expectancy(trades);
   const rr = avgRR(trades);
+  const plan = planStats(trades);
   const tpStreak = maxStreak(trades, 'TP');
   const tpStreakPct = bestTpStreakPnl(trades);
   const days = activeDays(trades);
@@ -370,17 +371,20 @@ function paintKpis(container, trades, allTrades) {
   const tDd   = p ? trend(dd, maxDrawdown(p.trades), p.ref, { lowerIsBetter: true }) : null;
   const tPf   = p ? trend(pf, profitFactor(p.trades), p.ref, { unit: '' }) : null;
   const tExp  = p ? trend(exp.value, expectancy(p.trades).value, p.ref) : null;
+  const tPlan = p ? trend(plan.pctInPlan, planStats(p.trades).pctInPlan, p.ref) : null;
 
+  // 2 filas de 5: arriba las 5 clave, abajo las 5 secundarias.
   container.querySelector('#kpis').innerHTML = [
     kpiCard({ label: 'Winrate global', value: wr.toFixed(1) + '%', sub: `${c.tp} TP · ${c.sl} SL · ${c.be} BE`, tone: decisive > 0 && wr < 40 ? 'red' : 'blue', trend: tWr }),
     kpiCard({ label: 'P&L sistema', value: fmtPct(pnl, 1), sub: 'trades al 1%', tone: pnl >= 0 ? 'green' : 'red', trend: tPnl }),
     kpiCard({ label: 'P&L real', value: fmtPct(pnlReal, 1), sub: 'según riesgo real', tone: pnlReal >= 0 ? 'green' : 'red', trend: tReal }),
     kpiCard({ label: 'DD máximo', value: (dd > 0 ? '−' : '') + dd.toFixed(1) + '%', sub: 'equity combinada', tone: 'red', trend: tDd }),
+    kpiCardComposite({ label: 'Racha TP máx', primary: tpStreak, secondary: 'TP · ' + fmtPct(tpStreakPct, 1), sub: 'consecutivos · % sistema', tone: 'green' }),
     // Mismos umbrales que la leyenda de la tabla de pares: >2 verde · 1.5-2 naranja.
     kpiCard({ label: 'Profit factor', value: decisive ? (isFinite(pf) ? fmtNum(pf) : '∞') : '–', sub: 'bruto ganado / bruto perdido', tone: !decisive ? 'blue' : pf >= 2 ? 'green' : pf >= 1.5 ? 'orange' : 'red', trend: tPf }),
     kpiCard({ label: 'Esperanza / trade', value: decisive ? fmtPct(exp.value, 2) : '–', sub: decisive ? `media TP ${fmtPct(exp.avgWin, 1)} · media SL −${fmtPctNoSign(exp.avgLoss)}` : 'sin trades decisivos', tone: exp.value >= 0 ? 'green' : 'red', trend: tExp }),
     kpiCard({ label: 'RR medio', value: rr > 0 ? fmtNum(rr) : '–', sub: rr > 0 ? 'riesgo : beneficio medio' : 'sin RR registrado', tone: 'blue' }),
-    kpiCardComposite({ label: 'Racha TP máx', primary: tpStreak, secondary: 'TP · ' + fmtPct(tpStreakPct, 1), sub: 'consecutivos · % sistema', tone: 'green' }),
+    kpiCard({ label: 'Adherencia al plan', value: plan.total ? plan.pctInPlan.toFixed(0) + '%' : '–', sub: plan.total ? `${plan.inPlan} dentro · ${plan.outOfPlan} fuera` : 'sin trades marcados', tone: !plan.total ? 'blue' : plan.pctInPlan >= 80 ? 'green' : plan.pctInPlan >= 60 ? 'orange' : 'red', trend: tPlan }),
     kpiCard({ label: 'Días activos', value: days, sub: `${c.total} trades · ${avgPerDay}/día`, tone: 'purple' }),
   ].join('');
 }

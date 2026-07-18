@@ -334,6 +334,9 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
 
 /* ── KPI grid ────────────────────────────────────────────── */
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 24px; }
+/* Escritorio ancho: 2 filas exactas de 5 — las 5 clave arriba, las 5 secundarias abajo.
+   Por debajo manda el auto-fit (y el 2-col de móvil), que reparte sin huecos raros. */
+@media (min-width: 1240px) { .kpi-grid { grid-template-columns: repeat(5, 1fr); } }
 .kpi-card { background: var(--glass); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; position: relative; overflow: hidden; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: border-color .2s, box-shadow .2s; }
 .kpi-card:hover { border-color: var(--glass-border); box-shadow: 0 4px 20px -8px rgba(59,130,246,0.35); }
 .kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
@@ -341,7 +344,7 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
 .kpi-card.red::before { background: var(--red); }
 .kpi-card.orange::before { background: var(--orange); }
 .kpi-card.blue::before { background: var(--accent); }
-.kpi-card.purple::before { background: var(--zonas); }
+.kpi-card.purple::before { background: var(--liquidez); }
 .kpi-label { font-size: 10px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
 .kpi-value { font-size: 24px; font-weight: 600; letter-spacing: -1px; line-height: 1; }
 .kpi-value.green { color: var(--green); }
