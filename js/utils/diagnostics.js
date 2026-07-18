@@ -111,6 +111,26 @@ function toMin(s) {
   return h * 60 + m;
 }
 
+// Reentradas "en caliente" de HOY: trades abiertos ≤ventana minutos después
+// de cerrar un SL del mismo día. Lo usan la alerta de venganza y el semáforo.
+function casosVenganzaHoy(todays) {
+  const conHoras = todays.filter(t => toMin(t.open_str) != null)
+    .sort((a, b) => toMin(a.open_str) - toMin(b.open_str));
+  let ultimoSlCierre = null, casos = 0, primerGap = null;
+  for (const t of conHoras) {
+    const open = toMin(t.open_str);
+    if (ultimoSlCierre != null) {
+      const gap = open - ultimoSlCierre;
+      if (gap >= 0 && gap <= UMBRALES.ventanaVenganzaMin) {
+        casos++;
+        if (primerGap == null) primerGap = gap;
+      }
+    }
+    if (t.result === 'SL' && toMin(t.close_str) != null) ultimoSlCierre = toMin(t.close_str);
+  }
+  return { casos, primerGap };
+}
+
 // Dentro de cada lista, lo rojo arriba, luego naranja, luego verde.
 // El sort es estable: a igual severidad se conserva el orden de las reglas.
 const SEV_RANK = { danger: 0, warning: 1, success: 2 };
@@ -222,26 +242,13 @@ export function buildAlerts(trades) {
   // ── HOY: reentrada en caliente tras un SL (posible venganza) ──
   // La señal más citada de revenge trading: volver a entrar a los pocos
   // minutos de una pérdida. Solo evalúa trades con horas registradas.
-  const conHoras = todays.filter(t => toMin(t.open_str) != null)
-    .sort((a, b) => toMin(a.open_str) - toMin(b.open_str));
-  let ultimoSlCierre = null, casosVenganza = 0, primerGap = null;
-  for (const t of conHoras) {
-    const open = toMin(t.open_str);
-    if (ultimoSlCierre != null) {
-      const gap = open - ultimoSlCierre;
-      if (gap >= 0 && gap <= UMBRALES.ventanaVenganzaMin) {
-        casosVenganza++;
-        if (primerGap == null) primerGap = gap;
-      }
-    }
-    if (t.result === 'SL' && toMin(t.close_str) != null) ultimoSlCierre = toMin(t.close_str);
-  }
-  if (casosVenganza) {
+  const venganza = casosVenganzaHoy(todays);
+  if (venganza.casos) {
     tecAlertas.push(danger('🔥',
-      casosVenganza > 1
-        ? `HOY ${casosVenganza} posibles trades de venganza`
+      venganza.casos > 1
+        ? `HOY ${venganza.casos} posibles trades de venganza`
         : `HOY posible trade de venganza`,
-      `Reentraste a los ${primerGap} min de cerrar un SL. Tras una pérdida, levántate de la pantalla — el siguiente setup puede esperar.`));
+      `Reentraste a los ${venganza.primerGap} min de cerrar un SL. Tras una pérdida, levántate de la pantalla — el siguiente setup puede esperar.`));
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -654,4 +661,38 @@ export function buildAlerts(trades) {
 export function countDangerAlerts(trades) {
   const r = buildAlerts(trades);
   return [...r.tecAlertas, ...r.emoAlertas, ...r.planAlertas].filter(a => a.type === 'danger').length;
+}
+
+// Semáforo del día: ¿puede operar HOY este trader?
+// 'stop' (rojo) = alguna regla de parada del día activa · 'warn' (naranja) =
+// cerca del límite · 'ok' (verde) = vía libre. `reasons` alimenta el tooltip.
+// Usa los mismos UMBRALES que las alertas — un solo criterio en toda la app.
+export function todayStatus(trades) {
+  const stops = [], warns = [];
+  const todays = todaysTrades(trades);
+  const todaySL = todays.filter(t => t.result === 'SL').length;
+  const todayPnl = todays.reduce((s, t) => s + tradeRealPnl(t), 0);
+  const badEmotions = new Set(NEGATIVAS);
+
+  // Racha SL: solo si es trader activo (una racha de hace semanas no es "hoy")
+  const lastOp = lastOperatedDate(trades);
+  const active = lastOp ? daysBetween(lastOp, todayStr()) <= 7 : false;
+  const slStreak = active ? currentSlStreak(trades) : 0;
+
+  if (todaySL >= UMBRALES.slDia) stops.push(`${todaySL} SL hoy`);
+  else if (todaySL === UMBRALES.avisoSlDia) warns.push(`${todaySL} SL hoy`);
+
+  if (todays.length >= UMBRALES.maxTradesDia) stops.push(`${todays.length} trades hoy (máx ${UMBRALES.maxTradesDia})`);
+  else if (todays.length === UMBRALES.avisoTradesDia) warns.push(`${todays.length} trades hoy`);
+
+  if (todayPnl <= UMBRALES.ddDiario) stops.push(`${todayPnl.toFixed(1)}% hoy (límite ${UMBRALES.ddDiario}%)`);
+  if (todays.some(t => badEmotions.has(t.sensacion))) stops.push('sensación negativa hoy');
+  if (casosVenganzaHoy(todays).casos) stops.push('posible trade de venganza hoy');
+
+  if (slStreak >= UMBRALES.rachaSl.alerta) stops.push(`racha de ${slStreak} SL`);
+  else if (slStreak === UMBRALES.rachaSl.aviso) warns.push(`racha de ${slStreak} SL`);
+
+  if (stops.length) return { level: 'stop', reasons: stops };
+  if (warns.length) return { level: 'warn', reasons: warns };
+  return { level: 'ok', reasons: [] };
 }

@@ -15,7 +15,7 @@ import { createEquity, createDonut, createBar, createHourBar, createDayBar, crea
 import { renderHeatmap } from '../components/heatmap.js';
 import { renderConnectionBadge, cleanupConnectionBadge } from '../components/connection-badge.js';
 import { renderPills } from '../components/pills.js';
-import { countDangerAlerts } from '../utils/diagnostics.js';
+import { countDangerAlerts, todayStatus } from '../utils/diagnostics.js';
 
 const STRAT_LABELS = { ZONAS: 'Forex + Oro', LIQUIDEZ: 'EUR/USD', NASDAQ: 'NQ Futuros' };
 
@@ -229,6 +229,7 @@ function renderShell(allTrades, filtered) {
             return `<option value="${m}" ${monthFilter === m ? 'selected' : ''}>${MONTHS_ES[+mo - 1]} ${y}</option>`;
           }).join('')}
         </select>
+        ${semaforoPill(allTrades)}
         <span class="conn-badge" id="connBadge"></span>
       </div>
     </div>
@@ -401,6 +402,20 @@ function paintEquity(container, trades) {
     { key: 'NASDAQ', label: 'Nasdaq', data: curve(trades.filter(t => t.sheet === 'NASDAQ')) },
   ];
   createEquity(container.querySelector('#equityChart'), datasets);
+}
+
+// Semáforo del día: ¿puede operar hoy? Siempre evalúa HOY sobre todos los
+// trades (el filtro de mes/año del dashboard no le afecta).
+const SEMAFORO = {
+  ok:   { dot: '🟢', label: 'Vía libre' },
+  warn: { dot: '🟠', label: 'Precaución' },
+  stop: { dot: '🔴', label: 'Hoy no se opera' },
+};
+function semaforoPill(allTrades) {
+  const s = todayStatus(allTrades);
+  const cfg = SEMAFORO[s.level];
+  const title = s.reasons.length ? `Hoy: ${s.reasons.join(' · ')}` : 'Sin incidencias hoy — respeta tu plan';
+  return `<span class="semaforo ${s.level}" title="${escapeHtml(title)}">${cfg.dot} ${cfg.label}</span>`;
 }
 
 // Franja de aviso: solo cuando el diagnóstico tiene alertas ROJAS. Si no hay,
