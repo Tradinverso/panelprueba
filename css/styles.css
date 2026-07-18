@@ -69,6 +69,7 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
   body.sidebar-collapsed .nav-meta,
   body.sidebar-collapsed .nav-section,
   body.sidebar-collapsed .user-tz span,
+  body.sidebar-collapsed .user-tz .tz-clock,
   body.sidebar-collapsed .brand-context,
   body.sidebar-collapsed .fc-text,
   body.sidebar-collapsed .fc-arrow,
@@ -82,7 +83,7 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
   body.sidebar-collapsed .brand { padding: 4px 0 18px; }
   body.sidebar-collapsed .nav-item { padding: 9px 0; }
   body.sidebar-collapsed .nav-item.nav-admin-first { margin-top: 8px; padding-top: 11px; }
-  body.sidebar-collapsed .user-tz { margin: -10px 0 12px; gap: 0; }
+  body.sidebar-collapsed .user-tz { margin: 6px 0 10px; gap: 0; align-items: center; }
   body.sidebar-collapsed .formacion-cta { padding: 9px 0; }
   body.sidebar-collapsed .nav-item.active::before { left: -10px; }
 }
@@ -486,7 +487,8 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
 @media (min-width: 901px) and (max-width: 1100px) {
   body { grid-template-columns: 68px 1fr; }
   :root { --sidebar-w: 68px; }
-  .brand-text, .nav-label, .nav-meta, .nav-section { display: none; }
+  .brand-text, .nav-label, .nav-meta, .nav-section, .user-tz span, .user-tz .tz-clock { display: none; }
+  .user-tz { align-items: center; }
   .nav-item { justify-content: center; padding: 11px 0; }
   .nav-item.active::before { left: -8px; }
   .nav-item.nav-admin-first { margin-top: 8px; padding-top: 11px; }

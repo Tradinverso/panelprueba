@@ -54,6 +54,26 @@ const NAV_ADMIN = [
 let unsubAuth = null;
 let unsubState = null;
 
+// Fecha y hora actuales en el huso del usuario (si aún no lo configuró, hora local).
+function clockText() {
+  const d = new Date();
+  const opts = auth.hasTimezone() ? { timeZone: auth.timezone() } : {};
+  try {
+    const fecha = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'short', ...opts }).format(d);
+    const hora = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false, ...opts }).format(d);
+    return `${fecha.charAt(0).toUpperCase() + fecha.slice(1)} · ${hora}`;
+  } catch (e) {
+    return d.toLocaleString('es-ES');
+  }
+}
+
+// El reloj avanza sin re-render completo: un único intervalo actualiza solo el
+// texto. Si el sidebar no está montado (#tzClock ausente), no hace nada.
+setInterval(() => {
+  const el = document.getElementById('tzClock');
+  if (el) el.textContent = clockText();
+}, 30000);
+
 export function renderSidebar(container) {
   if (!container) return;
 
@@ -99,16 +119,13 @@ export function renderSidebar(container) {
       <div class="brand-text">
         <span class="brand-line2">TRADINVERSO</span>
         <span class="brand-line1">Trading Journal</span>
-        <span class="brand-ver">v.2.1</span>
+        <span class="brand-ver">v.2.2</span>
       </div>
     </a>
     <div class="sidebar-tools">
       <button class="sidebar-tool" id="sidebarCollapse" title="${collapsed ? 'Desplegar menú' : 'Plegar menú'}" aria-label="${collapsed ? 'Desplegar menú' : 'Plegar menú'}">${icon('colapsar')}</button>
       <button class="sidebar-tool" id="themeToggle" title="Cambiar tema (claro/oscuro)" aria-label="Cambiar tema">${theme.current() === 'dark' ? icon('luna') : icon('sol')}</button>
     </div>
-    ${auth.hasTimezone()
-      ? `<a class="user-tz" href="#/ajustes" title="Zona horaria: ${escapeHtml(tzLabel(auth.timezone()))} · pulsa para cambiarla">${icon('reloj')}<span>${escapeHtml(tzLabel(auth.timezone()))}</span></a>`
-      : `<a class="user-tz warn" href="#/ajustes" title="Configura tu zona horaria">${icon('aviso')}<span>Configura tu zona horaria</span></a>`}
     ${viewingContext}
     <nav class="nav">
       ${nav.map(item => {
@@ -148,6 +165,15 @@ export function renderSidebar(container) {
       <span class="nav-icon">${icon('ajustes')}</span>
       <span class="nav-label">Ajustes</span>
     </a>
+    ${auth.hasTimezone()
+      ? `<a class="user-tz" href="#/ajustes" title="Zona horaria: ${escapeHtml(tzLabel(auth.timezone()))} · pulsa para cambiarla">
+           <div class="tz-line">${icon('reloj')}<span>${escapeHtml(tzLabel(auth.timezone()))}</span></div>
+           <div class="tz-line tz-clock" id="tzClock">${clockText()}</div>
+         </a>`
+      : `<a class="user-tz warn" href="#/ajustes" title="Configura tu zona horaria">
+           <div class="tz-line">${icon('aviso')}<span>Configura tu zona horaria</span></div>
+           <div class="tz-line tz-clock" id="tzClock">${clockText()}</div>
+         </a>`}
     <div class="user-block">
       <div class="user-avatar">${escapeHtml(initial)}</div>
       <div class="user-info">
