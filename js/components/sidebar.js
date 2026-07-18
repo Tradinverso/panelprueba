@@ -102,6 +102,7 @@ export function renderSidebar(container) {
   // Indicador de contexto: a quién pertenece la vista actual.
   // Si admin está en viewAs → "Viendo a [Alumno]" con icono y opción de volver.
   // Si normal → solo el nombre del usuario.
+  const initial = (auth.displayName() || '?').charAt(0).toUpperCase();
   const viewingContext = inViewAs && state.viewAsProfile
     ? `<div class="brand-context viewing-as">
          <div class="bc-label">VIENDO A</div>
@@ -109,7 +110,7 @@ export function renderSidebar(container) {
          <button class="bc-exit" id="exitViewAsTopBtn" title="Volver a tu cuenta">${icon('volver')} Volver</button>
        </div>`
     : `<div class="brand-context">
-         <div class="bc-name-self">${escapeHtml(auth.displayName())}</div>
+         <div class="bc-name-self"><span class="bc-avatar">${escapeHtml(initial)}</span>${escapeHtml(auth.displayName())}</div>
        </div>`;
 
   container.innerHTML = `
