@@ -46,7 +46,10 @@ const UMBRALES = {
   minDia: 5,                // trades por día de la semana (insight mejor día)
   minSens: 5,               // trades por sensación
   minSesion: 5,             // trades por sesión Londres/NY
-  minCobertura: 10,         // trades totales antes de evaluar cobertura emocional
+  minCobertura: 10,         // trades en la ventana antes de evaluar cobertura emocional
+  ventanaCobertura: 50,     // la cobertura se mide sobre los últimos N trades: los
+                            // antiguos (de antes de existir el campo sensación) no
+                            // deben penalizar el porcentaje para siempre
 
   // Diferencias vs la media (puntos porcentuales)
   difPar: { aviso: 10, alerta: 20, mejor: 5 },
@@ -407,19 +410,22 @@ export function buildAlerts(trades) {
     }
   }
 
-  // ── Cobertura emocional (solo con historial mínimo: en una cuenta de 3
-  //    trades el % de cobertura no dice nada) ──
+  // ── Cobertura emocional — sobre los ÚLTIMOS trades, no todo el histórico:
+  //    mide el hábito ACTUAL. Los trades de antes de que existiera el campo
+  //    sensación no deben penalizar el porcentaje para siempre. ──
   const withSens = withSensacion(trades);
-  const coverage = trades.length > 0 ? (withSens.length / trades.length * 100) : 0;
-  if (trades.length >= UMBRALES.minCobertura) {
+  const ventanaCob = sortChrono(trades).slice(-UMBRALES.ventanaCobertura);
+  const ventanaCobSens = withSensacion(ventanaCob);
+  const coverage = ventanaCob.length ? (ventanaCobSens.length / ventanaCob.length * 100) : 0;
+  if (ventanaCob.length >= UMBRALES.minCobertura) {
     if (coverage < UMBRALES.cobertura.baja) {
       tecAlertas.push(warn('🧠',
-        `Cobertura emocional baja: ${coverage.toFixed(0)}%`,
-        `Solo ${withSens.length}/${trades.length} trades con sensación. Sin esto el diagnóstico emocional pierde valor.`));
+        `Cobertura emocional baja: ${coverage.toFixed(0)}% (últimos ${ventanaCob.length} trades)`,
+        `Solo ${ventanaCobSens.length} de tus últimos ${ventanaCob.length} trades llevan sensación. Sin esto el diagnóstico emocional pierde valor.`));
     } else if (coverage >= UMBRALES.cobertura.alta) {
       tecInsights.push(success('🧠',
-        `Cobertura emocional alta: ${coverage.toFixed(0)}%`,
-        `${withSens.length}/${trades.length} trades con sensación. Excelente disciplina.`));
+        `Cobertura emocional alta: ${coverage.toFixed(0)}% (últimos ${ventanaCob.length} trades)`,
+        `${ventanaCobSens.length} de tus últimos ${ventanaCob.length} trades con sensación. Excelente disciplina.`));
     }
   }
 
@@ -639,4 +645,13 @@ export function buildAlerts(trades) {
   }
 
   return ordenarPorSeveridad({ tecAlertas, tecInsights, emoAlertas, emoInsights, planAlertas, planInsights });
+}
+
+// Nº de alertas ROJAS (danger) activas en las tres categorías.
+// Lo usan el badge de "Diagnóstico" en el menú y la franja de aviso del
+// Dashboard: solo lo crítico cuenta — con las naranjas el aviso estaría
+// siempre encendido y dejaría de llamar la atención.
+export function countDangerAlerts(trades) {
+  const r = buildAlerts(trades);
+  return [...r.tecAlertas, ...r.emoAlertas, ...r.planAlertas].filter(a => a.type === 'danger').length;
 }

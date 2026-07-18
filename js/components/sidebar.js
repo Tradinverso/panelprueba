@@ -4,6 +4,7 @@ import { state } from '../state.js';
 import { auth } from '../auth.js';
 import { storage } from '../storage.js';
 import { tzLabel } from '../utils/timezone.js';
+import { countDangerAlerts } from '../utils/diagnostics.js';
 import { icon } from './icons.js';
 import { STRATEGY_ROUTES } from './strategy-tabs.js';
 import { PSICO_ROUTES } from './psicotrading-tabs.js';
@@ -23,7 +24,8 @@ const NAV_BASE = [
   // Las 3 estrategias son un único ítem: dentro se cambia con pestañas.
   { path: '#/zonas', label: 'Estrategias', icon: 'zonas', class: '', match: STRATEGY_ROUTES_LIST },
   // Lo analítico va junto tras Estrategias: primero Diagnóstico, luego Psicotrading.
-  { path: '#/diagnostico', label: 'Diagnóstico', icon: 'diagnostico', class: '' },
+  // dangerAlerts: badge rojo con el nº de alertas críticas del diagnóstico.
+  { path: '#/diagnostico', label: 'Diagnóstico', icon: 'diagnostico', class: '', dangerAlerts: true },
   // Psicotrading agrupa Reflexiones + Meditaciones + Protocolos (pestañas dentro).
   { path: '#/psicologia', label: 'Psicotrading', icon: 'reflexiones', class: '', match: PSICO_ROUTES_LIST },
   // Después, la gestión del dinero: Cuentas (agrupa Cuentas + Riesgo) y Contabilidad aparte.
@@ -121,6 +123,9 @@ export function renderSidebar(container) {
         } else if (item.countActiveCuentas) {
           const n = state.cuentas.filter(c => c.status === 'activa').length;
           meta = n ? `<span class="nav-meta">${n}</span>` : '';
+        } else if (item.dangerAlerts) {
+          const n = countDangerAlerts(state.trades);
+          meta = n ? `<span class="nav-meta danger" title="${n} alerta${n > 1 ? 's' : ''} crítica${n > 1 ? 's' : ''}">${n}</span>` : '';
         }
         return `
           <a href="${item.path}" class="nav-item ${item.class} ${active}" title="${escapeHtml(item.label)}">
