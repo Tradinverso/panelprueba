@@ -4,6 +4,7 @@ const KEYS = {
   url: 'tradinverso_apps_script_url',
   version: 'tradinverso_schema_version',
   sidebar: 'tradinverso_sidebar_collapsed',
+  news: 'tradinverso_news_source',
 };
 
 const SCHEMA_VERSION = 1;
@@ -34,6 +35,13 @@ export const storage = {
   },
   setSidebarCollapsed(v) {
     localStorage.setItem(KEYS.sidebar, v ? '1' : '0');
+  },
+  // Fuente del calendario económico del botón "Noticias": 'investing' | 'forexfactory'.
+  getNewsSource() {
+    return localStorage.getItem(KEYS.news) === 'forexfactory' ? 'forexfactory' : 'investing';
+  },
+  setNewsSource(v) {
+    localStorage.setItem(KEYS.news, v === 'forexfactory' ? 'forexfactory' : 'investing');
   },
   getAppsScriptUrl() {
     return localStorage.getItem(KEYS.url) || '';

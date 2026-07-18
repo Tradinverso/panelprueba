@@ -6,10 +6,10 @@
   --surface: #121a2e;
   --card: #141d33;
   --card2: #0e1626;
-  --text: #E6ECF5;
+  --text: #EEF2F9;
   --text-strong: #FFFFFF;
-  --muted: #97A3BE;
-  --dim: #5B6884;
+  --muted: #A9B4CB;
+  --dim: #6B7899;
   --border: rgba(255,255,255,0.08);
   --border-strong: rgba(120,160,255,0.22);
   --hover: rgba(120,160,255,0.06);
@@ -74,10 +74,10 @@
   --surface: #FFFFFF;
   --card: #FFFFFF;
   --card2: #F3F6FC;
-  --text: #182135;
+  --text: #0F1826;
   --text-strong: #060A14;
-  --muted: #586480;
-  --dim: #98A4BC;
+  --muted: #495570;
+  --dim: #8592AE;
   --border: rgba(15,23,42,0.09);
   --border-strong: rgba(40,90,200,0.22);
   --hover: rgba(40,90,200,0.05);

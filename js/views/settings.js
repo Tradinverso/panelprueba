@@ -10,6 +10,8 @@ import { IMPORT_HEADERS } from '../utils/sheet-parsers.js';
 import { formatDateEs } from '../utils/date-helpers.js';
 import { TIMEZONES, tzLabel, guessTz } from '../utils/timezone.js';
 import { ajustesTabs } from '../components/ajustes-tabs.js';
+import { icon } from '../components/icons.js';
+import { renderSidebar } from '../components/sidebar.js';
 
 export function settingsView(container) {
   const inViewAs = !!state.viewAsUid;
@@ -76,12 +78,24 @@ export function settingsView(container) {
       <div class="setting-row">
         <div class="setting-info">
           <div class="setting-label">Tema</div>
-          <div class="setting-desc">Modo oscuro o claro. También se puede cambiar desde la barra lateral.</div>
+          <div class="setting-desc">Modo oscuro o claro. También se cambia con el sol/luna de la barra lateral.</div>
         </div>
         <div class="setting-control">
-          <select class="select" id="themeSel">
-            <option value="dark"  ${theme.current() === 'dark'  ? 'selected' : ''}>Oscuro</option>
-            <option value="light" ${theme.current() === 'light' ? 'selected' : ''}>Claro</option>
+          <div class="segmented" id="themeSeg" role="group" aria-label="Tema">
+            <button type="button" class="seg-btn ${theme.current() === 'dark' ? 'active' : ''}" data-theme="dark"><span class="seg-ic">${icon('luna')}</span>Oscuro</button>
+            <button type="button" class="seg-btn ${theme.current() === 'light' ? 'active' : ''}" data-theme="light"><span class="seg-ic">${icon('sol')}</span>Claro</button>
+          </div>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-label">Noticias · calendario económico</div>
+          <div class="setting-desc">Qué web abre el acceso <strong>Noticias</strong> de la barra lateral.</div>
+        </div>
+        <div class="setting-control">
+          <select class="select" id="newsSel">
+            <option value="investing"    ${storage.getNewsSource() === 'investing'    ? 'selected' : ''}>Investing.com</option>
+            <option value="forexfactory" ${storage.getNewsSource() === 'forexfactory' ? 'selected' : ''}>ForexFactory</option>
           </select>
         </div>
       </div>
@@ -233,8 +247,21 @@ export function settingsView(container) {
   const urlInput = container.querySelector('#urlInput');
   if (urlInput) urlInput.addEventListener('change', e => storage.setAppsScriptUrl(e.target.value.trim()));
 
-  const themeSel = container.querySelector('#themeSel');
-  if (themeSel) themeSel.addEventListener('change', e => theme.apply(e.target.value));
+  const themeSeg = container.querySelector('#themeSeg');
+  if (themeSeg) themeSeg.addEventListener('click', e => {
+    const btn = e.target.closest('.seg-btn');
+    if (!btn) return;
+    theme.apply(btn.dataset.theme);
+    themeSeg.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b === btn));
+    renderSidebar(document.getElementById('sidebar'));  // refresca el iconito sol/luna
+  });
+
+  const newsSel = container.querySelector('#newsSel');
+  if (newsSel) newsSel.addEventListener('change', e => {
+    storage.setNewsSource(e.target.value);
+    renderSidebar(document.getElementById('sidebar'));  // el acceso "Noticias" apunta a la nueva web
+    flashOk(container, e.target.value === 'forexfactory' ? 'Noticias: ForexFactory' : 'Noticias: Investing.com');
+  });
 
   const saveTzBtn = container.querySelector('#saveTzBtn');
   if (saveTzBtn) saveTzBtn.addEventListener('click', async () => {
