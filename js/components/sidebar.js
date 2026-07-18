@@ -97,7 +97,6 @@ export function renderSidebar(container) {
   let nav = NAV_BASE.filter(item => (!inViewAs || !item.hideInViewAs) && (!item.riskModule || riskOn));
   if (auth.isAdmin()) nav = nav.concat(NAV_ADMIN);
 
-  const initial = (auth.displayName() || '?').charAt(0).toUpperCase();
   const collapsed = storage.getSidebarCollapsed();
 
   // Indicador de contexto: a quién pertenece la vista actual.
@@ -165,21 +164,16 @@ export function renderSidebar(container) {
       <span class="nav-icon">${icon('ajustes')}</span>
       <span class="nav-label">Ajustes</span>
     </a>
-    ${auth.hasTimezone()
-      ? `<a class="user-tz" href="#/ajustes" title="Zona horaria: ${escapeHtml(tzLabel(auth.timezone()))} · pulsa para cambiarla">
-           <div class="tz-line">${icon('reloj')}<span>${escapeHtml(tzLabel(auth.timezone()))}</span></div>
-           <div class="tz-line tz-clock" id="tzClock">${clockText()}</div>
-         </a>`
-      : `<a class="user-tz warn" href="#/ajustes" title="Configura tu zona horaria">
-           <div class="tz-line">${icon('aviso')}<span>Configura tu zona horaria</span></div>
-           <div class="tz-line tz-clock" id="tzClock">${clockText()}</div>
-         </a>`}
-    <div class="user-block">
-      <div class="user-avatar">${escapeHtml(initial)}</div>
-      <div class="user-info">
-        <div class="user-name">${escapeHtml(auth.displayName())}</div>
-        <div class="user-email">${escapeHtml(auth.currentUser.email)}</div>
-      </div>
+    <div class="sidebar-foot">
+      ${auth.hasTimezone()
+        ? `<a class="user-tz" href="#/ajustes" title="Zona horaria: ${escapeHtml(tzLabel(auth.timezone()))} · pulsa para cambiarla">
+             <div class="tz-line">${icon('reloj')}<span>${escapeHtml(tzLabel(auth.timezone()))}</span></div>
+             <div class="tz-line tz-clock" id="tzClock">${clockText()}</div>
+           </a>`
+        : `<a class="user-tz warn" href="#/ajustes" title="Configura tu zona horaria">
+             <div class="tz-line">${icon('aviso')}<span>Configura tu zona horaria</span></div>
+             <div class="tz-line tz-clock" id="tzClock">${clockText()}</div>
+           </a>`}
       <button class="user-logout" id="logoutBtn" title="Cerrar sesión">${icon('salir')}</button>
     </div>
   `;

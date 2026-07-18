@@ -72,18 +72,19 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
   body.sidebar-collapsed .user-tz .tz-clock,
   body.sidebar-collapsed .brand-context,
   body.sidebar-collapsed .fc-text,
-  body.sidebar-collapsed .fc-arrow,
-  body.sidebar-collapsed .user-info { display: none; }
+  body.sidebar-collapsed .fc-arrow { display: none; }
   /* Y lo que queda se centra */
   body.sidebar-collapsed .brand,
   body.sidebar-collapsed .nav-item,
-  body.sidebar-collapsed .user-block,
   body.sidebar-collapsed .formacion-cta,
   body.sidebar-collapsed .user-tz { justify-content: center; padding-left: 0; padding-right: 0; }
+  /* Pie: reloj y salir apilados como iconitos */
+  body.sidebar-collapsed .sidebar-foot { flex-direction: column; align-items: center; gap: 6px; }
+  body.sidebar-collapsed .user-logout { width: 32px; height: 32px; }
   body.sidebar-collapsed .brand { padding: 4px 0 18px; }
   body.sidebar-collapsed .nav-item { padding: 9px 0; }
   body.sidebar-collapsed .nav-item.nav-admin-first { margin-top: 8px; padding-top: 11px; }
-  body.sidebar-collapsed .user-tz { margin: 6px 0 10px; gap: 0; align-items: center; }
+  body.sidebar-collapsed .user-tz { gap: 0; align-items: center; flex: none; width: 32px; padding: 8px 0; }
   body.sidebar-collapsed .formacion-cta { padding: 9px 0; }
   body.sidebar-collapsed .nav-item.active::before { left: -10px; }
 }
@@ -489,7 +490,9 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
   body { grid-template-columns: 68px 1fr; }
   :root { --sidebar-w: 68px; }
   .brand-text, .nav-label, .nav-meta, .nav-section, .user-tz span, .user-tz .tz-clock { display: none; }
-  .user-tz { align-items: center; }
+  .user-tz { align-items: center; flex: none; width: 32px; padding: 8px 0; }
+  .sidebar-foot { flex-direction: column; align-items: center; gap: 6px; }
+  .user-logout { width: 32px; height: 32px; }
   .nav-item { justify-content: center; padding: 11px 0; }
   .nav-item.active::before { left: -8px; }
   .nav-item.nav-admin-first { margin-top: 8px; padding-top: 11px; }

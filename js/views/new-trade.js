@@ -22,17 +22,33 @@ export function newTradeView(container) {
         <div class="sub">Selecciona la estrategia y rellena el formulario</div>
       </div>
     </div>
-    <div class="strat-chooser pill-group" id="stratChooser"></div>
+    <div id="stratChooser"></div>
     <div class="card" id="formWrap"></div>
   `;
 
+  // Selector de estrategia: mismas pestañas grandes/centradas que la sección
+  // Estrategias, con el color de cada una en la activa. Son botones (cambian
+  // el formulario), no enlaces de navegación.
   const stratC = container.querySelector('#stratChooser');
-  renderPills(stratC, {
-    name: 'sheet',
-    options: ['ZONAS', 'LIQUIDEZ', 'NASDAQ'],
-    value: sheet,
-    onChange: v => { sheet = v; formData = init(sheet); rerender(); },
-  });
+  function paintChooser() {
+    stratC.innerHTML = `
+      <div class="rg-tabs gestion-tabs strat-tabs">
+        ${['ZONAS', 'LIQUIDEZ', 'NASDAQ'].map(k => {
+          const meta = STRAT_META[k] || { label: k };
+          const on = sheet === k;
+          return `<button type="button" class="rg-tab ${on ? 'active' : ''}" data-sheet="${k}"
+                    ${on && meta.color ? `style="--tab-accent:${meta.color};"` : ''}>${meta.label}</button>`;
+        }).join('')}
+      </div>`;
+    stratC.querySelectorAll('[data-sheet]').forEach(b => b.addEventListener('click', () => {
+      if (b.dataset.sheet === sheet) return;
+      sheet = b.dataset.sheet;
+      formData = init(sheet);
+      paintChooser();
+      rerender();
+    }));
+  }
+  paintChooser();
 
   const formWrap = container.querySelector('#formWrap');
   function rerender() { renderForm(formWrap, sheet, formData, () => formData); }

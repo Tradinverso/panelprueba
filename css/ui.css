@@ -105,6 +105,23 @@
 /* ── Selects / inputs: foco con acento ── */
 .select:focus, .form-input:focus, .form-textarea:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-bg); }
 
+/* ── Dictado por voz (botón 🎤 flotante en textareas) ── */
+.dictate-host { position: relative; }
+.dictate-btn {
+  position: absolute; right: 10px; bottom: 10px; z-index: 2;
+  width: 34px; height: 34px; border-radius: 50%; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--card2); border: 1px solid var(--border-strong);
+  cursor: pointer; font-size: 15px; line-height: 1;
+  transition: border-color var(--dur), box-shadow var(--dur), background var(--dur);
+}
+.dictate-btn:hover { border-color: var(--cyan); box-shadow: var(--glow-accent); }
+.dictate-btn.rec { background: var(--red-bg); border-color: var(--red); animation: dict-pulse 1.2s ease-in-out infinite; }
+@keyframes dict-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 92, 122, 0.35); }
+  50%      { box-shadow: 0 0 0 8px rgba(255, 92, 122, 0); }
+}
+
 /* ── Control segmentado (☾ Oscuro / ☀ Claro) ── */
 .segmented { display: inline-flex; gap: 4px; padding: 4px; border-radius: var(--radius-sm); background: var(--glass-2); border: 1px solid var(--border); }
 .seg-btn {

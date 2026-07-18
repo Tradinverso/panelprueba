@@ -167,28 +167,13 @@ body[data-auth="false"] #view {
 .conn-badge.online .conn-dot  { background: var(--green); box-shadow: 0 0 6px var(--green); }
 .conn-badge.offline .conn-dot { background: var(--orange); }
 
-/* ── Sidebar: bloque usuario inferior ────────────────────── */
-.user-block {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px;
-  border-top: 1px solid var(--border);
-  margin-top: 14px;
-}
-.user-avatar {
-  width: 32px; height: 32px; border-radius: 10px;
-  background: linear-gradient(135deg, var(--accent), var(--zonas));
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; color: #fff; font-size: 13px;
-  flex-shrink: 0;
-  text-transform: uppercase;
-}
-.user-info { flex: 1; min-width: 0; }
-.user-name { font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-email { font-size: 10px; color: var(--muted); font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* ── Sidebar: pie — zona horaria + reloj + salir ─────────── */
+.sidebar-foot { display: flex; align-items: stretch; gap: 6px; margin: 6px 0 10px; }
 /* Zona horaria + fecha/hora actual — chip en el pie, justo bajo Ajustes */
 .user-tz {
+  flex: 1; min-width: 0;
   display: flex; flex-direction: column; gap: 4px;
-  margin: 6px 0 10px; padding: 8px 11px; border-radius: 8px;
+  padding: 8px 11px; border-radius: 8px;
   font-size: 12px; font-family: var(--mono); color: var(--muted);
   text-decoration: none; background: var(--glass-2); border: 1px solid var(--border);
   transition: color var(--dur), border-color var(--dur), background var(--dur);
@@ -200,14 +185,11 @@ body[data-auth="false"] #view {
 .user-tz.warn { color: var(--orange); border-color: rgba(255,162,58,0.35); background: var(--orange-bg); }
 .user-tz.warn:hover { color: var(--orange); border-color: var(--orange); }
 .user-logout {
-  background: none; border: none; cursor: pointer;
-  color: var(--muted); padding: 6px; border-radius: 6px;
-  font-size: 14px; flex-shrink: 0;
+  cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; border-radius: 8px; padding: 0;
+  color: var(--muted); background: var(--glass-2); border: 1px solid var(--border);
+  font-size: 14px;
+  transition: color var(--dur), border-color var(--dur), background var(--dur);
 }
-.user-logout:hover { color: var(--red); background: var(--hover); }
-
-/* ── Sidebar colapsada (mobile/tablet) ───────────────────── */
-@media (max-width: 1100px) {
-  .user-info { display: none; }
-  .user-block { justify-content: center; padding: 12px 0; gap: 6px; }
-}
+.user-logout:hover { color: var(--red); border-color: var(--red); background: var(--red-bg); }

@@ -13,6 +13,7 @@ import {
 import { MONTHS_ES, MONTHS_ES_SHORT } from '../utils/date-helpers.js';
 import { fmtPct } from '../utils/number-format-es.js';
 import { psicotradingTabs } from '../components/psicotrading-tabs.js';
+import { attachDictation } from '../utils/dictation.js';
 
 let tab = 'daily'; // 'daily' | 'weekly' | 'monthly'
 let calYear = null;
@@ -298,13 +299,14 @@ function renderReflectionModal(type, period, content, mode) {
 
   openModal({ title: meta.title, meta: meta.label, size: 'lg', body, actions });
 
-  // Si entramos en edit, montamos el autoresize y damos foco al textarea
+  // Si entramos en edit, montamos el autoresize, el dictado por voz y el foco
   if (mode === 'edit') {
     setTimeout(() => {
       const ta = document.getElementById('psicoReflexionText');
       if (!ta) return;
       autoResizeTextarea(ta);
       ta.addEventListener('input', () => autoResizeTextarea(ta));
+      attachDictation(ta);
       ta.focus();
       // Cursor al final
       const len = ta.value.length;
