@@ -10,7 +10,7 @@
 
 import {
   winrate, pnlPct, currentSlStreak, sortChrono, statsByGroup,
-  wrByHour, longVsShort, avgRR,
+  wrByHour, wrByDay, longVsShort, avgRR, tradeRealPnl,
   planStats, currentInPlanStreak, currentOutOfPlanStreak,
 } from './calculations.js';
 import {
@@ -19,6 +19,50 @@ import {
 } from './sensaciones.js';
 import { tzHourDiff } from './timezone.js';
 import { auth } from '../auth.js';
+
+// ═══════════════════════════════════════════════════════════════
+// UMBRALES — todas las medidas del diagnóstico en un solo sitio.
+// Para ajustar cualquier regla, cambia el número aquí; el resto del
+// fichero solo referencia esta tabla.
+// Los mínimos de muestra evitan ruido: un WR sobre 3-4 trades es azar
+// (con <30 trades, un 55% real puede aparentar entre 35% y 75%).
+// ═══════════════════════════════════════════════════════════════
+const UMBRALES = {
+  // HOY — protección de la sesión
+  maxTradesDia: 5,          // trades/día: al llegar aquí, parar (regla de la academia)
+  avisoTradesDia: 4,        //   aviso previo
+  slDia: 3,                 // SL en el día → parar (regla de las 3 pérdidas)
+  avisoSlDia: 2,            //   aviso previo
+  ddDiario: -3,             // % de P&L REAL acumulado en el día → parar
+  ventanaVenganzaMin: 15,   // reentrar ≤X min tras cerrar un SL = posible venganza
+
+  // Rachas activas (consecutivos desde el último trade)
+  rachaSl: { aviso: 2, alerta: 3, protocolo: 5 },
+  rachaFueraPlan: { aviso: 2, alerta: 3 },
+
+  // Mínimos de muestra (anti-ruido)
+  minPar: 10,               // trades por par para comparar su WR
+  minFranja: 8,             // trades por franja horaria
+  minDia: 5,                // trades por día de la semana (insight mejor día)
+  minSens: 5,               // trades por sensación
+  minSesion: 5,             // trades por sesión Londres/NY
+  minCobertura: 10,         // trades totales antes de evaluar cobertura emocional
+
+  // Diferencias vs la media (puntos porcentuales)
+  difPar: { aviso: 10, alerta: 20, mejor: 5 },
+  difFranja: { aviso: 8, alerta: 15, mejor: 8 },
+  difSens: 5,               // sensación vs media emocional
+  difSensSheet: 8,          // sensación dentro de una estrategia
+  difSesion: 10,            // Londres vs NY
+
+  // Métricas de calidad
+  tendencia: { dias: 28, minReciente: 5, minTotal: 30, pp: 8 },
+  rr: { min: 10, objetivo: 2.0 },
+  cobertura: { baja: 60, alta: 90 },
+  plan: { min: 10, bien: 80, mal: 60 },
+  diasPositivos: { min: 5, bien: 60, mal: 50 },
+  sesiones: { londres: [8, 12], ny: [14, 18] },   // hora Madrid (se traslada al huso del usuario)
+};
 
 const A = (type, icon, title, body) => ({ type, icon, title, body });
 const danger  = (icon, title, body) => A('danger', icon, title, body);
@@ -57,6 +101,21 @@ function lastOperatedDate(trades) {
   return dates[dates.length - 1];
 }
 
+// "HH:MM" → minutos desde medianoche (null si falta o no parsea)
+function toMin(s) {
+  if (!s || !/^\d{1,2}:\d{2}/.test(s)) return null;
+  const [h, m] = String(s).split(':').map(Number);
+  return h * 60 + m;
+}
+
+// Dentro de cada lista, lo rojo arriba, luego naranja, luego verde.
+// El sort es estable: a igual severidad se conserva el orden de las reglas.
+const SEV_RANK = { danger: 0, warning: 1, success: 2 };
+function ordenarPorSeveridad(result) {
+  Object.values(result).forEach(arr => arr.sort((a, b) => (SEV_RANK[a.type] ?? 9) - (SEV_RANK[b.type] ?? 9)));
+  return result;
+}
+
 // ── Punto de entrada ───────────────────────────────────────
 export function buildAlerts(trades) {
   const tecAlertas = [];
@@ -79,59 +138,67 @@ export function buildAlerts(trades) {
   // ═══════════════════════════════════════════════════════════
 
   // ── Racha SL activa (consecutivos AHORA) ──
-  const slStreak = currentSlStreak(trades);
-  if (slStreak >= 5) {
+  // Solo para traders activos: si el último trade es de hace semanas, una
+  // racha "activa" antigua no es accionable — sería una alerta fantasma.
+  const slStreak = isActiveTrader ? currentSlStreak(trades) : 0;
+  if (slStreak >= UMBRALES.rachaSl.protocolo) {
     tecAlertas.push(danger('🛑',
       `Racha activa de ${slStreak} SL — Protocolo Reseteo`,
       `Para 24h obligatorio. Revisa journaling y valida plan antes de volver.`));
-  } else if (slStreak >= 3) {
+  } else if (slStreak >= UMBRALES.rachaSl.alerta) {
     tecAlertas.push(danger('!',
       `Racha activa de ${slStreak} SL consecutivos`,
       `Revisa el contexto antes del siguiente trade. Puede ser señal de mercado o de mente.`));
-  } else if (slStreak === 2) {
+  } else if (slStreak === UMBRALES.rachaSl.aviso) {
     tecAlertas.push(warn('⏳',
       `2 SL consecutivos — precaución`,
       `Un SL más activaría la alerta de racha. Evalúa bien el siguiente setup.`));
   }
 
-  // ── Racha SL activa por estrategia (≥3) ──
-  for (const sheet of ['ZONAS', 'LIQUIDEZ', 'NASDAQ']) {
-    const stTrades = trades.filter(t => t.sheet === sheet);
-    const cur = currentSlStreak(stTrades);
-    if (cur >= 5) {
-      tecAlertas.push(danger('🛑',
-        `${sheet}: ${cur} SL consecutivos — Protocolo Reseteo`,
-        `Pausa esta estrategia 24h, revisa los setups recientes.`));
-    } else if (cur >= 3) {
-      tecAlertas.push(danger('!',
-        `${sheet}: ${cur} SL consecutivos`,
-        `Considera pausar esta estrategia hasta entender la causa.`));
+  // ── Racha SL activa por estrategia ──
+  if (isActiveTrader) {
+    for (const sheet of ['ZONAS', 'LIQUIDEZ', 'NASDAQ']) {
+      const stTrades = trades.filter(t => t.sheet === sheet);
+      const cur = currentSlStreak(stTrades);
+      if (cur >= UMBRALES.rachaSl.protocolo) {
+        tecAlertas.push(danger('🛑',
+          `${sheet}: ${cur} SL consecutivos — Protocolo Reseteo`,
+          `Pausa esta estrategia 24h, revisa los setups recientes.`));
+      } else if (cur >= UMBRALES.rachaSl.alerta) {
+        tecAlertas.push(danger('!',
+          `${sheet}: ${cur} SL consecutivos`,
+          `Considera pausar esta estrategia hasta entender la causa.`));
+      }
     }
   }
 
   // ── HOY: sobreoperar ──
   const todays = todaysTrades(trades);
-  if (todays.length >= 5) {
+  if (todays.length >= UMBRALES.maxTradesDia) {
     tecAlertas.push(danger('🛑',
       `HOY llevas ${todays.length} trades — para`,
-      `Tu regla: máx 5 trades/día. Has llegado al límite.`));
-  } else if (todays.length === 4) {
+      `Tu regla: máx ${UMBRALES.maxTradesDia} trades/día. Has llegado al límite.`));
+  } else if (todays.length === UMBRALES.avisoTradesDia) {
     tecAlertas.push(warn('⏳',
-      `HOY llevas 4 trades — un más y estás al límite`,
+      `HOY llevas ${UMBRALES.avisoTradesDia} trades — uno más y estás al límite`,
       `Solo opera el siguiente si es un setup A+, sin compromiso.`));
   }
 
-  // ── HOY: más de 3 SL ──
+  // ── HOY: SL acumulados (regla de las 3 pérdidas: al 3º se para el día) ──
   const todaySL = todays.filter(t => t.result === 'SL').length;
-  if (todaySL >= 4) {
+  if (todaySL >= UMBRALES.slDia) {
     tecAlertas.push(danger('🛑',
       `HOY ya ${todaySL} SL — para`,
-      `Más de 3 SL en el día. Cierra plataforma y revisa journaling.`));
+      `${UMBRALES.slDia} SL en el día es el límite. Cierra plataforma y revisa journaling.`));
+  } else if (todaySL === UMBRALES.avisoSlDia) {
+    tecAlertas.push(warn('⏳',
+      `HOY llevas ${UMBRALES.avisoSlDia} SL — uno más y toca parar`,
+      `El siguiente solo si es un setup A+ con la cabeza fría.`));
   }
 
   // ── HOY: sensación negativa de alto riesgo (FOMO / Venganza / Miedo) ──
-  const BAD_EMOTIONS = new Set(['Fomo - Acelerado', 'Venganza - Rabia', 'Miedo - Parálisis']);
-  const todayBadEmotion = todays.filter(t => BAD_EMOTIONS.has(t.sensacion));
+  const badEmotions = new Set(NEGATIVAS);
+  const todayBadEmotion = todays.filter(t => badEmotions.has(t.sensacion));
   if (todayBadEmotion.length) {
     const sensList = [...new Set(todayBadEmotion.map(t => t.sensacion))].join(' / ');
     tecAlertas.push(danger('🚨',
@@ -139,13 +206,39 @@ export function buildAlerts(trades) {
       `Detectada sensación negativa de alto riesgo. Cierra plataforma antes de seguir; no es momento de operar.`));
   }
 
-  // ── HOY: límite de drawdown diario (P&L sistema acumulado del día) ──
-  const DAILY_DD_LIMIT = -3; // % sistema acumulado en el día
-  const todayPnl = todays.reduce((s, t) => s + (t.result !== 'BE' ? (t.pnl_pct || 0) : 0), 0);
-  if (todayPnl <= DAILY_DD_LIMIT) {
+  // ── HOY: límite de drawdown diario ──
+  // Sobre P&L REAL (pnl_pct × riesgo real): si arriesgas 0.5% por trade, el
+  // -3% de verdad son 6 SL, no 3. Con riesgo 1 en todo, igual que antes.
+  const todayPnl = todays.reduce((s, t) => s + tradeRealPnl(t), 0);
+  if (todayPnl <= UMBRALES.ddDiario) {
     tecAlertas.push(danger('📉',
       `HOY ${todayPnl.toFixed(1)}% acumulado — para`,
-      `Has alcanzado el límite diario de drawdown (${DAILY_DD_LIMIT}%). Cierra plataforma y revisa journaling.`));
+      `Has alcanzado el límite diario de drawdown (${UMBRALES.ddDiario}%). Cierra plataforma y revisa journaling.`));
+  }
+
+  // ── HOY: reentrada en caliente tras un SL (posible venganza) ──
+  // La señal más citada de revenge trading: volver a entrar a los pocos
+  // minutos de una pérdida. Solo evalúa trades con horas registradas.
+  const conHoras = todays.filter(t => toMin(t.open_str) != null)
+    .sort((a, b) => toMin(a.open_str) - toMin(b.open_str));
+  let ultimoSlCierre = null, casosVenganza = 0, primerGap = null;
+  for (const t of conHoras) {
+    const open = toMin(t.open_str);
+    if (ultimoSlCierre != null) {
+      const gap = open - ultimoSlCierre;
+      if (gap >= 0 && gap <= UMBRALES.ventanaVenganzaMin) {
+        casosVenganza++;
+        if (primerGap == null) primerGap = gap;
+      }
+    }
+    if (t.result === 'SL' && toMin(t.close_str) != null) ultimoSlCierre = toMin(t.close_str);
+  }
+  if (casosVenganza) {
+    tecAlertas.push(danger('🔥',
+      casosVenganza > 1
+        ? `HOY ${casosVenganza} posibles trades de venganza`
+        : `HOY posible trade de venganza`,
+      `Reentraste a los ${primerGap} min de cerrar un SL. Tras una pérdida, levántate de la pantalla — el siguiente setup puede esperar.`));
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -173,20 +266,16 @@ export function buildAlerts(trades) {
       `Patrón problemático — revisa tu disciplina antes de seguir operando.`));
   }
 
-  // ── Racha activa fuera del plan (siempre visible si ≥1; color escala) ──
+  // ── Racha activa fuera del plan (desde 2: un solo trade suelto es ruido) ──
   const outStreak = currentOutOfPlanStreak(trades);
-  if (outStreak >= 3) {
+  if (outStreak >= UMBRALES.rachaFueraPlan.alerta) {
     planAlertas.push(danger('🚫',
       `Racha activa: ${outStreak} trades seguidos fuera del plan`,
       `Para. Vuelve al journaling y revisa qué está pasando antes del siguiente trade.`));
-  } else if (outStreak === 2) {
+  } else if (outStreak === UMBRALES.rachaFueraPlan.aviso) {
     planAlertas.push(warn('🚫',
       `Racha activa: 2 trades seguidos fuera del plan`,
       `Un trade más y se activa la alerta crítica.`));
-  } else if (outStreak === 1) {
-    planAlertas.push(warn('🚫',
-      `Racha activa: 1 trade fuera del plan`,
-      `Recuerda: la disciplina es lo que marca la diferencia.`));
   }
 
   // ── Racha activa DENTRO del plan (siempre visible si ≥1; verde si ≥5) ──
@@ -203,14 +292,14 @@ export function buildAlerts(trades) {
         : `Sigue ejecutando con disciplina.`));
   }
 
-  // ── Insight global de % en plan (necesita ≥10 trades marcados) ──
+  // ── Insight global de % en plan (necesita mínimo de trades marcados) ──
   const ps = planStats(trades);
-  if (ps.total >= 10) {
-    if (ps.pctInPlan >= 80) {
+  if (ps.total >= UMBRALES.plan.min) {
+    if (ps.pctInPlan >= UMBRALES.plan.bien) {
       planInsights.push(success('📋',
         `${ps.pctInPlan.toFixed(0)}% de trades dentro del plan`,
         `${ps.inPlan} de ${ps.total} respetaron tu trading plan. Sigue así.`));
-    } else if (ps.pctInPlan < 60) {
+    } else if (ps.pctInPlan < UMBRALES.plan.mal) {
       planAlertas.push(warn('📋',
         `Solo ${ps.pctInPlan.toFixed(0)}% de trades dentro del plan`,
         `${ps.outOfPlan} de ${ps.total} no siguieron el plan. Patrón a corregir.`));
@@ -238,16 +327,16 @@ export function buildAlerts(trades) {
       `Cuidado con la siguiente sesión.`));
   }
 
-  // ── Sobreoperar reciente (≥5 trades algún día en últimos 14, sin contar hoy) ──
+  // ── Sobreoperar reciente (días al límite en últimos 14, sin contar hoy) ──
   const recent14 = recentTrades(trades, 14);
   const dayCount14 = {};
   for (const t of recent14) dayCount14[t.date] = (dayCount14[t.date] || 0) + 1;
-  const overDays14 = Object.entries(dayCount14).filter(([d, n]) => n >= 5 && d !== today);
+  const overDays14 = Object.entries(dayCount14).filter(([d, n]) => n >= UMBRALES.maxTradesDia && d !== today);
   if (overDays14.length) {
     const worst = overDays14.sort((a, b) => b[1] - a[1])[0];
     tecAlertas.push(warn('⏳',
-      `Sobreoperar reciente: ${overDays14.length} día${overDays14.length > 1 ? 's' : ''} con 5+ trades (últimos 14)`,
-      `Peor: ${worst[0]} con ${worst[1]} trades. Tu regla: máx 5/día.`));
+      `Sobreoperar reciente: ${overDays14.length} día${overDays14.length > 1 ? 's' : ''} con ${UMBRALES.maxTradesDia}+ trades (últimos 14)`,
+      `Peor: ${worst[0]} con ${worst[1]} trades. Tu regla: máx ${UMBRALES.maxTradesDia}/día.`));
   }
 
   // ── Sobreoperar por sesión (3+ misma estrategia mismo día) ──
@@ -264,15 +353,15 @@ export function buildAlerts(trades) {
   }
 
   // ── Tendencia 4 semanas vs histórico ──
-  const last28 = recentTrades(trades, 28);
-  if (last28.length >= 5 && trades.length >= 30) {
+  const last28 = recentTrades(trades, UMBRALES.tendencia.dias);
+  if (last28.length >= UMBRALES.tendencia.minReciente && trades.length >= UMBRALES.tendencia.minTotal) {
     const recentWR = winrate(last28);
     const diff = recentWR - globalWR;
-    if (diff <= -8) {
+    if (diff <= -UMBRALES.tendencia.pp) {
       tecAlertas.push(danger('📉',
         `Tendencia 4 semanas en bajada (${diff.toFixed(0)}pp)`,
         `WR reciente ${recentWR.toFixed(0)}% vs ${globalWR.toFixed(0)}% histórico. Algo está cambiando.`));
-    } else if (diff >= 8) {
+    } else if (diff >= UMBRALES.tendencia.pp) {
       tecInsights.push(success('📈',
         `Tendencia 4 semanas mejorando (+${diff.toFixed(0)}pp)`,
         `WR reciente ${recentWR.toFixed(0)}% vs ${globalWR.toFixed(0)}% histórico. Vas en buena dirección.`));
@@ -280,11 +369,11 @@ export function buildAlerts(trades) {
   }
 
   // ── Peor par (DANGER, va a Alertas) ──
-  const byPair = statsByGroup(trades, t => t.pair).filter(p => p.total >= 5);
+  const byPair = statsByGroup(trades, t => t.pair).filter(p => p.total >= UMBRALES.minPar);
   if (byPair.length) {
     const worst = [...byPair].sort((a, b) => a.wr - b.wr)[0];
-    if (worst.wr < globalWR - 10) {
-      const sev = worst.wr < globalWR - 20 ? danger : warn;
+    if (worst.wr < globalWR - UMBRALES.difPar.aviso) {
+      const sev = worst.wr < globalWR - UMBRALES.difPar.alerta ? danger : warn;
       tecAlertas.push(sev('🚫',
         `Peor par: ${worst.key} — ${worst.wr.toFixed(0)}% WR`,
         `${worst.total} trades, ${(worst.wr - globalWR).toFixed(0)}pp bajo tu media (${globalWR.toFixed(0)}%). Reduce o elimina.`));
@@ -292,13 +381,11 @@ export function buildAlerts(trades) {
   }
 
   // ── Peor franja horaria (DANGER, va a Alertas) ──
-  // Con bandas de 1h cada franja tiene menos trades que con las de 2h → bajamos
-  // el mínimo para que los insights sigan saliendo.
-  const hours = wrByHour(trades).filter(h => h.n >= 3);
+  const hours = wrByHour(trades).filter(h => h.n >= UMBRALES.minFranja);
   if (hours.length) {
     const worstH = [...hours].sort((a, b) => a.wr - b.wr)[0];
-    if (worstH.wr < globalWR - 8) {
-      const sev = worstH.wr < globalWR - 15 ? danger : warn;
+    if (worstH.wr < globalWR - UMBRALES.difFranja.aviso) {
+      const sev = worstH.wr < globalWR - UMBRALES.difFranja.alerta ? danger : warn;
       tecAlertas.push(sev('🕐',
         `Peor franja: ${worstH.label} — ${worstH.wr.toFixed(0)}% WR`,
         `${worstH.n} trades, ${(worstH.wr - globalWR).toFixed(0)}pp bajo tu media. Evita o reduce tamaño.`));
@@ -307,30 +394,33 @@ export function buildAlerts(trades) {
 
   // ── RR medio bajo objetivo (WARNING, va a Alertas) ──
   const tradesWithRR = trades.filter(t => t.rr != null && t.rr > 0);
-  if (tradesWithRR.length >= 10) {
+  if (tradesWithRR.length >= UMBRALES.rr.min) {
     const rr = avgRR(tradesWithRR);
-    if (rr < 2.0) {
+    if (rr < UMBRALES.rr.objetivo) {
       tecAlertas.push(warn('📊',
-        `RR medio ${rr.toFixed(2)} bajo objetivo 1:2`,
+        `RR medio ${rr.toFixed(2)} bajo objetivo 1:${UMBRALES.rr.objetivo}`,
         `${tradesWithRR.length} trades con RR registrado. Trabaja parciales y trailing para mejorar.`));
     } else {
       tecInsights.push(success('📊',
-        `RR medio ${rr.toFixed(2)} cumple objetivo 1:2`,
+        `RR medio ${rr.toFixed(2)} cumple objetivo 1:${UMBRALES.rr.objetivo}`,
         `${tradesWithRR.length} trades con RR registrado. Buena gestión.`));
     }
   }
 
-  // ── Cobertura emocional baja (WARNING, va a Alertas) ──
+  // ── Cobertura emocional (solo con historial mínimo: en una cuenta de 3
+  //    trades el % de cobertura no dice nada) ──
   const withSens = withSensacion(trades);
   const coverage = trades.length > 0 ? (withSens.length / trades.length * 100) : 0;
-  if (coverage < 60) {
-    tecAlertas.push(warn('🧠',
-      `Cobertura emocional baja: ${coverage.toFixed(0)}%`,
-      `Solo ${withSens.length}/${trades.length} trades con sensación. Sin esto el diagnóstico emocional pierde valor.`));
-  } else if (coverage >= 90) {
-    tecInsights.push(success('🧠',
-      `Cobertura emocional alta: ${coverage.toFixed(0)}%`,
-      `${withSens.length}/${trades.length} trades con sensación. Excelente disciplina.`));
+  if (trades.length >= UMBRALES.minCobertura) {
+    if (coverage < UMBRALES.cobertura.baja) {
+      tecAlertas.push(warn('🧠',
+        `Cobertura emocional baja: ${coverage.toFixed(0)}%`,
+        `Solo ${withSens.length}/${trades.length} trades con sensación. Sin esto el diagnóstico emocional pierde valor.`));
+    } else if (coverage >= UMBRALES.cobertura.alta) {
+      tecInsights.push(success('🧠',
+        `Cobertura emocional alta: ${coverage.toFixed(0)}%`,
+        `${withSens.length}/${trades.length} trades con sensación. Excelente disciplina.`));
+    }
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -340,7 +430,7 @@ export function buildAlerts(trades) {
   // Mejor par
   if (byPair.length) {
     const best = [...byPair].sort((a, b) => b.wr - a.wr)[0];
-    if (best.wr > globalWR + 5) {
+    if (best.wr > globalWR + UMBRALES.difPar.mejor) {
       tecInsights.push(success('✓',
         `Mejor par: ${best.key} — ${best.wr.toFixed(0)}% WR`,
         `${best.total} trades, +${(best.wr - globalWR).toFixed(0)}pp sobre tu media. Concentra operativa aquí.`));
@@ -350,10 +440,21 @@ export function buildAlerts(trades) {
   // Mejor franja
   if (hours.length) {
     const bestH = [...hours].sort((a, b) => b.wr - a.wr)[0];
-    if (bestH.wr > globalWR + 8) {
+    if (bestH.wr > globalWR + UMBRALES.difFranja.mejor) {
       tecInsights.push(success('🕐',
         `Mejor franja: ${bestH.label} — ${bestH.wr.toFixed(0)}% WR`,
         `${bestH.n} trades. Concentra operativa en esta hora.`));
+    }
+  }
+
+  // Mejor día de la semana (espejo del de mejor franja)
+  const days = wrByDay(trades).filter(dd => dd.n >= UMBRALES.minDia);
+  if (days.length) {
+    const bestD = [...days].sort((a, b) => b.wr - a.wr)[0];
+    if (bestD.wr > globalWR + UMBRALES.difFranja.mejor) {
+      tecInsights.push(success('📅',
+        `Tu mejor día: ${bestD.label} — ${bestD.wr.toFixed(0)}% WR`,
+        `${bestD.n} trades, +${(bestD.wr - globalWR).toFixed(0)}pp sobre tu media.`));
     }
   }
 
@@ -364,11 +465,13 @@ export function buildAlerts(trades) {
     const f = ((from + d) % 24 + 24) % 24, t2 = ((to + d) % 24 + 24) % 24;
     return f <= t2 ? (h >= f && h < t2) : (h >= f || h < t2); // ventana que cruza medianoche
   };
-  const london = trades.filter(t => t.open_hour != null && inWin(t.open_hour, 8, 12));
-  const ny = trades.filter(t => t.open_hour != null && inWin(t.open_hour, 14, 18));
-  if (london.length >= 5 && ny.length >= 5) {
+  const [lonFrom, lonTo] = UMBRALES.sesiones.londres;
+  const [nyFrom, nyTo] = UMBRALES.sesiones.ny;
+  const london = trades.filter(t => t.open_hour != null && inWin(t.open_hour, lonFrom, lonTo));
+  const ny = trades.filter(t => t.open_hour != null && inWin(t.open_hour, nyFrom, nyTo));
+  if (london.length >= UMBRALES.minSesion && ny.length >= UMBRALES.minSesion) {
     const lwr = winrate(london), nwr = winrate(ny);
-    if (Math.abs(lwr - nwr) >= 10) {
+    if (Math.abs(lwr - nwr) >= UMBRALES.difSesion) {
       const dom = lwr > nwr ? 'Londres' : 'Nueva York';
       const domWR = Math.max(lwr, nwr);
       const weakWR = Math.min(lwr, nwr);
@@ -379,25 +482,27 @@ export function buildAlerts(trades) {
   }
 
   // Días positivos ratio
-  if (operatedDays.length >= 5) {
+  if (operatedDays.length >= UMBRALES.diasPositivos.min) {
     const dayVals = operatedDays.map(d => dayPnl[d]);
     const win = dayVals.filter(p => p > 0).length;
     const loss = dayVals.filter(p => p < 0).length;
     const total = dayVals.length;
     const dayWR = win / total * 100;
     const ratio = loss > 0 ? (win / loss).toFixed(2) : '∞';
-    if (dayWR >= 60) {
+    if (dayWR >= UMBRALES.diasPositivos.bien) {
       tecInsights.push(success('✓',
         `Días positivos: ${dayWR.toFixed(0)}% — ratio ${ratio}:1`,
         `${win} días positivos · ${loss} negativos · ${total - win - loss} BE.`));
-    } else if (dayWR < 50) {
+    } else if (dayWR < UMBRALES.diasPositivos.mal) {
       tecAlertas.push(warn('⚖️',
         `Días positivos: solo ${dayWR.toFixed(0)}% — ratio ${ratio}:1`,
         `${win} positivos vs ${loss} negativos. Tienes que mejorar la consistencia diaria.`));
     } else {
-      tecInsights.push(A('warning', '⚖️',
+      // Zona media (50-60%): es una advertencia, así que va a Alertas — antes
+      // se colaba como "insight" naranja en la columna de positivos.
+      tecAlertas.push(warn('⚖️',
         `Días positivos: ${dayWR.toFixed(0)}% — ratio ${ratio}:1`,
-        `${win} positivos · ${loss} negativos · ${total - win - loss} BE.`));
+        `${win} positivos · ${loss} negativos · ${total - win - loss} BE. Margen de mejora en consistencia.`));
     }
   }
 
@@ -409,12 +514,12 @@ export function buildAlerts(trades) {
     emoAlertas.push(warn('🧠',
       `Pocos datos emocionales (${withSens.length} trades con sensación)`,
       `Registra al menos 3 trades con sensación para empezar a ver diagnóstico emocional.`));
-    return { tecAlertas, tecInsights, emoAlertas, emoInsights, planAlertas, planInsights };
+    return ordenarPorSeveridad({ tecAlertas, tecInsights, emoAlertas, emoInsights, planAlertas, planInsights });
   }
 
   const sensWR = winrate(withSens);
   const sensStats = sensacionStats(withSens);
-  const valid = [...sensStats].filter(([, d]) => d.total >= 3);
+  const valid = [...sensStats].filter(([, d]) => d.total >= UMBRALES.minSens);
 
   // ── Racha activa de SL con misma sensación (cualquiera, prioridad si negativa) ──
   const sortedAll = sortChrono(withSens);
@@ -447,7 +552,7 @@ export function buildAlerts(trades) {
   // ── Peor sensación global (DANGER si negativa, WARNING si neutra) ──
   if (valid.length > 1) {
     const worst = [...valid].sort((a, b) => a[1].wr - b[1].wr)[0];
-    if (worst[1].wr < sensWR - 5) {
+    if (worst[1].wr < sensWR - UMBRALES.difSens) {
       const sev = NEGATIVAS.includes(worst[0]) ? danger : warn;
       emoAlertas.push(sev('⚠',
         `Peor sensación: "${worst[0]}" — ${worst[1].wr.toFixed(0)}% WR (${worst[1].total} trades)`,
@@ -457,22 +562,22 @@ export function buildAlerts(trades) {
 
   // ── "Dudoso - Inseguro" propio (DANGER por la regla "si hay duda no se opera") ──
   const dudoso = sensStats.get('Dudoso - Inseguro');
-  if (dudoso && dudoso.total >= 3 && dudoso.wr < sensWR - 5) {
+  if (dudoso && dudoso.total >= UMBRALES.minSens && dudoso.wr < sensWR - UMBRALES.difSens) {
     emoAlertas.push(danger('❓',
       `"Dudoso - Inseguro" — ${dudoso.wr.toFixed(0)}% WR (${dudoso.total} trades)`,
       `Si hay duda no se opera. Cae ${(sensWR - dudoso.wr).toFixed(0)}pp bajo tu media.`));
   }
 
-  // ── Por estrategia: peor sensación (umbral ≥8pp) ──
+  // ── Por estrategia: peor sensación ──
   for (const sheet of ['ZONAS', 'LIQUIDEZ', 'NASDAQ']) {
     const st = withSens.filter(t => t.sheet === sheet);
     if (st.length < 3) continue;
     const stWR = winrate(st);
     const stStats = sensacionStats(st);
-    const stValid = [...stStats].filter(([, d]) => d.total >= 3);
+    const stValid = [...stStats].filter(([, d]) => d.total >= UMBRALES.minSens);
     if (stValid.length < 2) continue;
     const worst = [...stValid].sort((a, b) => a[1].wr - b[1].wr)[0];
-    if (worst[1].wr < stWR - 8) {
+    if (worst[1].wr < stWR - UMBRALES.difSensSheet) {
       const sev = NEGATIVAS.includes(worst[0]) ? danger : warn;
       emoAlertas.push(sev('⚠',
         `${sheet} — peor sensación "${worst[0]}" (${worst[1].wr.toFixed(0)}% WR)`,
@@ -499,7 +604,7 @@ export function buildAlerts(trades) {
   // Mejor sensación global
   if (valid.length) {
     const best = [...valid].sort((a, b) => b[1].wr - a[1].wr)[0];
-    if (best[1].wr > sensWR + 5) {
+    if (best[1].wr > sensWR + UMBRALES.difSens) {
       emoInsights.push(success('✨',
         `Mejor sensación: "${best[0]}" — ${best[1].wr.toFixed(0)}% WR (${best[1].total} trades)`,
         `+${(best[1].wr - sensWR).toFixed(0)}pp sobre tu media. Cuando estés así, opera con confianza.`));
@@ -523,15 +628,15 @@ export function buildAlerts(trades) {
     if (st.length < 3) continue;
     const stWR = winrate(st);
     const stStats = sensacionStats(st);
-    const stValid = [...stStats].filter(([, d]) => d.total >= 3);
+    const stValid = [...stStats].filter(([, d]) => d.total >= UMBRALES.minSens);
     if (!stValid.length) continue;
     const best = [...stValid].sort((a, b) => b[1].wr - a[1].wr)[0];
-    if (best[1].wr > stWR + 8) {
+    if (best[1].wr > stWR + UMBRALES.difSensSheet) {
       emoInsights.push(success('✓',
         `${sheet} — mejor sensación "${best[0]}" (${best[1].wr.toFixed(0)}% WR)`,
         `+${(best[1].wr - stWR).toFixed(0)}pp sobre media de ${sheet} con ${best[1].total} trades.`));
     }
   }
 
-  return { tecAlertas, tecInsights, emoAlertas, emoInsights, planAlertas, planInsights };
+  return ordenarPorSeveridad({ tecAlertas, tecInsights, emoAlertas, emoInsights, planAlertas, planInsights });
 }
