@@ -184,12 +184,3 @@ body[data-auth="false"] #view {
 .user-tz:hover { color: var(--text); border-color: var(--glass-border); background: var(--cyan-bg); }
 .user-tz.warn { color: var(--orange); border-color: rgba(255,162,58,0.35); background: var(--orange-bg); }
 .user-tz.warn:hover { color: var(--orange); border-color: var(--orange); }
-.user-logout {
-  cursor: pointer; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  width: 36px; border-radius: 8px; padding: 0;
-  color: var(--muted); background: var(--glass-2); border: 1px solid var(--border);
-  font-size: 14px;
-  transition: color var(--dur), border-color var(--dur), background var(--dur);
-}
-.user-logout:hover { color: var(--red); border-color: var(--red); background: var(--red-bg); }

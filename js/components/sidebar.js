@@ -153,7 +153,7 @@ export function renderSidebar(container) {
     </nav>
     <a class="formacion-cta" href="https://tradinverso.thinkific.com/enrollments" target="_blank" rel="noopener noreferrer" title="Formación · cursos y directos">
       <span class="fc-icon">${icon('formacion')}</span>
-      <span class="fc-text"><strong>Formación</strong><small>Cursos · directos · más</small></span>
+      <span class="fc-text"><strong>Formación</strong><small>Cursos · directos</small></span>
       <span class="fc-arrow">↗</span>
     </a>
     <a class="nav-item" href="${NEWS_URLS[storage.getNewsSource()]}" target="_blank" rel="noopener noreferrer" title="Calendario económico (cambia la fuente en Ajustes)">
@@ -174,7 +174,6 @@ export function renderSidebar(container) {
              <div class="tz-line">${icon('aviso')}<span>Configura tu zona horaria</span></div>
              <div class="tz-line tz-clock" id="tzClock">${clockText()}</div>
            </a>`}
-      <button class="user-logout" id="logoutBtn" title="Cerrar sesión">${icon('salir')}</button>
     </div>
   `;
 
@@ -192,9 +191,6 @@ export function renderSidebar(container) {
     // crearse, así que sin esto quedarían pintados con el tema anterior.
     // El propio sidebar se refresca vía router.onChange.
     router.reload();
-  });
-  container.querySelector('#logoutBtn').addEventListener('click', async () => {
-    try { await auth.signOut(); } catch (e) { console.error(e); }
   });
   const exitBtn = container.querySelector('#exitViewAsTopBtn');
   if (exitBtn) {

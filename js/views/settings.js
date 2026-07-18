@@ -58,6 +58,16 @@ export function settingsView(container) {
           <button class="btn" id="changePwBtn">Cambiar contraseña</button>
         </div>
       </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-label">Cerrar sesión</div>
+          <div class="setting-desc">Sal de tu cuenta en este dispositivo. Tus datos siguen guardados en la nube.</div>
+        </div>
+        <div class="setting-control" style="display:flex;justify-content:flex-end;">
+          <button class="btn" id="logoutBtn" style="color:var(--red);">Cerrar sesión</button>
+        </div>
+      </div>
     </div>
 
     <div class="section-title">Conexión con Apps Script</div>
@@ -243,6 +253,11 @@ export function settingsView(container) {
 
   const changePwBtn = container.querySelector('#changePwBtn');
   if (changePwBtn) changePwBtn.addEventListener('click', () => openChangePwModal());
+
+  const logoutBtn = container.querySelector('#logoutBtn');
+  if (logoutBtn) logoutBtn.addEventListener('click', async () => {
+    try { await auth.signOut(); } catch (e) { console.error(e); }
+  });
 
   const urlInput = container.querySelector('#urlInput');
   if (urlInput) urlInput.addEventListener('change', e => storage.setAppsScriptUrl(e.target.value.trim()));
