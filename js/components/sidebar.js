@@ -163,7 +163,10 @@ export function renderSidebar(container) {
 
   container.querySelector('#themeToggle').addEventListener('click', () => {
     theme.toggle();
-    renderSidebar(container);
+    // Re-render de la vista actual: los charts leen los colores del tema al
+    // crearse, así que sin esto quedarían pintados con el tema anterior.
+    // El propio sidebar se refresca vía router.onChange.
+    router.reload();
   });
   container.querySelector('#logoutBtn').addEventListener('click', async () => {
     try { await auth.signOut(); } catch (e) { console.error(e); }

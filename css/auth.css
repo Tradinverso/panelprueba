@@ -82,13 +82,19 @@ body[data-auth="false"] #view {
 }
 .auth-form a:hover { text-decoration: underline; }
 
-/* ── Spinner pequeño dentro del botón ─────────────────────── */
-.btn .spinner-sm {
+/* ── Spinner pequeño (botones y estados de carga sueltos) ──── */
+.spinner-sm {
+  display: inline-block;
   width: 14px; height: 14px;
-  border: 2px solid rgba(10,15,30,0.2);
-  border-top-color: #080B12;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--cyan);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
+}
+/* Dentro de un botón primario (fondo claro) mantiene su contraste original */
+.btn .spinner-sm {
+  border-color: rgba(10,15,30,0.2);
+  border-top-color: #080B12;
 }
 
 /* ── Splash de boot (mientras Firebase autentica) ────────── */

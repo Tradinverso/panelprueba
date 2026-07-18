@@ -80,7 +80,7 @@
 .kpi-icon.red    { background: var(--red-bg); }
 .kpi-icon.orange { background: var(--orange-bg); }
 .kpi-icon.blue   { background: var(--cyan-bg); }
-.kpi-icon.purple { background: var(--zonas-bg); }
+.kpi-icon.purple { background: var(--liquidez-bg); }
 /* Deja sitio al icono para que no pise el valor */
 .kpi-card .kpi-label { padding-right: 42px; }
 .kpi-card::before { height: 3px; opacity: .9; }
@@ -88,8 +88,9 @@
 .kpi-card.red::before    { background: linear-gradient(90deg, var(--red), transparent); }
 .kpi-card.orange::before { background: linear-gradient(90deg, var(--orange), transparent); }
 .kpi-card.blue::before   { background: linear-gradient(90deg, var(--accent), var(--cyan)); }
-.kpi-card.purple::before { background: linear-gradient(90deg, var(--zonas), transparent); }
+.kpi-card.purple::before { background: linear-gradient(90deg, var(--liquidez), transparent); }
 .kpi-value.blue { color: var(--cyan); }
+.kpi-value.purple { color: var(--liquidez); }
 
 /* ── Botones ── */
 .btn { border-radius: var(--radius-sm); transition: transform var(--dur) var(--ease), background var(--dur), border-color var(--dur), box-shadow var(--dur), filter var(--dur); }

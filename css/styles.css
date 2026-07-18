@@ -375,6 +375,7 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
 
 /* ── Strategy pills ──────────────────────────────────────── */
 .strat-pill { font-family: var(--mono); font-size: 10px; padding: 3px 10px; border-radius: 20px; border: 1px solid; display: inline-block; }
+.strat-pill.global { color: var(--green); border-color: var(--green); background: var(--green-bg); }
 .strat-pill.zonas { color: var(--zonas); border-color: var(--zonas); background: var(--zonas-bg); }
 .strat-pill.liquidez { color: var(--liquidez); border-color: var(--liquidez); background: var(--liquidez-bg); }
 .strat-pill.nasdaq { color: var(--nasdaq); border-color: var(--nasdaq); background: var(--nasdaq-bg); }

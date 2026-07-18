@@ -252,8 +252,9 @@ export function settingsView(container) {
     const btn = e.target.closest('.seg-btn');
     if (!btn) return;
     theme.apply(btn.dataset.theme);
-    themeSeg.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b === btn));
-    renderSidebar(document.getElementById('sidebar'));  // refresca el iconito sol/luna
+    // Re-render de la vista (marca el botón activo) + sidebar vía router.onChange.
+    // También repinta los charts de otras vistas si se vuelve a ellas.
+    router.reload();
   });
 
   const newsSel = container.querySelector('#newsSel');

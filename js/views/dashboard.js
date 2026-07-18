@@ -4,7 +4,7 @@ import { router } from '../router.js';
 import {
   winrate, pnlPct, pnlPctReal, profitFactor, maxDrawdown, maxStreak, bestTpStreakPnl,
   equityCurve, equityCurveReal, monthlyPnl, activeDays, tradeCounts, durationStats,
-  wrByHour, wrByDay, statsByGroup, longVsShort,
+  wrByHour, wrByDay, statsByGroup, longVsShort, avgRR, expectancy,
 } from '../utils/calculations.js';
 import { fmtPct, fmtPctNoSign, fmtNum } from '../utils/number-format-es.js';
 import {
@@ -21,12 +21,24 @@ const STRAT_LABELS = { ZONAS: 'Forex + Oro', LIQUIDEZ: 'EUR/USD', NASDAQ: 'NQ Fu
 let monthFilter = 'all';
 let yearFilter = 'all';
 let perfMode = 'sistema'; // 'sistema' | 'real'
+let lastUserKey = null;   // detecta cambio de usuario (viewAs) para resetear filtros
 
 function render(container) {
   const allTrades = state.trades;
 
+  // Los filtros viven a nivel de módulo: al cambiar de alumno (viewAs) o si el
+  // periodo filtrado ya no existe en los datos (wipe/reimport), se resetean.
+  // Si no, filtrarían en silencio con el select mostrando "Todos".
+  const userKey = state.viewAsUid || 'self';
+  if (userKey !== lastUserKey) {
+    if (lastUserKey !== null) { yearFilter = 'all'; monthFilter = 'all'; }
+    lastUserKey = userKey;
+  }
+  if (yearFilter !== 'all' && !allTrades.some(t => t.date.startsWith(yearFilter))) yearFilter = 'all';
+  if (monthFilter !== 'all' && !allTrades.some(t => t.date.startsWith(monthFilter))) monthFilter = 'all';
+
   if (!allTrades.length) {
-    container.innerHTML = impersonationBanner() + emptyState();
+    container.innerHTML = impersonationBanner() + (state.loading ? loadingState() : emptyState());
     wireImpersonation(container);
     return;
   }
@@ -109,6 +121,23 @@ export function dashboardView(container) {
     cleanupConnectionBadge();
     unsubState();
   };
+}
+
+// Mientras Firestore responde, sin datos aún en memoria: no confundir con el
+// vacío real ("Aún no hay trades"), que asusta si solo es una carga lenta.
+function loadingState() {
+  return `
+    <div class="page-header">
+      <div>
+        <h1>Tradinverso <span>·</span> Dashboard</h1>
+        <div class="sub">Cargando…</div>
+      </div>
+    </div>
+    <div class="empty">
+      <span class="spinner-sm" style="width:24px;height:24px;border-width:3px;"></span>
+      <div style="margin-top:14px;">Cargando tus datos…</div>
+    </div>
+  `;
 }
 
 // ── Empty state ──────────────────────────────────────────────
@@ -199,7 +228,7 @@ function renderShell(allTrades, filtered) {
             return `<option value="${m}" ${monthFilter === m ? 'selected' : ''}>${MONTHS_ES[+mo - 1]} ${y}</option>`;
           }).join('')}
         </select>
-        <span class="conn-badge online" id="connBadge"><span class="conn-dot"></span><span>En vivo</span></span>
+        <span class="conn-badge" id="connBadge"></span>
       </div>
     </div>
 
@@ -217,6 +246,7 @@ function renderShell(allTrades, filtered) {
             <div class="card-sub">Por estrategia · ${perfMode === 'real' ? 'P&L real (riesgo aplicado)' : 'Sistema 1R normalizado'}</div>
           </div>
           <div style="display:flex;gap:6px;">
+            <span class="strat-pill global">Global</span>
             <span class="strat-pill zonas">Zonas</span>
             <span class="strat-pill liquidez">Liquidez</span>
             <span class="strat-pill nasdaq">Nasdaq</span>
@@ -226,7 +256,7 @@ function renderShell(allTrades, filtered) {
       </div>
       <div class="card">
         <div class="card-title">P&L mensual</div>
-        <div class="card-sub">${perfMode === 'real' ? 'Porcentaje según riesgo real' : 'Porcentaje sistema 1R'}</div>
+        <div class="card-sub">${monthlyChartYear() ? 'Año ' + monthlyChartYear() : 'Todo el histórico'} · ${perfMode === 'real' ? '% riesgo real' : '% sistema 1R'}</div>
         <div class="chart-wrap" style="height:300px;"><canvas id="monthlyChart"></canvas></div>
       </div>
     </div>
@@ -264,7 +294,7 @@ function renderShell(allTrades, filtered) {
         <div class="card-sub">Winrate según dirección</div>
         <div class="chart-wrap" style="height:200px;"><canvas id="lsChart"></canvas></div>
       </div>
-      <div class="card">
+      <div class="card table-card">
         <div class="card-title">Rendimiento por par</div>
         <div class="card-sub">Pares con ≥1 trade</div>
         <table class="data-table"><thead><tr>
@@ -274,21 +304,21 @@ function renderShell(allTrades, filtered) {
     </div>
 
     <div class="section-title">Rachas y drawdown</div>
-    <div class="card" style="margin-bottom:24px;">
+    <div class="card table-card" style="margin-bottom:24px;">
       <div class="card-title" style="margin-bottom:14px;">Rachas consecutivas y DD por estrategia y par</div>
       <table class="data-table"><thead><tr>
         <th>Métrica</th><th>Global</th>
         <th style="color:var(--liquidez)">Liquidez</th>
         <th style="color:var(--nasdaq)">Nasdaq</th>
         <th style="color:var(--zonas)">Zonas</th>
-        <th style="color:#C084FC">GBP/USD</th>
-        <th style="color:#60A5FA">EUR/USD</th>
-        <th style="color:#FBBF24">XAU/USD</th>
+        <th style="color:var(--pair-gbp)">GBP/USD</th>
+        <th style="color:var(--pair-eur)">EUR/USD</th>
+        <th style="color:var(--pair-gold)">XAU/USD</th>
       </tr></thead><tbody id="streakTbody"></tbody></table>
     </div>
 
     <div class="section-title">Duración de trades</div>
-    <div class="card" style="margin-bottom:24px;">
+    <div class="card table-card" style="margin-bottom:24px;">
       <div class="card-title" style="margin-bottom:14px;">Duración media por estrategia y resultado</div>
       <table class="data-table"><thead><tr>
         <th>Estrategia</th><th>Media</th><th>Media TP</th><th>Media SL</th><th>Máxima</th><th>Mínima</th>
@@ -317,10 +347,14 @@ function stratCardShell(s) {
 // ── Painters ─────────────────────────────────────────────────
 function paintKpis(container, trades, allTrades) {
   const c = tradeCounts(trades);
+  const decisive = c.tp + c.sl;
   const wr = winrate(trades);
   const pnl = pnlPct(trades);
   const pnlReal = pnlPctReal(trades);
   const dd = maxDrawdown(trades);
+  const pf = profitFactor(trades);
+  const exp = expectancy(trades);
+  const rr = avgRR(trades);
   const tpStreak = maxStreak(trades, 'TP');
   const tpStreakPct = bestTpStreakPnl(trades);
   const days = activeDays(trades);
@@ -334,13 +368,19 @@ function paintKpis(container, trades, allTrades) {
   const tPnl  = p ? trend(pnl, pnlPct(p.trades), p.ref) : null;
   const tReal = p ? trend(pnlReal, pnlPctReal(p.trades), p.ref) : null;
   const tDd   = p ? trend(dd, maxDrawdown(p.trades), p.ref, { lowerIsBetter: true }) : null;
+  const tPf   = p ? trend(pf, profitFactor(p.trades), p.ref, { unit: '' }) : null;
+  const tExp  = p ? trend(exp.value, expectancy(p.trades).value, p.ref) : null;
 
   container.querySelector('#kpis').innerHTML = [
-    kpiCard({ label: 'Winrate global', value: wr.toFixed(1) + '%', sub: `${c.tp} TP · ${c.sl} SL · ${c.be} BE`, tone: (c.tp + c.sl) > 0 && wr < 40 ? 'red' : 'blue', trend: tWr }),
+    kpiCard({ label: 'Winrate global', value: wr.toFixed(1) + '%', sub: `${c.tp} TP · ${c.sl} SL · ${c.be} BE`, tone: decisive > 0 && wr < 40 ? 'red' : 'blue', trend: tWr }),
     kpiCard({ label: 'P&L sistema', value: fmtPct(pnl, 1), sub: 'trades al 1%', tone: pnl >= 0 ? 'green' : 'red', trend: tPnl }),
     kpiCard({ label: 'P&L real', value: fmtPct(pnlReal, 1), sub: 'según riesgo real', tone: pnlReal >= 0 ? 'green' : 'red', trend: tReal }),
-    kpiCard({ label: 'DD máximo', value: '-' + dd.toFixed(1) + '%', sub: 'equity combinada', tone: 'red', trend: tDd }),
-    kpiCardComposite({ label: 'Racha TP máx', primary: tpStreak, secondary: 'TP · ' + fmtPct(tpStreakPct, 1), sub: 'consecutivos · acumulado', tone: 'green' }),
+    kpiCard({ label: 'DD máximo', value: (dd > 0 ? '−' : '') + dd.toFixed(1) + '%', sub: 'equity combinada', tone: 'red', trend: tDd }),
+    // Mismos umbrales que la leyenda de la tabla de pares: >2 verde · 1.5-2 naranja.
+    kpiCard({ label: 'Profit factor', value: decisive ? (isFinite(pf) ? fmtNum(pf) : '∞') : '–', sub: 'bruto ganado / bruto perdido', tone: !decisive ? 'blue' : pf >= 2 ? 'green' : pf >= 1.5 ? 'orange' : 'red', trend: tPf }),
+    kpiCard({ label: 'Esperanza / trade', value: decisive ? fmtPct(exp.value, 2) : '–', sub: decisive ? `media TP ${fmtPct(exp.avgWin, 1)} · media SL −${fmtPctNoSign(exp.avgLoss)}` : 'sin trades decisivos', tone: exp.value >= 0 ? 'green' : 'red', trend: tExp }),
+    kpiCard({ label: 'RR medio', value: rr > 0 ? fmtNum(rr) : '–', sub: rr > 0 ? 'riesgo : beneficio medio' : 'sin RR registrado', tone: 'blue' }),
+    kpiCardComposite({ label: 'Racha TP máx', primary: tpStreak, secondary: 'TP · ' + fmtPct(tpStreakPct, 1), sub: 'consecutivos · % sistema', tone: 'green' }),
     kpiCard({ label: 'Días activos', value: days, sub: `${c.total} trades · ${avgPerDay}/día`, tone: 'purple' }),
   ].join('');
 }
@@ -356,9 +396,26 @@ function paintEquity(container, trades) {
   createEquity(container.querySelector('#equityChart'), datasets);
 }
 
+// Año que muestra el gráfico mensual, o null = todo el histórico.
+// Este gráfico NUNCA se estrecha a un mes: con un mes elegido enseña el año
+// entero de ese mes — una sola barra no cuenta nada.
+function monthlyChartYear() {
+  if (monthFilter !== 'all') return monthFilter.split('-')[0];
+  if (yearFilter !== 'all') return yearFilter;
+  return null;
+}
+
 function paintMonthly(container, allTrades) {
-  const data = monthlyPnl(allTrades);
-  const labels = data.map(d => MONTHS_ES_SHORT[+d.month.split('-')[1] - 1]);
+  const year = monthlyChartYear();
+  const scoped = year ? allTrades.filter(t => t.date.startsWith(year)) : allTrades;
+  const data = monthlyPnl(scoped);
+  // Con varios años a la vista, la etiqueta lleva el año: si no, salen dos
+  // "Ene" idénticos (2025 y 2026) imposibles de distinguir.
+  const multiYear = new Set(data.map(d => d.month.split('-')[0])).size > 1;
+  const labels = data.map(d => {
+    const [y, m] = d.month.split('-');
+    return MONTHS_ES_SHORT[+m - 1] + (multiYear ? ' ' + y.slice(2) : '');
+  });
   const values = data.map(d => +(perfMode === 'real' ? d.pnlReal : d.pnl).toFixed(2));
   createBar(container.querySelector('#monthlyChart'), labels, values);
 }
@@ -381,7 +438,8 @@ function paintStrategy(container, sheet, trades) {
   const pnlRealEl = card.querySelector('[data-field="pnlReal"]');
   pnlRealEl.textContent = fmtPct(subPnlReal, 1);
   pnlRealEl.style.color = subPnlReal >= 0 ? 'var(--green)' : 'var(--red)';
-  card.querySelector('[data-field="pf"]').textContent = fmtNum(profitFactor(sub));
+  const subPf = profitFactor(sub);
+  card.querySelector('[data-field="pf"]').textContent = isFinite(subPf) ? fmtNum(subPf) : '∞';
   card.querySelector('[data-field="sub"]').textContent = `${sub.length} trades · ${STRAT_LABELS[sheet]}`;
   createDonut(card.querySelector('[data-field="donut"]'), c.tp, c.sl, c.be);
 }
@@ -451,7 +509,7 @@ function paintStreaks(container, trades) {
     { label: 'Racha máx TP consecutivos', vals: tpStreak.map(v => v + ' TP'), color: 'var(--green)' },
     { label: '% acumulado racha TP', vals: tpStreakPct.map(v => fmtPct(v, 1)), color: 'var(--green)' },
     { label: 'Racha máx SL consecutivos', vals: slStreak.map(v => v + ' SL'), color: 'var(--red)' },
-    { label: 'DD máximo acumulado', vals: dd.map(v => '-' + v.toFixed(1) + '%'), color: 'var(--red)' },
+    { label: 'DD máximo acumulado', vals: dd.map(v => (v > 0 ? '−' : '') + v.toFixed(1) + '%'), color: 'var(--red)' },
   ];
   container.querySelector('#streakTbody').innerHTML = rows.map(r => `
     <tr>
