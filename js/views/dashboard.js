@@ -409,16 +409,30 @@ function paintEquity(container, trades) {
 
 // Semáforo del día: ¿puede operar hoy? Siempre evalúa HOY sobre todos los
 // trades (el filtro de mes/año del dashboard no le afecta).
+// El verde hay que ganárselo: sin el checklist pre-sesión completo, sale
+// "Checklist pendiente" en gris neutro. El rojo se reserva SOLO para reglas
+// del día violadas — si saliera por el checklist, dejaría de respetarse.
 const SEMAFORO = {
-  ok:   { dot: '🟢', label: 'Vía libre' },
-  warn: { dot: '🟠', label: 'Precaución' },
-  stop: { dot: '🔴', label: 'Hoy no se opera' },
+  ok:      { dot: '🟢', label: 'Vía libre' },
+  warn:    { dot: '🟠', label: 'Precaución' },
+  stop:    { dot: '🔴', label: 'Hoy no se opera' },
+  pending: { dot: '⚪', label: 'Checklist pendiente' },
 };
+function checklistCompleto() {
+  const done = storage.getChecklist(checklistTodayKey());
+  return CHECKLIST_ITEMS.every((_, i) => done[i]);
+}
 function semaforoPill(allTrades) {
   const s = todayStatus(allTrades);
-  const cfg = SEMAFORO[s.level];
-  const title = s.reasons.length ? `Hoy: ${s.reasons.join(' · ')}` : 'Sin incidencias hoy — respeta tu plan';
-  return `<span class="semaforo ${s.level}" title="${escapeHtml(title)}">${cfg.dot} ${cfg.label}</span>`;
+  let level = s.level;
+  let title = s.reasons.length ? `Hoy: ${s.reasons.join(' · ')}` : 'Sin incidencias hoy — respeta tu plan';
+  // En viewAs no aplica: el checklist es del navegador del alumno, no del admin.
+  if (level === 'ok' && !state.viewAsUid && !checklistCompleto()) {
+    level = 'pending';
+    title = 'Completa el checklist pre-sesión antes de operar';
+  }
+  const cfg = SEMAFORO[level];
+  return `<span class="semaforo ${level}" title="${escapeHtml(title)}">${cfg.dot} ${cfg.label}</span>`;
 }
 
 // ── Checklist pre-sesión ─────────────────────────────────────

@@ -187,14 +187,14 @@ body[data-auth="false"] #view {
 .user-email { font-size: 10px; color: var(--muted); font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* Zona horaria + fecha/hora actual — chip en el pie, justo bajo Ajustes */
 .user-tz {
-  display: flex; flex-direction: column; gap: 3px;
-  margin: 6px 0 10px; padding: 7px 10px; border-radius: 8px;
-  font-size: 10px; font-family: var(--mono); color: var(--muted);
+  display: flex; flex-direction: column; gap: 4px;
+  margin: 6px 0 10px; padding: 8px 11px; border-radius: 8px;
+  font-size: 12px; font-family: var(--mono); color: var(--muted);
   text-decoration: none; background: var(--glass-2); border: 1px solid var(--border);
   transition: color var(--dur), border-color var(--dur), background var(--dur);
 }
-.user-tz .tz-line { display: flex; align-items: center; gap: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-tz svg { width: 12px; height: 12px; flex: none; }
+.user-tz .tz-line { display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-tz svg { width: 14px; height: 14px; flex: none; }
 .user-tz span { overflow: hidden; text-overflow: ellipsis; }
 .user-tz:hover { color: var(--text); border-color: var(--glass-border); background: var(--cyan-bg); }
 .user-tz.warn { color: var(--orange); border-color: rgba(255,162,58,0.35); background: var(--orange-bg); }

@@ -426,6 +426,7 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
 .semaforo.ok   { color: var(--green); border-color: var(--green); background: var(--green-bg); }
 .semaforo.warn { color: var(--orange); border-color: var(--orange); background: var(--orange-bg); }
 .semaforo.stop { color: var(--red); border-color: var(--red); background: var(--red-bg); }
+.semaforo.pending { color: var(--muted); border-color: var(--border-strong); background: var(--glass-2); }
 
 /* Checklist pre-sesión (Dashboard): ritual diario antes de operar */
 .checklist-card { padding: 14px 16px; margin-bottom: 20px; }
