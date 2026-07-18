@@ -426,6 +426,26 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
 .semaforo.warn { color: var(--orange); border-color: var(--orange); background: var(--orange-bg); }
 .semaforo.stop { color: var(--red); border-color: var(--red); background: var(--red-bg); }
 
+/* Checklist pre-sesión (Dashboard): ritual diario antes de operar */
+.checklist-card { padding: 14px 16px; margin-bottom: 20px; }
+.checklist-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.checklist-count { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.checklist-items { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.chk-item {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  font-size: 12.5px; color: var(--text); user-select: none;
+}
+.chk-item input { accent-color: var(--cyan); width: 15px; height: 15px; cursor: pointer; }
+.chk-item.checked span { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--dim); }
+.checklist-done {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  margin-bottom: 20px; padding: 9px 16px;
+  background: var(--green-bg); border: 1px solid var(--green);
+  border-radius: 12px; color: var(--green);
+  font-size: 12.5px; font-weight: 600;
+}
+.checklist-done:hover { filter: brightness(1.08); }
+
 /* Franja del Dashboard: solo aparece con alertas rojas en el diagnóstico */
 .diag-banner {
   display: flex; align-items: center; gap: 10px;

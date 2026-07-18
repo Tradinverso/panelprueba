@@ -5,6 +5,7 @@ const KEYS = {
   version: 'tradinverso_schema_version',
   sidebar: 'tradinverso_sidebar_collapsed',
   news: 'tradinverso_news_source',
+  checklist: 'tradinverso_checklist',
 };
 
 const SCHEMA_VERSION = 1;
@@ -35,6 +36,18 @@ export const storage = {
   },
   setSidebarCollapsed(v) {
     localStorage.setItem(KEYS.sidebar, v ? '1' : '0');
+  },
+  // Checklist pre-sesión: estado del DÍA {date, done:[bool,...]}. Si la fecha
+  // guardada no es hoy, se considera vacío (el checklist se resetea a diario).
+  getChecklist(todayStr) {
+    try {
+      const raw = JSON.parse(localStorage.getItem(KEYS.checklist));
+      if (raw && raw.date === todayStr && Array.isArray(raw.done)) return raw.done;
+    } catch (e) { /* corrupto → vacío */ }
+    return [];
+  },
+  setChecklist(todayStr, done) {
+    localStorage.setItem(KEYS.checklist, JSON.stringify({ date: todayStr, done }));
   },
   // Fuente del calendario económico del botón "Noticias": 'investing' | 'forexfactory'.
   getNewsSource() {

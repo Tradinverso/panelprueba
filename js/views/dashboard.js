@@ -16,6 +16,8 @@ import { renderHeatmap } from '../components/heatmap.js';
 import { renderConnectionBadge, cleanupConnectionBadge } from '../components/connection-badge.js';
 import { renderPills } from '../components/pills.js';
 import { countDangerAlerts, todayStatus } from '../utils/diagnostics.js';
+import { storage } from '../storage.js';
+import { CHECKLIST_ITEMS } from '../utils/checklist-items.js';
 
 const STRAT_LABELS = { ZONAS: 'Forex + Oro', LIQUIDEZ: 'EUR/USD', NASDAQ: 'NQ Futuros' };
 
@@ -47,6 +49,7 @@ function render(container) {
   const filtered = filterTrades(allTrades, yearFilter, monthFilter);
   container.innerHTML = impersonationBanner() + renderShell(allTrades, filtered);
   wireImpersonation(container);
+  wireChecklist(container);
 
   const yf = container.querySelector('#yearFilter');
   const mf = container.querySelector('#monthFilter');
@@ -235,6 +238,7 @@ function renderShell(allTrades, filtered) {
     </div>
 
     ${diagBanner(allTrades)}
+    ${checklistCard()}
 
     <div class="kpi-grid" id="kpis"></div>
 
@@ -416,6 +420,58 @@ function semaforoPill(allTrades) {
   const cfg = SEMAFORO[s.level];
   const title = s.reasons.length ? `Hoy: ${s.reasons.join(' · ')}` : 'Sin incidencias hoy — respeta tu plan';
   return `<span class="semaforo ${s.level}" title="${escapeHtml(title)}">${cfg.dot} ${cfg.label}</span>`;
+}
+
+// ── Checklist pre-sesión ─────────────────────────────────────
+// Ritual diario antes de operar. El estado se guarda en el navegador y se
+// resetea cada día. Completado → se encoge a una línea verde (clic para ver).
+// En viewAs no se muestra: es el ritual personal del alumno, no del admin.
+let checklistOpen = false;   // forzar abierto tras completarlo (clic en la línea)
+
+function checklistTodayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function checklistCard() {
+  if (state.viewAsUid) return '';
+  const done = storage.getChecklist(checklistTodayKey());
+  const completos = CHECKLIST_ITEMS.filter((_, i) => done[i]).length;
+  const todoHecho = completos === CHECKLIST_ITEMS.length;
+
+  if (todoHecho && !checklistOpen) {
+    return `<div class="checklist-done" id="checklistToggle" title="Ver checklist">✓ Checklist pre-sesión completado</div>`;
+  }
+  return `
+    <div class="card checklist-card">
+      <div class="checklist-head">
+        <span class="card-title" style="margin:0;">Checklist pre-sesión</span>
+        <span class="checklist-count">${completos}/${CHECKLIST_ITEMS.length}</span>
+      </div>
+      <div class="checklist-items">
+        ${CHECKLIST_ITEMS.map((item, i) => `
+          <label class="chk-item ${done[i] ? 'checked' : ''}">
+            <input type="checkbox" data-chk="${i}" ${done[i] ? 'checked' : ''}>
+            <span>${item}</span>
+          </label>`).join('')}
+      </div>
+    </div>`;
+}
+
+function wireChecklist(container) {
+  const toggle = container.querySelector('#checklistToggle');
+  if (toggle) toggle.addEventListener('click', () => { checklistOpen = true; render(container); });
+  container.querySelectorAll('[data-chk]').forEach(input => {
+    input.addEventListener('change', () => {
+      const key = checklistTodayKey();
+      const done = storage.getChecklist(key);
+      done[+input.dataset.chk] = input.checked;
+      storage.setChecklist(key, done);
+      const todoHecho = CHECKLIST_ITEMS.every((_, i) => done[i]);
+      if (todoHecho) checklistOpen = false;   // al completarlo, se encoge
+      render(container);
+    });
+  });
 }
 
 // Franja de aviso: solo cuando el diagnóstico tiene alertas ROJAS. Si no hay,
