@@ -15,7 +15,7 @@ import { createEquity, createDonut, createBar, createHourBar, createDayBar, crea
 import { renderHeatmap } from '../components/heatmap.js';
 import { renderConnectionBadge, cleanupConnectionBadge } from '../components/connection-badge.js';
 import { renderPills } from '../components/pills.js';
-import { countDangerAlerts, todayStatus } from '../utils/diagnostics.js';
+import { todayStatus } from '../utils/diagnostics.js';
 import { storage } from '../storage.js';
 import { CHECKLIST_ITEMS } from '../utils/checklist-items.js';
 
@@ -237,7 +237,6 @@ function renderShell(allTrades, filtered) {
       </div>
     </div>
 
-    ${diagBanner(allTrades)}
     ${checklistCard()}
 
     <div class="kpi-grid" id="kpis"></div>
@@ -472,19 +471,6 @@ function wireChecklist(container) {
       render(container);
     });
   });
-}
-
-// Franja de aviso: solo cuando el diagnóstico tiene alertas ROJAS. Si no hay,
-// no ocupa ni un píxel — el aviso solo llama la atención cuando toca.
-function diagBanner(allTrades) {
-  const n = countDangerAlerts(allTrades);
-  if (!n) return '';
-  return `
-    <a class="diag-banner" href="#/diagnostico">
-      <span class="db-icon">🛑</span>
-      <span class="db-text">Tienes <strong>${n} alerta${n > 1 ? 's' : ''} importante${n > 1 ? 's' : ''}</strong> en tu operativa</span>
-      <span class="db-cta">Ver diagnóstico →</span>
-    </a>`;
 }
 
 // Año que muestra el gráfico mensual, o null = todo el histórico.

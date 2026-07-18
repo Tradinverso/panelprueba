@@ -446,20 +446,6 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
 }
 .checklist-done:hover { filter: brightness(1.08); }
 
-/* Franja del Dashboard: solo aparece con alertas rojas en el diagnóstico */
-.diag-banner {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 20px; padding: 11px 16px;
-  background: var(--red-bg); border: 1px solid var(--red);
-  border-radius: 12px; text-decoration: none; color: var(--text);
-  font-size: 13px;
-  transition: transform var(--dur) var(--ease), box-shadow var(--dur);
-}
-.diag-banner:hover { transform: translateY(-1px); box-shadow: 0 6px 18px -10px var(--red); }
-.diag-banner .db-icon { font-size: 15px; line-height: 1; }
-.diag-banner .db-text strong { color: var(--red); }
-.diag-banner .db-cta { margin-left: auto; color: var(--red); font-weight: 600; font-size: 12px; white-space: nowrap; }
-
 .alert { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 10px; border: 1px solid; margin-bottom: 8px; }
 .alert.warning { background: var(--orange-bg); border-color: rgba(255,165,2,0.25); }
 .alert.danger { background: var(--red-bg); border-color: rgba(239,68,68,0.25); }
