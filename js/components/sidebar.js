@@ -22,12 +22,13 @@ const NAV_BASE = [
   { path: '#/calendario', label: 'Calendario',  icon: 'calendario', class: '' },
   // Las 3 estrategias son un único ítem: dentro se cambia con pestañas.
   { path: '#/zonas', label: 'Estrategias', icon: 'zonas', class: '', match: STRATEGY_ROUTES_LIST },
-  // Cuentas agrupa Cuentas + Riesgo (pestañas). Contabilidad va aparte.
-  { path: '#/cuentas',      label: 'Cuentas',      icon: 'cuentas', class: '', countActiveCuentas: true, match: ['#/cuentas', '#/riesgo'] },
-  { path: '#/contabilidad', label: 'Contabilidad', icon: 'contabilidad', class: '' },
+  // Lo analítico va junto tras Estrategias: primero Diagnóstico, luego Psicotrading.
   { path: '#/diagnostico', label: 'Diagnóstico', icon: 'diagnostico', class: '' },
   // Psicotrading agrupa Reflexiones + Meditaciones + Protocolos (pestañas dentro).
   { path: '#/psicologia', label: 'Psicotrading', icon: 'reflexiones', class: '', match: PSICO_ROUTES_LIST },
+  // Después, la gestión del dinero: Cuentas (agrupa Cuentas + Riesgo) y Contabilidad aparte.
+  { path: '#/cuentas',      label: 'Cuentas',      icon: 'cuentas', class: '', countActiveCuentas: true, match: ['#/cuentas', '#/riesgo'] },
+  { path: '#/contabilidad', label: 'Contabilidad', icon: 'contabilidad', class: '' },
   { path: '#/plan',        label: 'Plan de trading', icon: 'plan', class: '' },
   // Ajustes (engloba Importar y Tabla como pestañas) se renderiza aparte, en el pie.
 ];
