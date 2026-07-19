@@ -72,6 +72,13 @@ const danger  = (icon, title, body) => A('danger', icon, title, body);
 const warn    = (icon, title, body) => A('warning', icon, title, body);
 const success = (icon, title, body) => A('success', icon, title, body);
 
+// Marca una alerta como GRAVE: es la que enciende el badge rojo de "Diagnóstico"
+// en el menú y la columna Alertas de Mis Alumnos. Solo conducta aguda (rachas
+// de SL, límites del día, plan incumplido). Los patrones analíticos (peor
+// par/franja/sensación, tendencia) siguen siendo rojos DENTRO del Diagnóstico,
+// pero no encienden avisos fuera — minimalismo: si el badge sale, es serio.
+const critico = a => ({ ...a, grave: true });
+
 // ── Helpers temporales ─────────────────────────────────────
 const todayStr = () => {
   const d = new Date();
@@ -165,13 +172,13 @@ export function buildAlerts(trades) {
   // racha "activa" antigua no es accionable — sería una alerta fantasma.
   const slStreak = isActiveTrader ? currentSlStreak(trades) : 0;
   if (slStreak >= UMBRALES.rachaSl.protocolo) {
-    tecAlertas.push(danger('🛑',
+    tecAlertas.push(critico(danger('🛑',
       `Racha activa de ${slStreak} SL — Protocolo Reseteo`,
-      `Para 24h obligatorio. Revisa journaling y valida plan antes de volver.`));
+      `Para 24h obligatorio. Revisa journaling y valida plan antes de volver.`)));
   } else if (slStreak >= UMBRALES.rachaSl.alerta) {
-    tecAlertas.push(danger('!',
+    tecAlertas.push(critico(danger('!',
       `Racha activa de ${slStreak} SL consecutivos`,
-      `Revisa el contexto antes del siguiente trade. Puede ser señal de mercado o de mente.`));
+      `Revisa el contexto antes del siguiente trade. Puede ser señal de mercado o de mente.`)));
   } else if (slStreak === UMBRALES.rachaSl.aviso) {
     tecAlertas.push(warn('⏳',
       `2 SL consecutivos — precaución`,
@@ -184,13 +191,13 @@ export function buildAlerts(trades) {
       const stTrades = trades.filter(t => t.sheet === sheet);
       const cur = currentSlStreak(stTrades);
       if (cur >= UMBRALES.rachaSl.protocolo) {
-        tecAlertas.push(danger('🛑',
+        tecAlertas.push(critico(danger('🛑',
           `${sheet}: ${cur} SL consecutivos — Protocolo Reseteo`,
-          `Pausa esta estrategia 24h, revisa los setups recientes.`));
+          `Pausa esta estrategia 24h, revisa los setups recientes.`)));
       } else if (cur >= UMBRALES.rachaSl.alerta) {
-        tecAlertas.push(danger('!',
+        tecAlertas.push(critico(danger('!',
           `${sheet}: ${cur} SL consecutivos`,
-          `Considera pausar esta estrategia hasta entender la causa.`));
+          `Considera pausar esta estrategia hasta entender la causa.`)));
       }
     }
   }
@@ -198,9 +205,9 @@ export function buildAlerts(trades) {
   // ── HOY: sobreoperar ──
   const todays = todaysTrades(trades);
   if (todays.length >= UMBRALES.maxTradesDia) {
-    tecAlertas.push(danger('🛑',
+    tecAlertas.push(critico(danger('🛑',
       `HOY llevas ${todays.length} trades — para`,
-      `Tu regla: máx ${UMBRALES.maxTradesDia} trades/día. Has llegado al límite.`));
+      `Tu regla: máx ${UMBRALES.maxTradesDia} trades/día. Has llegado al límite.`)));
   } else if (todays.length === UMBRALES.avisoTradesDia) {
     tecAlertas.push(warn('⏳',
       `HOY llevas ${UMBRALES.avisoTradesDia} trades — uno más y estás al límite`,
@@ -210,9 +217,9 @@ export function buildAlerts(trades) {
   // ── HOY: SL acumulados (regla de las 3 pérdidas: al 3º se para el día) ──
   const todaySL = todays.filter(t => t.result === 'SL').length;
   if (todaySL >= UMBRALES.slDia) {
-    tecAlertas.push(danger('🛑',
+    tecAlertas.push(critico(danger('🛑',
       `HOY ya ${todaySL} SL — para`,
-      `${UMBRALES.slDia} SL en el día es el límite. Cierra plataforma y revisa journaling.`));
+      `${UMBRALES.slDia} SL en el día es el límite. Cierra plataforma y revisa journaling.`)));
   } else if (todaySL === UMBRALES.avisoSlDia) {
     tecAlertas.push(warn('⏳',
       `HOY llevas ${UMBRALES.avisoSlDia} SL — uno más y toca parar`,
@@ -224,9 +231,9 @@ export function buildAlerts(trades) {
   const todayBadEmotion = todays.filter(t => badEmotions.has(t.sensacion));
   if (todayBadEmotion.length) {
     const sensList = [...new Set(todayBadEmotion.map(t => t.sensacion))].join(' / ');
-    tecAlertas.push(danger('🚨',
+    tecAlertas.push(critico(danger('🚨',
       `HOY operando con "${sensList}" — para`,
-      `Detectada sensación negativa de alto riesgo. Cierra plataforma antes de seguir; no es momento de operar.`));
+      `Detectada sensación negativa de alto riesgo. Cierra plataforma antes de seguir; no es momento de operar.`)));
   }
 
   // ── HOY: límite de drawdown diario ──
@@ -234,9 +241,9 @@ export function buildAlerts(trades) {
   // -3% de verdad son 6 SL, no 3. Con riesgo 1 en todo, igual que antes.
   const todayPnl = todays.reduce((s, t) => s + tradeRealPnl(t), 0);
   if (todayPnl <= UMBRALES.ddDiario) {
-    tecAlertas.push(danger('📉',
+    tecAlertas.push(critico(danger('📉',
       `HOY ${todayPnl.toFixed(1)}% acumulado — para`,
-      `Has alcanzado el límite diario de drawdown (${UMBRALES.ddDiario}%). Cierra plataforma y revisa journaling.`));
+      `Has alcanzado el límite diario de drawdown (${UMBRALES.ddDiario}%). Cierra plataforma y revisa journaling.`)));
   }
 
   // ── HOY: reentrada en caliente tras un SL (posible venganza) ──
@@ -244,11 +251,11 @@ export function buildAlerts(trades) {
   // minutos de una pérdida. Solo evalúa trades con horas registradas.
   const venganza = casosVenganzaHoy(todays);
   if (venganza.casos) {
-    tecAlertas.push(danger('🔥',
+    tecAlertas.push(critico(danger('🔥',
       venganza.casos > 1
         ? `HOY ${venganza.casos} posibles trades de venganza`
         : `HOY posible trade de venganza`,
-      `Reentraste a los ${venganza.primerGap} min de cerrar un SL. Tras una pérdida, levántate de la pantalla — el siguiente setup puede esperar.`));
+      `Reentraste a los ${venganza.primerGap} min de cerrar un SL. Tras una pérdida, levántate de la pantalla — el siguiente setup puede esperar.`)));
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -258,9 +265,9 @@ export function buildAlerts(trades) {
   // ── HOY: trades fuera del plan ──
   const todayOut = todays.filter(t => t.plan_followed === false).length;
   if (todayOut >= 2) {
-    planAlertas.push(danger('📋',
+    planAlertas.push(critico(danger('📋',
       `HOY ${todayOut} trades fuera del plan`,
-      `Revisa la disciplina de ejecución. Cierra plataforma si vuelve a pasar.`));
+      `Revisa la disciplina de ejecución. Cierra plataforma si vuelve a pasar.`)));
   } else if (todayOut === 1) {
     planAlertas.push(warn('📋',
       `HOY 1 trade fuera del plan`,
@@ -271,17 +278,17 @@ export function buildAlerts(trades) {
   const last7 = recentTrades(trades, 7);
   const last7Out = last7.filter(t => t.plan_followed === false).length;
   if (last7Out > 3) {
-    planAlertas.push(danger('📋',
+    planAlertas.push(critico(danger('📋',
       `Últimos 7 días: ${last7Out} trades fuera del plan`,
-      `Patrón problemático — revisa tu disciplina antes de seguir operando.`));
+      `Patrón problemático — revisa tu disciplina antes de seguir operando.`)));
   }
 
   // ── Racha activa fuera del plan (desde 2: un solo trade suelto es ruido) ──
   const outStreak = currentOutOfPlanStreak(trades);
   if (outStreak >= UMBRALES.rachaFueraPlan.alerta) {
-    planAlertas.push(danger('🚫',
+    planAlertas.push(critico(danger('🚫',
       `Racha activa: ${outStreak} trades seguidos fuera del plan`,
-      `Para. Vuelve al journaling y revisa qué está pasando antes del siguiente trade.`));
+      `Para. Vuelve al journaling y revisa qué está pasando antes del siguiente trade.`)));
   } else if (outStreak === UMBRALES.rachaFueraPlan.aviso) {
     planAlertas.push(warn('🚫',
       `Racha activa: 2 trades seguidos fuera del plan`,
@@ -328,9 +335,9 @@ export function buildAlerts(trades) {
     else break;
   }
   if (currentNegDayStreak >= 3 && isActiveTrader) {
-    tecAlertas.push(danger('🛑',
+    tecAlertas.push(critico(danger('🛑',
       `Racha activa: ${currentNegDayStreak} días operados seguidos en rojo`,
-      `Último día: ${operatedDays[operatedDays.length - 1]}. Activa Protocolo Reseteo.`));
+      `Último día: ${operatedDays[operatedDays.length - 1]}. Activa Protocolo Reseteo.`)));
   } else if (currentNegDayStreak === 2 && isActiveTrader) {
     tecAlertas.push(warn('⏳',
       `2 días operados seguidos en rojo`,
@@ -548,10 +555,12 @@ export function buildAlerts(trades) {
     }
   }
   if (curSens.n >= 3 && isActiveTrader) {
-    const sev = NEGATIVAS.includes(curSens.sens) ? danger : warn;
-    emoAlertas.push(sev('🚨',
+    const esNegativa = NEGATIVAS.includes(curSens.sens);
+    const alerta = (esNegativa ? danger : warn)('🚨',
       `Racha activa: ${curSens.n} SL seguidos con "${curSens.sens}"`,
-      `Estado emocional ${NEGATIVAS.includes(curSens.sens) ? 'negativo' : ''} provocando pérdidas consecutivas. Para y reflexiona.`));
+      `Estado emocional ${esNegativa ? 'negativo' : ''} provocando pérdidas consecutivas. Para y reflexiona.`);
+    // Racha de SL desde estado negativo = conducta aguda → grave
+    emoAlertas.push(esNegativa ? critico(alerta) : alerta);
   }
 
   // ── Última operación: SL desde estado negativo ──
@@ -654,13 +663,13 @@ export function buildAlerts(trades) {
   return ordenarPorSeveridad({ tecAlertas, tecInsights, emoAlertas, emoInsights, planAlertas, planInsights });
 }
 
-// Nº de alertas ROJAS (danger) activas en las tres categorías.
-// Lo usan el badge de "Diagnóstico" en el menú y la franja de aviso del
-// Dashboard: solo lo crítico cuenta — con las naranjas el aviso estaría
-// siempre encendido y dejaría de llamar la atención.
+// Nº de alertas GRAVES activas (marcadas con `critico`): rachas de SL, límites
+// del día y plan incumplido. Lo usan el badge de "Diagnóstico" en el menú y la
+// columna Alertas de Mis Alumnos. Los rojos analíticos (peor par/franja/
+// sensación, tendencia) NO cuentan: si el badge se enciende, es serio de verdad.
 export function countDangerAlerts(trades) {
   const r = buildAlerts(trades);
-  return [...r.tecAlertas, ...r.emoAlertas, ...r.planAlertas].filter(a => a.type === 'danger').length;
+  return [...r.tecAlertas, ...r.emoAlertas, ...r.planAlertas].filter(a => a.grave).length;
 }
 
 // Semáforo del día: ¿puede operar HOY este trader?
