@@ -17,21 +17,25 @@ const PSICO_ROUTES_LIST = Object.values(PSICO_ROUTES);
 // Importar y Nuevo trade SÍ se permiten — admin puede dar de alta datos a alumnos.
 // Lista PLANA de módulos (sin cabeceras de sección). Varios agrupan sub-vistas
 // con pestañas internas (Estrategias, Cuentas·Riesgo, Psicotrading).
+// Dashboard suelto y resaltado arriba; el resto agrupado con separadores muy
+// discretos (etiqueta mínima + hairline): Operativa · Análisis · Gestión.
 const NAV_BASE = [
-  { path: '#/dashboard',  label: 'Dashboard',   icon: 'dashboard', class: '' },
+  { path: '#/dashboard',  label: 'Dashboard',   icon: 'dashboard', class: 'nav-dashboard' },
+  { section: 'Operativa' },
   { path: '#/nuevo',      label: 'Nuevo trade', icon: 'nuevo', class: '' },
   { path: '#/calendario', label: 'Calendario',  icon: 'calendario', class: '' },
   // Las 3 estrategias son un único ítem: dentro se cambia con pestañas.
   { path: '#/zonas', label: 'Estrategias', icon: 'zonas', class: '', match: STRATEGY_ROUTES_LIST },
-  // Lo analítico va junto tras Estrategias: primero Diagnóstico, luego Psicotrading.
+  { section: 'Análisis' },
   // dangerAlerts: badge rojo con el nº de alertas críticas del diagnóstico.
   { path: '#/diagnostico', label: 'Diagnóstico', icon: 'diagnostico', class: '', dangerAlerts: true },
   // Psicotrading agrupa Reflexiones + Meditaciones + Protocolos (pestañas dentro).
   { path: '#/psicologia', label: 'Psicotrading', icon: 'reflexiones', class: '', match: PSICO_ROUTES_LIST },
-  // Después, la gestión del dinero: Cuentas (agrupa Cuentas + Riesgo) y Contabilidad aparte.
+  { path: '#/plan',        label: 'Plan de trading', icon: 'plan', class: '' },
+  { section: 'Gestión' },
+  // Cuentas agrupa Cuentas + Riesgo (pestañas). Contabilidad va aparte.
   { path: '#/cuentas',      label: 'Cuentas',      icon: 'cuentas', class: '', countActiveCuentas: true, match: ['#/cuentas', '#/riesgo'] },
   { path: '#/contabilidad', label: 'Contabilidad', icon: 'contabilidad', class: '' },
-  { path: '#/plan',        label: 'Plan de trading', icon: 'plan', class: '' },
   // Ajustes (engloba Importar y Tabla como pestañas) se renderiza aparte, en el pie.
 ];
 

@@ -169,7 +169,16 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
 .brand-ver { font-size: 9px; font-weight: 500; color: var(--dim); letter-spacing: .08em; font-family: var(--mono); }
 
 .nav { display: flex; flex-direction: column; gap: 3px; flex: 1; }
-.nav-section { font-family: var(--mono); font-size: 9px; color: var(--dim); text-transform: uppercase; letter-spacing: .14em; padding: 18px 12px 6px; font-weight: 600; }
+/* Separadores de grupo: etiqueta mínima + hairline, casi invisibles a propósito */
+.nav-section {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 8.5px; color: var(--dim); opacity: .7;
+  text-transform: uppercase; letter-spacing: .16em; font-weight: 600;
+  padding: 12px 12px 4px;
+}
+.nav-section::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+/* Dashboard: suelto arriba y con más presencia que el resto */
+.nav-item.nav-dashboard { color: var(--text); font-weight: 600; }
 
 .nav-item {
   display: flex; align-items: center; gap: 12px;

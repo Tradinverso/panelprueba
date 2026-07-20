@@ -12,6 +12,7 @@ import {
   monthlyPnlUsd, fmtUsd, computeUsdPnl, advanceInfo,
 } from '../utils/account-stats.js';
 import { kpiCard } from '../components/kpi-card.js';
+import { openViewTradeModal } from '../components/trade-view-modal.js';
 import { sortChrono } from '../utils/calculations.js';
 import { formatDateShort, MONTHS_ES_SHORT } from '../utils/date-helpers.js';
 
@@ -137,6 +138,14 @@ function render(container, cuentaId) {
   `;
 
   // Wire up
+  // Ver trade completo (mismo modal del ojo que en Calendario/Estrategias/Tabla)
+  container.querySelectorAll('.view-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const it = items.find(x => x.trade.id === b.dataset.id);
+      if (it) openViewTradeModal(it.trade);
+    });
+  });
+
   container.querySelector('#editCuentaBtn').addEventListener('click', () => {
     openCuentaEditModal(cuenta, () => render(container, cuentaId));
   });
@@ -253,6 +262,7 @@ function renderAccountTradesTable(items, cuenta) {
           <th>% sistema</th>
           <th>$ P&L</th>
           <th>Resultado</th>
+          <th></th>
         </tr></thead>
         <tbody>
           ${sorted.map(({ trade: t, usdPnl }) => {
@@ -268,6 +278,7 @@ function renderAccountTradesTable(items, cuenta) {
               <td style="color:${pctColor};">${t.pnl_pct >= 0 ? '+' : ''}${t.pnl_pct.toFixed(2)}%</td>
               <td style="color:${usdColor};font-weight:500;">${fmtUsd(usdPnl, true)}</td>
               <td><span class="res-pill res-${t.result.toLowerCase()}">${t.result}</span></td>
+              <td><button class="view-btn" data-id="${t.id}" title="Ver trade completo">👁️</button></td>
             </tr>`;
           }).join('')}
         </tbody>
