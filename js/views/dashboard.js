@@ -230,6 +230,7 @@ function renderShell(allTrades, filtered) {
             return `<option value="${m}" ${monthFilter === m ? 'selected' : ''}>${MONTHS_ES[+mo - 1]} ${y}</option>`;
           }).join('')}
         </select>
+        ${checklistChip()}
         ${semaforoPill(allTrades)}
       </div>
     </div>
@@ -402,28 +403,31 @@ function paintEquity(container, trades) {
   createEquity(container.querySelector('#equityChart'), datasets);
 }
 
-// Semáforo del día: ¿puede operar hoy? Siempre evalúa HOY sobre todos los
-// trades (el filtro de mes/año del dashboard no le afecta).
-// El verde hay que ganárselo: sin el checklist pre-sesión completo, sale
-// "Checklist pendiente" en gris neutro. El rojo se reserva SOLO para reglas
-// del día violadas — si saliera por el checklist, dejaría de respetarse.
+// Semáforo del día: ¿puede operar hoy? SOLO reglas de trading (SL, límites,
+// venganza…) — el checklist va en su propio chip al lado, porque son cosas
+// distintas y antes "Precaución" tapaba el "Checklist pendiente".
+// Siempre evalúa HOY sobre todos los trades (el filtro mes/año no le afecta).
 const SEMAFORO = {
-  ok:      { dot: '🟢', label: 'Vía libre' },
-  warn:    { dot: '🟠', label: 'Precaución' },
-  stop:    { dot: '🔴', label: 'Hoy no se opera' },
-  pending: { dot: '⚪', label: 'Checklist pendiente' },
+  ok:   { dot: '🟢', label: 'Vía libre' },
+  warn: { dot: '🟠', label: 'Precaución' },
+  stop: { dot: '🔴', label: 'Hoy no se opera' },
 };
 function semaforoPill(allTrades) {
   const s = todayStatus(allTrades);
-  let level = s.level;
-  let title = s.reasons.length ? `Hoy: ${s.reasons.join(' · ')}` : 'Sin incidencias hoy — respeta tu plan';
-  // En viewAs no aplica: el checklist es del navegador del alumno, no del admin.
-  if (level === 'ok' && !state.viewAsUid && !checklistCompleto()) {
-    // Pendiente = botón pulsable que abre el modal del checklist
-    return `<button class="semaforo pending" id="semaforoChk" title="Pulsa para abrir el checklist pre-sesión">${SEMAFORO.pending.dot} ${SEMAFORO.pending.label}</button>`;
-  }
-  const cfg = SEMAFORO[level];
-  return `<span class="semaforo ${level}" title="${escapeHtml(title)}">${cfg.dot} ${cfg.label}</span>`;
+  const title = s.reasons.length ? `Hoy: ${s.reasons.join(' · ')}` : 'Sin incidencias hoy — respeta tu plan';
+  const cfg = SEMAFORO[s.level];
+  return `<span class="semaforo ${s.level}" title="${escapeHtml(title)}">${cfg.dot} ${cfg.label}</span>`;
+}
+
+// Chip del checklist: siempre visible (salvo viewAs) y siempre pulsable.
+// Pendiente = gris llamando a la acción · Hecho = verde discreto.
+function checklistChip() {
+  if (state.viewAsUid) return '';
+  const hecho = checklistCompleto();
+  return `<button class="chk-chip ${hecho ? 'done' : 'pending'}" id="semaforoChk"
+            title="${hecho ? 'Checklist de esta sesión completado — pulsa para verlo' : 'Pulsa para abrir el checklist pre-sesión'}">
+            ${hecho ? '✓ Checklist' : '☑ Checklist pendiente'}
+          </button>`;
 }
 
 // ── Checklist pre-sesión (modal) ─────────────────────────────

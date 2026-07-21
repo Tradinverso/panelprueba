@@ -438,13 +438,19 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
 .semaforo.ok   { color: var(--green); border-color: var(--green); background: var(--green-bg); }
 .semaforo.warn { color: var(--orange); border-color: var(--orange); background: var(--orange-bg); }
 .semaforo.stop { color: var(--red); border-color: var(--red); background: var(--red-bg); }
-/* Pendiente = botón: pulsa y abre el modal del checklist */
-.semaforo.pending {
-  color: var(--muted); border-color: var(--border-strong); background: var(--glass-2);
-  cursor: pointer;
+
+/* Chip del checklist (separado del semáforo): siempre visible y pulsable */
+.chk-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px; border-radius: 22px; border: 1px solid;
+  font-family: var(--mono); font-size: 13px; font-weight: 600; cursor: pointer;
+  white-space: nowrap;
   transition: color var(--dur), border-color var(--dur), box-shadow var(--dur);
 }
-.semaforo.pending:hover { color: var(--text); border-color: var(--cyan); box-shadow: var(--glow-accent); }
+.chk-chip.pending { color: var(--muted); border-color: var(--border-strong); background: var(--glass-2); }
+.chk-chip.pending:hover { color: var(--text); border-color: var(--cyan); box-shadow: var(--glow-accent); }
+.chk-chip.done { color: var(--green); border-color: var(--green); background: transparent; opacity: .85; }
+.chk-chip.done:hover { background: var(--green-bg); opacity: 1; }
 
 /* Selects del header del dashboard (año/mes): a juego con el semáforo.
    Ojo con el padding derecho: reserva sitio para la flechita del desplegable. */
