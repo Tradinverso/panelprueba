@@ -414,9 +414,11 @@ const SEMAFORO = {
 };
 function semaforoPill(allTrades) {
   const s = todayStatus(allTrades);
-  const title = s.reasons.length ? `Hoy: ${s.reasons.join(' · ')}` : 'Sin incidencias hoy — respeta tu plan';
+  const title = (s.reasons.length ? `Hoy: ${s.reasons.join(' · ')}` : 'Sin incidencias hoy — respeta tu plan')
+    + ' · Pulsa para ver el Diagnóstico';
   const cfg = SEMAFORO[s.level];
-  return `<span class="semaforo ${s.level}" title="${escapeHtml(title)}">${cfg.dot} ${cfg.label}</span>`;
+  // Enlace al Diagnóstico: el semáforo te dice "algo pasa"; el clic te lleva al porqué.
+  return `<a class="semaforo ${s.level}" href="#/diagnostico" title="${escapeHtml(title)}">${cfg.dot} ${cfg.label}</a>`;
 }
 
 // Chip del checklist: siempre visible (salvo viewAs) y siempre pulsable.

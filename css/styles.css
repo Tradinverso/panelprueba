@@ -428,13 +428,16 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
 .sens-pill[data-s="Sin registrar"]        { background: rgba(140,140,150,.10); color: var(--muted); font-style: italic; }
 
 /* ── Alerts (diagnostic) ─────────────────────────────────── */
-/* Semáforo del día (header del Dashboard): ¿puede operar hoy? */
+/* Semáforo del día (header del Dashboard): ¿puede operar hoy?
+   Es un enlace: pulsar lleva al Diagnóstico a ver el porqué. */
 .semaforo {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 9px 16px; border-radius: 22px; border: 1px solid;
-  font-family: var(--mono); font-size: 13px; font-weight: 600; cursor: default;
-  white-space: nowrap;
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+  white-space: nowrap; cursor: pointer; text-decoration: none;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur);
 }
+.semaforo:hover { transform: translateY(-1px); box-shadow: 0 4px 14px -8px currentColor; }
 .semaforo.ok   { color: var(--green); border-color: var(--green); background: var(--green-bg); }
 .semaforo.warn { color: var(--orange); border-color: var(--orange); background: var(--orange-bg); }
 .semaforo.stop { color: var(--red); border-color: var(--red); background: var(--red-bg); }
