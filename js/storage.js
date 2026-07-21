@@ -37,17 +37,27 @@ export const storage = {
   setSidebarCollapsed(v) {
     localStorage.setItem(KEYS.sidebar, v ? '1' : '0');
   },
-  // Checklist pre-sesión: estado del DÍA {date, done:[bool,...]}. Si la fecha
-  // guardada no es hoy, se considera vacío (el checklist se resetea a diario).
-  getChecklist(todayStr) {
+  // Checklist pre-sesión: mapa {entries: {clave: [bool,...]}} donde conviven la
+  // clave DIARIA ('YYYY-MM-DD|daily', ej. "he dormido bien") y la del TRAMO
+  // ('YYYY-MM-DD|pN', que re-arma en las aperturas de Londres/NY). Al guardar
+  // se podan las claves de otros días (auto-limpieza).
+  getChecklist(key) {
     try {
       const raw = JSON.parse(localStorage.getItem(KEYS.checklist));
-      if (raw && raw.date === todayStr && Array.isArray(raw.done)) return raw.done;
-    } catch (e) { /* corrupto → vacío */ }
+      if (raw && raw.entries && Array.isArray(raw.entries[key])) return raw.entries[key];
+    } catch (e) { /* corrupto o formato viejo → vacío */ }
     return [];
   },
-  setChecklist(todayStr, done) {
-    localStorage.setItem(KEYS.checklist, JSON.stringify({ date: todayStr, done }));
+  setChecklist(key, done) {
+    let entries = {};
+    try {
+      const raw = JSON.parse(localStorage.getItem(KEYS.checklist));
+      if (raw && raw.entries) entries = raw.entries;
+    } catch (e) { /* empezar de cero */ }
+    const day = key.split('|')[0];
+    for (const k of Object.keys(entries)) if (!k.startsWith(day)) delete entries[k];
+    entries[key] = done;
+    localStorage.setItem(KEYS.checklist, JSON.stringify({ entries }));
   },
   // Fuente del calendario económico del botón "Noticias": 'investing' | 'forexfactory'.
   getNewsSource() {

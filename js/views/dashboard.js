@@ -17,7 +17,7 @@ import { renderPills } from '../components/pills.js';
 import { openModal, closeModal } from '../components/modal.js';
 import { todayStatus } from '../utils/diagnostics.js';
 import { storage } from '../storage.js';
-import { CHECKLIST_ITEMS, currentChecklistKey, checklistCompleto } from '../utils/checklist-items.js';
+import { CHECKLIST_ITEMS, currentChecklistKey, dailyChecklistKey, checklistCompleto } from '../utils/checklist-items.js';
 
 const STRAT_LABELS = { ZONAS: 'Forex + Oro', LIQUIDEZ: 'EUR/USD', NASDAQ: 'NQ Futuros' };
 
@@ -433,17 +433,23 @@ function semaforoPill(allTrades) {
 // (currentChecklistKey): se reactiva a medianoche y en las aperturas de
 // Londres y NY, porque hay quien opera dos sesiones.
 function openChecklistModal(container) {
-  const key = currentChecklistKey();
-  const done = storage.getChecklist(key);
+  const tramoKey = currentChecklistKey();
+  const dailyKey = dailyChecklistKey();
+  const tramoDone = storage.getChecklist(tramoKey);
+  const dailyDone = storage.getChecklist(dailyKey);
+  const marcado = (it, i) => (it.daily ? dailyDone[i] : tramoDone[i]);
+  // Los puntos diarios ya respondidos hoy no vuelven a salir (2ª sesión = 4 puntos)
+  const visibles = CHECKLIST_ITEMS.map((it, i) => ({ ...it, i }))
+    .filter(it => !it.daily || !dailyDone[it.i]);
   const body = `
     <div class="card-sub" style="margin-bottom:14px;">
-      Marca los ${CHECKLIST_ITEMS.length} puntos antes de operar. Se reactiva cada día y en las aperturas de Londres y Nueva York.
+      Marca los puntos antes de operar. Se reactiva cada día y en las aperturas de Londres y Nueva York.
     </div>
     <div class="checklist-items" style="flex-direction:column;gap:12px;">
-      ${CHECKLIST_ITEMS.map((item, i) => `
-        <label class="chk-item ${done[i] ? 'checked' : ''}">
-          <input type="checkbox" data-chk="${i}" ${done[i] ? 'checked' : ''}>
-          <span>${item}</span>
+      ${visibles.map(it => `
+        <label class="chk-item ${marcado(it, it.i) ? 'checked' : ''}">
+          <input type="checkbox" data-chk="${it.i}" ${marcado(it, it.i) ? 'checked' : ''}>
+          <span>${it.text}</span>
         </label>`).join('')}
     </div>`;
   openModal({
@@ -454,11 +460,14 @@ function openChecklistModal(container) {
   const root = document.getElementById('modal-root');
   root.querySelectorAll('[data-chk]').forEach(input => {
     input.addEventListener('change', () => {
+      const i = +input.dataset.chk;
+      const esDiario = CHECKLIST_ITEMS[i].daily;
+      const key = esDiario ? dailyKey : tramoKey;
       const d = storage.getChecklist(key);
-      d[+input.dataset.chk] = input.checked;
+      d[i] = input.checked;
       storage.setChecklist(key, d);
       input.closest('.chk-item').classList.toggle('checked', input.checked);
-      if (CHECKLIST_ITEMS.every((_, i) => d[i])) {
+      if (checklistCompleto()) {
         closeModal();
         render(container);   // semáforo a verde al instante
       }
