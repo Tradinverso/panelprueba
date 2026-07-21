@@ -13,11 +13,11 @@ import {
 import { kpiCard, kpiCardComposite } from '../components/kpi-card.js';
 import { createEquity, createDonut, createBar, createHourBar, createDayBar, createLongShort } from '../components/charts.js';
 import { renderHeatmap } from '../components/heatmap.js';
-import { renderConnectionBadge, cleanupConnectionBadge } from '../components/connection-badge.js';
 import { renderPills } from '../components/pills.js';
+import { openModal, closeModal } from '../components/modal.js';
 import { todayStatus } from '../utils/diagnostics.js';
 import { storage } from '../storage.js';
-import { CHECKLIST_ITEMS } from '../utils/checklist-items.js';
+import { CHECKLIST_ITEMS, currentChecklistKey, checklistCompleto } from '../utils/checklist-items.js';
 
 const STRAT_LABELS = { ZONAS: 'Forex + Oro', LIQUIDEZ: 'EUR/USD', NASDAQ: 'NQ Futuros' };
 
@@ -49,16 +49,15 @@ function render(container) {
   const filtered = filterTrades(allTrades, yearFilter, monthFilter);
   container.innerHTML = impersonationBanner() + renderShell(allTrades, filtered);
   wireImpersonation(container);
-  wireChecklist(container);
+
+  // Semáforo "Checklist pendiente": pulsable → abre el modal del checklist
+  const chkBtn = container.querySelector('#semaforoChk');
+  if (chkBtn) chkBtn.addEventListener('click', () => openChecklistModal(container));
 
   const yf = container.querySelector('#yearFilter');
   const mf = container.querySelector('#monthFilter');
   yf.addEventListener('change', () => { yearFilter = yf.value; monthFilter = 'all'; render(container); });
   mf.addEventListener('change', () => { monthFilter = mf.value; render(container); });
-
-  // Connection badge (live)
-  const connEl = container.querySelector('#connBadge');
-  if (connEl) renderConnectionBadge(connEl);
 
   // Toggle Sistema/Real
   const perfToggleEl = container.querySelector('#perfToggle');
@@ -122,7 +121,6 @@ export function dashboardView(container) {
   render(container);
   const unsubState = state.on(() => render(container));
   return () => {
-    cleanupConnectionBadge();
     unsubState();
   };
 }
@@ -233,11 +231,8 @@ function renderShell(allTrades, filtered) {
           }).join('')}
         </select>
         ${semaforoPill(allTrades)}
-        <span class="conn-badge" id="connBadge"></span>
       </div>
     </div>
-
-    ${checklistCard()}
 
     <div class="kpi-grid" id="kpis"></div>
 
@@ -418,71 +413,55 @@ const SEMAFORO = {
   stop:    { dot: '🔴', label: 'Hoy no se opera' },
   pending: { dot: '⚪', label: 'Checklist pendiente' },
 };
-function checklistCompleto() {
-  const done = storage.getChecklist(checklistTodayKey());
-  return CHECKLIST_ITEMS.every((_, i) => done[i]);
-}
 function semaforoPill(allTrades) {
   const s = todayStatus(allTrades);
   let level = s.level;
   let title = s.reasons.length ? `Hoy: ${s.reasons.join(' · ')}` : 'Sin incidencias hoy — respeta tu plan';
   // En viewAs no aplica: el checklist es del navegador del alumno, no del admin.
   if (level === 'ok' && !state.viewAsUid && !checklistCompleto()) {
-    level = 'pending';
-    title = 'Completa el checklist pre-sesión antes de operar';
+    // Pendiente = botón pulsable que abre el modal del checklist
+    return `<button class="semaforo pending" id="semaforoChk" title="Pulsa para abrir el checklist pre-sesión">${SEMAFORO.pending.dot} ${SEMAFORO.pending.label}</button>`;
   }
   const cfg = SEMAFORO[level];
   return `<span class="semaforo ${level}" title="${escapeHtml(title)}">${cfg.dot} ${cfg.label}</span>`;
 }
 
-// ── Checklist pre-sesión ─────────────────────────────────────
-// Ritual diario antes de operar. El estado se guarda en el navegador y se
-// resetea cada día. Completado → se encoge a una línea verde (clic para ver).
-// En viewAs no se muestra: es el ritual personal del alumno, no del admin.
-let checklistOpen = false;   // forzar abierto tras completarlo (clic en la línea)
-
-function checklistTodayKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function checklistCard() {
-  if (state.viewAsUid) return '';
-  const done = storage.getChecklist(checklistTodayKey());
-  const completos = CHECKLIST_ITEMS.filter((_, i) => done[i]).length;
-  const todoHecho = completos === CHECKLIST_ITEMS.length;
-
-  if (todoHecho && !checklistOpen) {
-    return `<div class="checklist-done" id="checklistToggle" title="Ver checklist">✓ Checklist pre-sesión completado</div>`;
-  }
-  return `
-    <div class="card checklist-card">
-      <div class="checklist-head">
-        <span class="card-title" style="margin:0;">Checklist pre-sesión</span>
-        <span class="checklist-count">${completos}/${CHECKLIST_ITEMS.length}</span>
-      </div>
-      <div class="checklist-items">
-        ${CHECKLIST_ITEMS.map((item, i) => `
-          <label class="chk-item ${done[i] ? 'checked' : ''}">
-            <input type="checkbox" data-chk="${i}" ${done[i] ? 'checked' : ''}>
-            <span>${item}</span>
-          </label>`).join('')}
-      </div>
+// ── Checklist pre-sesión (modal) ─────────────────────────────
+// El checklist ya no ocupa el dashboard: vive en la pastilla del semáforo.
+// Al pulsar "Checklist pendiente" se abre este modal; al marcar los 5 puntos
+// se cierra solo y el semáforo pasa a verde. El estado se guarda por TRAMO
+// (currentChecklistKey): se reactiva a medianoche y en las aperturas de
+// Londres y NY, porque hay quien opera dos sesiones.
+function openChecklistModal(container) {
+  const key = currentChecklistKey();
+  const done = storage.getChecklist(key);
+  const body = `
+    <div class="card-sub" style="margin-bottom:14px;">
+      Marca los ${CHECKLIST_ITEMS.length} puntos antes de operar. Se reactiva cada día y en las aperturas de Londres y Nueva York.
+    </div>
+    <div class="checklist-items" style="flex-direction:column;gap:12px;">
+      ${CHECKLIST_ITEMS.map((item, i) => `
+        <label class="chk-item ${done[i] ? 'checked' : ''}">
+          <input type="checkbox" data-chk="${i}" ${done[i] ? 'checked' : ''}>
+          <span>${item}</span>
+        </label>`).join('')}
     </div>`;
-}
-
-function wireChecklist(container) {
-  const toggle = container.querySelector('#checklistToggle');
-  if (toggle) toggle.addEventListener('click', () => { checklistOpen = true; render(container); });
-  container.querySelectorAll('[data-chk]').forEach(input => {
+  openModal({
+    title: 'Checklist pre-sesión',
+    body,
+    actions: [{ label: 'Cerrar', onClick: close => { close(); render(container); } }],
+  });
+  const root = document.getElementById('modal-root');
+  root.querySelectorAll('[data-chk]').forEach(input => {
     input.addEventListener('change', () => {
-      const key = checklistTodayKey();
-      const done = storage.getChecklist(key);
-      done[+input.dataset.chk] = input.checked;
-      storage.setChecklist(key, done);
-      const todoHecho = CHECKLIST_ITEMS.every((_, i) => done[i]);
-      if (todoHecho) checklistOpen = false;   // al completarlo, se encoge
-      render(container);
+      const d = storage.getChecklist(key);
+      d[+input.dataset.chk] = input.checked;
+      storage.setChecklist(key, d);
+      input.closest('.chk-item').classList.toggle('checked', input.checked);
+      if (CHECKLIST_ITEMS.every((_, i) => d[i])) {
+        closeModal();
+        render(container);   // semáforo a verde al instante
+      }
     });
   });
 }

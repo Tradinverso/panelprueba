@@ -424,35 +424,33 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
 /* ── Alerts (diagnostic) ─────────────────────────────────── */
 /* Semáforo del día (header del Dashboard): ¿puede operar hoy? */
 .semaforo {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 12px; border-radius: 20px; border: 1px solid;
-  font-family: var(--mono); font-size: 11px; font-weight: 600; cursor: default;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px; border-radius: 22px; border: 1px solid;
+  font-family: var(--mono); font-size: 13px; font-weight: 600; cursor: default;
   white-space: nowrap;
 }
 .semaforo.ok   { color: var(--green); border-color: var(--green); background: var(--green-bg); }
 .semaforo.warn { color: var(--orange); border-color: var(--orange); background: var(--orange-bg); }
 .semaforo.stop { color: var(--red); border-color: var(--red); background: var(--red-bg); }
-.semaforo.pending { color: var(--muted); border-color: var(--border-strong); background: var(--glass-2); }
+/* Pendiente = botón: pulsa y abre el modal del checklist */
+.semaforo.pending {
+  color: var(--muted); border-color: var(--border-strong); background: var(--glass-2);
+  cursor: pointer;
+  transition: color var(--dur), border-color var(--dur), box-shadow var(--dur);
+}
+.semaforo.pending:hover { color: var(--text); border-color: var(--cyan); box-shadow: var(--glow-accent); }
 
-/* Checklist pre-sesión (Dashboard): ritual diario antes de operar */
-.checklist-card { padding: 14px 16px; margin-bottom: 20px; }
-.checklist-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.checklist-count { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+/* Selects del header del dashboard (año/mes): a juego con el semáforo */
+.page-actions .select { font-size: 13.5px; padding: 9px 14px; }
+
+/* Checklist pre-sesión (modal desde el semáforo) */
 .checklist-items { display: flex; flex-wrap: wrap; gap: 8px 18px; }
 .chk-item {
-  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
-  font-size: 12.5px; color: var(--text); user-select: none;
+  display: inline-flex; align-items: center; gap: 10px; cursor: pointer;
+  font-size: 13.5px; color: var(--text); user-select: none;
 }
-.chk-item input { accent-color: var(--cyan); width: 15px; height: 15px; cursor: pointer; }
+.chk-item input { accent-color: var(--cyan); width: 16px; height: 16px; cursor: pointer; }
 .chk-item.checked span { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--dim); }
-.checklist-done {
-  display: flex; align-items: center; gap: 8px; cursor: pointer;
-  margin-bottom: 20px; padding: 9px 16px;
-  background: var(--green-bg); border: 1px solid var(--green);
-  border-radius: 12px; color: var(--green);
-  font-size: 12.5px; font-weight: 600;
-}
-.checklist-done:hover { filter: brightness(1.08); }
 
 .alert { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 10px; border: 1px solid; margin-bottom: 8px; }
 .alert.warning { background: var(--orange-bg); border-color: rgba(255,165,2,0.25); }
