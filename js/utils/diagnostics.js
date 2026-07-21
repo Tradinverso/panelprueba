@@ -120,22 +120,26 @@ function toMin(s) {
 
 // Reentradas "en caliente" de HOY: trades abiertos ≤ventana minutos después
 // de cerrar un SL del mismo día. Lo usan la alerta de venganza y el semáforo.
+// La reentrada rápida por sí sola es evidencia circunstancial (puede ser un
+// segundo setup legítimo) → aviso. Solo es GRAVE si el propio trade la
+// confirma: sensación negativa (Venganza/FOMO/Miedo) o fuera del plan.
 function casosVenganzaHoy(todays) {
   const conHoras = todays.filter(t => toMin(t.open_str) != null)
     .sort((a, b) => toMin(a.open_str) - toMin(b.open_str));
-  let ultimoSlCierre = null, casos = 0, primerGap = null;
+  let ultimoSlCierre = null, casos = 0, confirmados = 0, primerGap = null;
   for (const t of conHoras) {
     const open = toMin(t.open_str);
     if (ultimoSlCierre != null) {
       const gap = open - ultimoSlCierre;
       if (gap >= 0 && gap <= UMBRALES.ventanaVenganzaMin) {
         casos++;
+        if (NEGATIVAS.includes(t.sensacion) || t.plan_followed === false) confirmados++;
         if (primerGap == null) primerGap = gap;
       }
     }
     if (t.result === 'SL' && toMin(t.close_str) != null) ultimoSlCierre = toMin(t.close_str);
   }
-  return { casos, primerGap };
+  return { casos, confirmados, primerGap };
 }
 
 // Dentro de cada lista, lo rojo arriba, luego naranja, luego verde.
@@ -246,16 +250,20 @@ export function buildAlerts(trades) {
       `Has alcanzado el límite diario de drawdown (${UMBRALES.ddDiario}%). Cierra plataforma y revisa journaling.`)));
   }
 
-  // ── HOY: reentrada en caliente tras un SL (posible venganza) ──
-  // La señal más citada de revenge trading: volver a entrar a los pocos
-  // minutos de una pérdida. Solo evalúa trades con horas registradas.
+  // ── HOY: reentrada en caliente tras un SL ──
+  // Grave SOLO si el trade la confirma (sensación negativa o fuera del plan);
+  // la reentrada rápida a secas puede ser un segundo setup legítimo → aviso.
   const venganza = casosVenganzaHoy(todays);
-  if (venganza.casos) {
+  if (venganza.confirmados) {
     tecAlertas.push(critico(danger('🔥',
-      venganza.casos > 1
-        ? `HOY ${venganza.casos} posibles trades de venganza`
-        : `HOY posible trade de venganza`,
-      `Reentraste a los ${venganza.primerGap} min de cerrar un SL. Tras una pérdida, levántate de la pantalla — el siguiente setup puede esperar.`)));
+      venganza.confirmados > 1
+        ? `HOY ${venganza.confirmados} trades de venganza — para`
+        : `HOY trade de venganza — para`,
+      `Reentraste a los ${venganza.primerGap} min de un SL y el trade va con sensación negativa o fuera del plan. Cierra plataforma.`)));
+  } else if (venganza.casos) {
+    tecAlertas.push(warn('🔥',
+      `HOY reentrada rápida tras un SL`,
+      `Reentraste a los ${venganza.primerGap} min de cerrar un SL. Si era un setup nuevo válido, bien — pero vigila la impulsividad.`));
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -696,7 +704,10 @@ export function todayStatus(trades) {
 
   if (todayPnl <= UMBRALES.ddDiario) stops.push(`${todayPnl.toFixed(1)}% hoy (límite ${UMBRALES.ddDiario}%)`);
   if (todays.some(t => badEmotions.has(t.sensacion))) stops.push('sensación negativa hoy');
-  if (casosVenganzaHoy(todays).casos) stops.push('posible trade de venganza hoy');
+  // Venganza: rojo solo confirmada (emoción negativa o fuera de plan); si no, aviso
+  const veng = casosVenganzaHoy(todays);
+  if (veng.confirmados) stops.push('trade de venganza hoy');
+  else if (veng.casos) warns.push('reentrada rápida tras un SL');
 
   if (slStreak >= UMBRALES.rachaSl.alerta) stops.push(`racha de ${slStreak} SL`);
   else if (slStreak === UMBRALES.rachaSl.aviso) warns.push(`racha de ${slStreak} SL`);
