@@ -6,6 +6,7 @@ import { storage } from '../storage.js';
 import { tzLabel } from '../utils/timezone.js';
 import { countDangerAlerts } from '../utils/diagnostics.js';
 import { icon } from './icons.js';
+import { closeModal } from './modal.js';
 import { STRATEGY_ROUTES } from './strategy-tabs.js';
 import { PSICO_ROUTES } from './psicotrading-tabs.js';
 
@@ -193,7 +194,9 @@ export function renderSidebar(container) {
     theme.toggle();
     // Re-render de la vista actual: los charts leen los colores del tema al
     // crearse, así que sin esto quedarían pintados con el tema anterior.
-    // El propio sidebar se refresca vía router.onChange.
+    // El propio sidebar se refresca vía router.onChange. Si hay un modal
+    // abierto, se cierra: quedaría huérfano apuntando a la vista vieja.
+    closeModal();
     router.reload();
   });
   const exitBtn = container.querySelector('#exitViewAsTopBtn');

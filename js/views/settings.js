@@ -4,7 +4,7 @@ import { theme } from '../theme.js';
 import { auth, authErrorMsg } from '../auth.js';
 import { sync } from '../sync.js';
 import { downloadFile, toCsv } from '../utils/csv.js';
-import { openModal } from '../components/modal.js';
+import { openModal, closeModal } from '../components/modal.js';
 import { router } from '../router.js';
 import { IMPORT_HEADERS } from '../utils/sheet-parsers.js';
 import { formatDateEs } from '../utils/date-helpers.js';
@@ -269,6 +269,8 @@ export function settingsView(container) {
     theme.apply(btn.dataset.theme);
     // Re-render de la vista (marca el botón activo) + sidebar vía router.onChange.
     // También repinta los charts de otras vistas si se vuelve a ellas.
+    // Cerrar cualquier modal abierto antes: quedaría huérfano tras el reload.
+    closeModal();
     router.reload();
   });
 

@@ -557,7 +557,7 @@ function paintDirectionAndPairs(container, trades) {
     const pfColor = p.pf >= 2.0 ? 'var(--green)' : p.pf >= 1.5 ? 'var(--orange)' : 'var(--red)';
     const signal = p.wr >= 50 ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--red)">!</span>';
     return `<tr>
-      <td>${p.key}</td>
+      <td>${escapeHtml(p.key)}</td>
       <td>${p.total}</td>
       <td style="color:${wrColor}">${p.wr.toFixed(0)}%</td>
       <td style="color:${pnlColor}">${fmtPct(p.pnl, 1)}</td>

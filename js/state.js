@@ -307,7 +307,27 @@ function ignoreIfReadOnly(_action) {
 
 function fireAndForget(p, label) {
   if (!p || typeof p.then !== 'function') return;
-  p.catch(err => console.error(`[sync] ${label} falló:`, err));
+  p.catch(err => {
+    console.error(`[sync] ${label} falló:`, err);
+    notifySaveError();
+  });
+}
+
+// Aviso visible cuando una escritura a Firestore es RECHAZADA (reglas, cuota,
+// datos inválidos). Antes solo iba a la consola: la UI optimista hacía creer
+// que se guardó. Nota: sin conexión NO salta — Firestore encola y sincroniza
+// al volver la red; esto es solo para rechazos duros.
+let saveErrorVisible = false;
+function notifySaveError() {
+  if (saveErrorVisible) return;   // no apilar toasts si fallan varias seguidas
+  try {
+    saveErrorVisible = true;
+    const el = document.createElement('div');
+    el.className = 'save-error-toast';
+    el.textContent = '⚠ No se pudo guardar en la nube. El cambio podría perderse al recargar — revisa tu sesión o inténtalo de nuevo.';
+    document.body.appendChild(el);
+    setTimeout(() => { el.remove(); saveErrorVisible = false; }, 7000);
+  } catch (e) { saveErrorVisible = false; }
 }
 
 export const state = {

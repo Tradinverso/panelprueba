@@ -272,9 +272,9 @@ function renderAccountTradesTable(items, cuenta) {
               <td>${formatDateShort(t.date)}</td>
               <td>${t.open_str || '–'}</td>
               <td><span class="strat-pill ${t.sheet === 'ZONAS' ? 'zonas' : t.sheet === 'LIQUIDEZ' ? 'liquidez' : 'nasdaq'}">${t.sheet.charAt(0) + t.sheet.slice(1).toLowerCase()}</span></td>
-              <td>${t.pair || '–'}</td>
-              <td>${t.setup || '–'}</td>
-              <td>${(Array.isArray(t.zone) ? t.zone.join(' · ') : t.zone) || '–'}</td>
+              <td>${esc(t.pair || '–')}</td>
+              <td>${esc(t.setup || '–')}</td>
+              <td>${esc((Array.isArray(t.zone) ? t.zone.join(' · ') : t.zone) || '–')}</td>
               <td style="color:${pctColor};">${t.pnl_pct >= 0 ? '+' : ''}${t.pnl_pct.toFixed(2)}%</td>
               <td style="color:${usdColor};font-weight:500;">${fmtUsd(usdPnl, true)}</td>
               <td><span class="res-pill res-${t.result.toLowerCase()}">${t.result}</span></td>

@@ -5,6 +5,7 @@
 
 import { state } from '../state.js';
 import { renderMarkdown } from '../utils/markdown.js';
+import { attachDictation } from '../utils/dictation.js';
 
 let editing = false;
 
@@ -54,6 +55,7 @@ function render(container) {
       </div>
     `;
     const ta = container.querySelector('#planText');
+    attachDictation(ta);
     container.querySelector('#planCancel').addEventListener('click', () => { editing = false; render(container); });
     container.querySelector('#planSave').addEventListener('click', () => {
       const content = ta.value;

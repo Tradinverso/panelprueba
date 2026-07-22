@@ -11,6 +11,7 @@ import { embedUrl, docBlock } from './plan.js';
 import { psicotradingTabs } from '../components/psicotrading-tabs.js';
 import { PROTOCOLOS_FIJOS } from '../utils/protocolos-fijos.js';
 import { openModal } from '../components/modal.js';
+import { attachDictation } from '../utils/dictation.js';
 
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
@@ -136,6 +137,7 @@ function openEditor(proto) {
       },
     ],
   });
+  attachDictation(document.getElementById('modal-root').querySelector('#pText'));
 }
 
 function confirmDelete(proto) {
