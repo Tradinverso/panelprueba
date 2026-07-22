@@ -444,18 +444,18 @@ function openChecklistModal(container) {
   const tramoDone = storage.getChecklist(tramoKey);
   const dailyDone = storage.getChecklist(dailyKey);
   const marcado = (it, i) => (it.daily ? dailyDone[i] : tramoDone[i]);
-  // Los puntos diarios ya respondidos hoy no vuelven a salir (2ª sesión = 4 puntos)
-  const visibles = CHECKLIST_ITEMS.map((it, i) => ({ ...it, i }))
-    .filter(it => !it.daily || !dailyDone[it.i]);
+  // SIEMPRE se muestran los 5 puntos. Los diarios ("he dormido bien") ya
+  // respondidos hoy salen pre-marcados — nunca se ocultan: si desaparecieran,
+  // el alumno no sabría por qué (pasó: se marcó tras medianoche y "no estaba").
   const body = `
     <div class="card-sub" style="margin-bottom:14px;">
       Marca los puntos antes de operar. Se reactiva cada día y en las aperturas de Londres y Nueva York.
     </div>
     <div class="checklist-items" style="flex-direction:column;gap:12px;">
-      ${visibles.map(it => `
-        <label class="chk-item ${marcado(it, it.i) ? 'checked' : ''}">
-          <input type="checkbox" data-chk="${it.i}" ${marcado(it, it.i) ? 'checked' : ''}>
-          <span>${it.text}</span>
+      ${CHECKLIST_ITEMS.map((it, i) => `
+        <label class="chk-item ${marcado(it, i) ? 'checked' : ''}">
+          <input type="checkbox" data-chk="${i}" ${marcado(it, i) ? 'checked' : ''}>
+          <span>${it.text}${it.daily ? ' <small style="color:var(--dim);">(una vez al día)</small>' : ''}</span>
         </label>`).join('')}
     </div>`;
   openModal({
