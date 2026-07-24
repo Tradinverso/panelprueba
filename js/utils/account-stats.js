@@ -86,6 +86,14 @@ export function totalWithdrawalCommissions(account) {
   return account.withdrawals.reduce((sum, w) => sum + (w.commission || 0), 0);
 }
 
+// Ajustes de equity de la FASE actual (desde equityBaseAt, como los trades).
+function totalAjustesPhase(account) {
+  const base = account && account.equityBaseAt;
+  return (account.adjustments || [])
+    .filter(a => !base || (a.date || '') >= base)
+    .reduce((s, a) => s + (a.amount || 0), 0);
+}
+
 // Estadísticas completas de la cuenta.
 export function accountStats(account, allTrades) {
   const emptyMaxDd = account?.maxDdUsd || 0;
@@ -130,10 +138,13 @@ export function accountStats(account, allTrades) {
   const withdrawn = totalWithdrawn(account);           // bruto
   const withdrawnNet = totalWithdrawnNet(account);     // neto al bolsillo
   const commissionsPaid = totalWithdrawalCommissions(account);
+  // Ajustes manuales de equity (± con signo), solo los de la FASE actual —
+  // igual que los trades: al superar fase el equity se reinicia.
+  const ajustes = totalAjustesPhase(account);
 
-  // Equity = saldo inicial + profit por trades − retiros BRUTOS
+  // Equity = saldo inicial + profit por trades + ajustes − retiros BRUTOS
   // (el bruto es lo que el broker descontó realmente del balance)
-  const equity = initial + profitFromTrades - withdrawn;
+  const equity = initial + profitFromTrades + ajustes - withdrawn;
 
   // Profit total = TODO lo ganado vs el capital nominal (incluye diff inicial,
   // trades, ajustes broker, etc). Es lo que el usuario quiere ver.
@@ -240,6 +251,17 @@ function buildEvents(account, items) {
       type: 'withdrawal',
       delta: -w.amount,
       note: w.note,
+    });
+  }
+  // Ajustes de equity (solo los de la fase actual, como los trades)
+  const base = account.equityBaseAt;
+  for (const a of (account.adjustments || [])) {
+    if (base && (a.date || '') < base) continue;
+    events.push({
+      date: a.date,
+      type: 'adjustment',
+      delta: a.amount,
+      note: a.note,
     });
   }
   events.sort((a, b) => a.date.localeCompare(b.date));

@@ -182,6 +182,19 @@ function sanitizeCuenta(c) {
             note: String(w.note || '').trim(),
           }))
       : [],
+    // ── Ajustes de equity: correcciones manuales del saldo actual ──
+    // (trade sin asignar, varianza de cuenta vieja, ajuste del broker…).
+    // amount con signo (±); la fecha determina en qué fase cuenta.
+    adjustments: Array.isArray(c.adjustments)
+      ? c.adjustments
+          .filter(a => a && parseFloat(a.amount))
+          .map(a => ({
+            id: a.id || uuid(),
+            date: a.date || new Date().toISOString().substring(0, 10),
+            amount: typeof a.amount === 'number' ? a.amount : (parseFloat(a.amount) || 0),
+            note: String(a.note || '').trim(),
+          }))
+      : [],
     notes: String(c.notes || '').trim(),
     // ── Inversión: historial de compras/reintentos de la cuenta ──
     purchases: Array.isArray(c.purchases)
@@ -670,6 +683,30 @@ export const state = {
     if (!cuenta) return null;
     return this.updateCuenta(cuentaId, {
       withdrawals: (cuenta.withdrawals || []).filter(w => w.id !== withdrawalId),
+    });
+  },
+
+  // ── Ajustes de equity (corrección manual del saldo actual) ──
+  addAjuste(cuentaId, ajuste) {
+    const cuenta = this.cuentas.find(c => c.id === cuentaId);
+    if (!cuenta) return null;
+    const a = {
+      id: ajuste.id || uuid(),
+      date: ajuste.date || new Date().toISOString().substring(0, 10),
+      amount: typeof ajuste.amount === 'number' ? ajuste.amount : (parseFloat(ajuste.amount) || 0),
+      note: String(ajuste.note || '').trim(),
+    };
+    if (!a.amount) return null;   // un ajuste de 0 no ajusta nada
+    return this.updateCuenta(cuentaId, {
+      adjustments: [...(cuenta.adjustments || []), a],
+    });
+  },
+
+  removeAjuste(cuentaId, ajusteId) {
+    const cuenta = this.cuentas.find(c => c.id === cuentaId);
+    if (!cuenta) return null;
+    return this.updateCuenta(cuentaId, {
+      adjustments: (cuenta.adjustments || []).filter(a => a.id !== ajusteId),
     });
   },
 
