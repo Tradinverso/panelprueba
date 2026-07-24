@@ -415,19 +415,20 @@ export function accountingEvents(cuentas) {
 export function investmentStats(cuentas, range) {
   const f = range && range.from, t = range && range.to;
   const inR = d => (!f || d >= f) && (!t || d <= t);
-  let gastosTotales = 0, gananciasBrutas = 0, gananciasNetas = 0, comisiones = 0;
-  let evaluaciones = 0, live = 0, pasadas = 0, quemadas = 0, fondeadas = 0;
+  let gastosTotales = 0, gananciasBrutas = 0, gananciasNetas = 0, comisiones = 0, nRetiros = 0;
+  let evaluaciones = 0, live = 0, pasadas = 0, quemadas = 0, fondeadas = 0, capitalLive = 0;
   for (const c of cuentas) {
     for (const p of purchasesOf(c)) if (inR(p.date || '')) gastosTotales += p.amount || 0;
     for (const w of (c.withdrawals || [])) {
       if (!inR(w.date || '')) continue;
       const amt = w.amount || 0, com = w.commission || 0;
       gananciasBrutas += amt; comisiones += com; gananciasNetas += Math.max(0, amt - com);
+      nRetiros++;
     }
     // contadores globales
     evaluaciones += (Array.isArray(c.purchases) && c.purchases.length) ? c.purchases.length : 1;
     if (c.fase === 'fondeada') fondeadas++;
-    if (c.fase === 'fondeada' && c.status === 'activa') live++;
+    if (c.fase === 'fondeada' && c.status === 'activa') { live++; capitalLive += c.capital || 0; }
     if (c.status === 'pasada') pasadas++;
     if (c.status === 'perdida') quemadas++;
   }
@@ -435,9 +436,9 @@ export function investmentStats(cuentas, range) {
   const roi = gastosTotales > 0 ? (beneficioNeto / gastosTotales) * 100 : (beneficioNeto > 0 ? Infinity : 0);
   const fundingRatio = evaluaciones > 0 ? (fondeadas / evaluaciones) * 100 : 0;
   return {
-    gastosTotales, gananciasBrutas, gananciasNetas, comisiones,
+    gastosTotales, gananciasBrutas, gananciasNetas, comisiones, nRetiros,
     beneficioNeto, roi, fundingRatio,
-    evaluaciones, live, pasadas, quemadas, fondeadas,
+    evaluaciones, live, pasadas, quemadas, fondeadas, capitalLive,
     countTotal: cuentas.length,
   };
 }
