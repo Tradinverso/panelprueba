@@ -32,8 +32,8 @@ export function openViewTradeModal(trade) {
   // Links
   const linksHtml = (trade.url1 || trade.url2)
     ? [
-        trade.url1 ? `<a href="${escapeAttr(trade.url1)}" target="_blank" rel="noopener">${trade.sheet === 'ZONAS' ? 'TradingView' : 'HTF'}</a>` : '',
-        trade.url2 ? `<a href="${escapeAttr(trade.url2)}" target="_blank" rel="noopener">LTF</a>` : '',
+        trade.url1 ? `<a href="${escapeAttr(trade.url1)}" target="_blank" rel="noopener">${trade.sheet === 'ZONAS' ? 'M1' : 'HTF'}</a>` : '',
+        trade.url2 ? `<a href="${escapeAttr(trade.url2)}" target="_blank" rel="noopener">${trade.sheet === 'ZONAS' ? 'M15' : 'LTF'}</a>` : '',
       ].filter(Boolean).join(' · ')
     : '<span style="color:var(--muted);">—</span>';
 

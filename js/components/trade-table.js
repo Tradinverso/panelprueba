@@ -262,8 +262,8 @@ function row(t, canDelete) {
   }
   const links = (t.url1 || t.url2)
     ? [
-        t.url1 ? `<a class="url-icon" href="${escAttr(t.url1)}" target="_blank" rel="noopener" title="${t.sheet === 'ZONAS' ? 'TradingView' : 'HTF'}">${t.sheet === 'ZONAS' ? 'L' : 'H'}</a>` : '',
-        t.url2 ? `<a class="url-icon" href="${escAttr(t.url2)}" target="_blank" rel="noopener" title="LTF">L</a>` : '',
+        t.url1 ? `<a class="url-icon" href="${escAttr(t.url1)}" target="_blank" rel="noopener" title="${t.sheet === 'ZONAS' ? 'M1' : 'HTF'}">${t.sheet === 'ZONAS' ? '1' : 'H'}</a>` : '',
+        t.url2 ? `<a class="url-icon" href="${escAttr(t.url2)}" target="_blank" rel="noopener" title="${t.sheet === 'ZONAS' ? 'M15' : 'LTF'}">${t.sheet === 'ZONAS' ? '15' : 'L'}</a>` : '',
       ].join('')
     : '<span style="color:var(--dim)">–</span>';
   const dur = t.dur != null ? t.dur + 'm' : '–';
