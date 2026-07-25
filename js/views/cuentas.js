@@ -316,8 +316,8 @@ function card(c) {
 
       ${(c.fase !== 'fondeada' || c.status !== 'perdida') ? `
       <div class="cuenta-card-foot" data-stop>
-        ${adv ? `<button class="btn ghost" data-advance="${c.id}" data-stop>${adv.toFondeada ? '★' : '✓'} ${adv.label}</button>` : ''}
-        ${(adv && !adv.toFondeada) ? `<button class="btn ghost" data-fondeada="${c.id}" title="Pasar a Fondeada directamente (saltando la 2ª fase)" data-stop>★ A Fondeada</button>` : ''}
+        ${adv ? `<button class="btn ghost" data-advance="${c.id}" data-stop>${adv.toFondeada ? '★ Fondear' : '✓ Superar'}</button>` : ''}
+        ${(adv && !adv.toFondeada) ? `<button class="btn ghost" data-fondeada="${c.id}" title="Pasar a Fondeada directamente (saltando la 2ª fase)" data-stop>★ Fondear</button>` : ''}
         ${c.status !== 'perdida' ? `<button class="btn ghost danger" data-quemada="${c.id}" data-stop>✗ Quemada</button>` : ''}
       </div>` : ''}
     </div>

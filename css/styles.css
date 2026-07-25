@@ -254,11 +254,13 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
   letter-spacing: .04em;   /* en mayúsculas respira mejor un poco abierto */
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   /* Placa con fondo: mismo acento cian/azul que la tarjeta de Formación, para
-     que el nombre destaque arriba igual que Formación destaca abajo */
+     que el nombre destaque arriba igual que Formación destaca abajo. El 2º stop
+     va a --cyan-bg (no a un blanco translúcido) para que en tema claro la placa
+     no quede casi invisible. */
   padding: 9px 12px;
   border-radius: 10px;
-  background: linear-gradient(150deg, var(--cyan-bg), rgba(255,255,255,0.02));
-  border: 1px solid var(--glass-border);
+  background: linear-gradient(150deg, var(--cyan-bg), transparent);
+  border: 1px solid var(--border-strong);
 }
 .brand-context.viewing-as {
   background: linear-gradient(180deg, rgba(255,165,2,0.12), rgba(255,165,2,0.04));
@@ -303,11 +305,12 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
 
 /* En sidebar colapsada: nombre se oculta, solo el icono visible */
 @media (max-width: 1100px) {
-  .brand-context { padding: 8px 0; text-align: center; }
+  /* Sin sitio para el nombre: se oculta la placa entera (antes dejaba una caja
+     vacía con su hairline bajo el logo). El bloque "Viendo a alumno" sí se ve. */
+  .brand-context:not(.viewing-as) { display: none; }
   .brand-context.viewing-as {
     margin: 0 4px 10px; padding: 6px;
   }
-  /* En el rail no hay sitio para el nombre: el bloque queda como separador fino */
   .bc-name-self { display: none; }
   .bc-label { font-size: 0; }
   .bc-label::before { content: '📍'; font-size: 16px; }
@@ -364,7 +367,7 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 24px; }
 /* Escritorio ancho: 2 filas exactas de 5 — las 5 clave arriba, las 5 secundarias abajo.
    Por debajo manda el auto-fit (y el 2-col de móvil), que reparte sin huecos raros. */
-@media (min-width: 1240px) { .kpi-grid { grid-template-columns: repeat(5, 1fr); } }
+@media (min-width: 1100px) { .kpi-grid { grid-template-columns: repeat(5, 1fr); } }
 .kpi-card { background: var(--glass); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; position: relative; overflow: hidden; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: border-color .2s, box-shadow .2s; }
 .kpi-card:hover { border-color: var(--glass-border); box-shadow: 0 4px 20px -8px rgba(59,130,246,0.35); }
 .kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
@@ -471,8 +474,11 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
 /* Toast de guardado fallido (escritura rechazada por Firestore) */
 .save-error-toast {
   position: fixed; bottom: 20px; right: 20px; z-index: 10000;
-  max-width: 340px; padding: 12px 16px;
-  background: var(--red-bg); border: 1px solid var(--red); border-radius: 12px;
+  max-width: 340px; padding: 12px 16px 12px 14px;
+  /* Fondo OPACO (surface) con franja roja: el rojo translúcido sobre tablas o
+     gráficos se leía muy pálido en tema claro; esto es un aviso crítico. */
+  background: var(--surface); border: 1px solid var(--red); border-left: 4px solid var(--red);
+  border-radius: 12px;
   color: var(--red); font-size: 12.5px; font-weight: 600; line-height: 1.5;
   box-shadow: 0 8px 24px -10px rgba(0,0,0,.5);
 }

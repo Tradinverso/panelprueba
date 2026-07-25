@@ -9,15 +9,15 @@
 // Una alerta vieja sin recurrencia reciente NO se muestra (stale, no accionable).
 
 import {
-  winrate, pnlPct, currentSlStreak, sortChrono, statsByGroup,
-  wrByHour, wrByDay, longVsShort, avgRR, tradeRealPnl,
+  winrate, currentSlStreak, sortChrono, statsByGroup,
+  wrByHour, wrByDay, avgRR, tradeRealPnl,
   planStats, currentInPlanStreak, currentOutOfPlanStreak,
 } from './calculations.js';
 import {
   withSensacion, groupByEmotion, sensacionStats,
-  classify, NEGATIVAS,
+  NEGATIVAS,
 } from './sensaciones.js';
-import { tzHourDiff } from './timezone.js';
+import { tzHourDiff, todayLocal } from './timezone.js';
 import { auth } from '../auth.js';
 
 // ═══════════════════════════════════════════════════════════════
@@ -80,10 +80,10 @@ const success = (icon, title, body) => A('success', icon, title, body);
 const critico = a => ({ ...a, grave: true });
 
 // ── Helpers temporales ─────────────────────────────────────
-const todayStr = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-};
+// "Hoy" en el huso del PERFIL (los trades se convierten a él al cargar). Con el
+// huso del navegador, cerca de medianoche "hoy" no cuadraría con las fechas de
+// los trades ni con el checklist (que ya usa el huso del perfil).
+const todayStr = () => todayLocal(auth.timezone());
 function pad(n) { return String(n).padStart(2, '0'); }
 
 function daysBetween(yyyy_mm_dd1, yyyy_mm_dd2) {
@@ -126,20 +126,23 @@ function toMin(s) {
 function casosVenganzaHoy(todays) {
   const conHoras = todays.filter(t => toMin(t.open_str) != null)
     .sort((a, b) => toMin(a.open_str) - toMin(b.open_str));
-  let ultimoSlCierre = null, casos = 0, confirmados = 0, primerGap = null;
+  let ultimoSlCierre = null, casos = 0, confirmados = 0, primerGap = null, primerGapConf = null;
   for (const t of conHoras) {
     const open = toMin(t.open_str);
     if (ultimoSlCierre != null) {
       const gap = open - ultimoSlCierre;
       if (gap >= 0 && gap <= UMBRALES.ventanaVenganzaMin) {
         casos++;
-        if (NEGATIVAS.includes(t.sensacion) || t.plan_followed === false) confirmados++;
         if (primerGap == null) primerGap = gap;
+        if (NEGATIVAS.includes(t.sensacion) || t.plan_followed === false) {
+          confirmados++;
+          if (primerGapConf == null) primerGapConf = gap;   // gap del caso CONFIRMADO
+        }
       }
     }
     if (t.result === 'SL' && toMin(t.close_str) != null) ultimoSlCierre = toMin(t.close_str);
   }
-  return { casos, confirmados, primerGap };
+  return { casos, confirmados, primerGap, primerGapConf };
 }
 
 // Dentro de cada lista, lo rojo arriba, luego naranja, luego verde.
@@ -259,7 +262,7 @@ export function buildAlerts(trades) {
       venganza.confirmados > 1
         ? `HOY ${venganza.confirmados} trades de venganza — para`
         : `HOY trade de venganza — para`,
-      `Reentraste a los ${venganza.primerGap} min de un SL y el trade va con sensación negativa o fuera del plan. Cierra plataforma.`)));
+      `Reentraste a los ${venganza.primerGapConf} min de un SL y el trade va con sensación negativa o fuera del plan. Cierra plataforma.`)));
   } else if (venganza.casos) {
     tecAlertas.push(warn('🔥',
       `HOY reentrada rápida tras un SL`,
@@ -681,9 +684,12 @@ export function countDangerAlerts(trades) {
 }
 
 // Semáforo del día: ¿puede operar HOY este trader?
-// 'stop' (rojo) = alguna regla de parada del día activa · 'warn' (naranja) =
-// cerca del límite · 'ok' (verde) = vía libre. `reasons` alimenta el tooltip.
-// Usa los mismos UMBRALES que las alertas — un solo criterio en toda la app.
+//   'stop'  (rojo)    = una regla DURA de hoy: algo que has hecho hoy obliga a parar.
+//   'warn'  (naranja) = hay alguna alerta importante activa en el Diagnóstico
+//                       (racha de SL, plan incumplido…) o estás cerca de un límite del día.
+//   'ok'    (verde)   = ninguna alerta importante ni regla del día — vía libre de verdad.
+// Coherencia clave: naranja ⟺ el badge rojo del menú "Diagnóstico" está encendido.
+// Usa los mismos UMBRALES/alertas que el resto — un solo criterio en toda la app.
 export function todayStatus(trades) {
   const stops = [], warns = [];
   const todays = todaysTrades(trades);
@@ -691,28 +697,28 @@ export function todayStatus(trades) {
   const todayPnl = todays.reduce((s, t) => s + tradeRealPnl(t), 0);
   const badEmotions = new Set(NEGATIVAS);
 
-  // Racha SL: solo si es trader activo (una racha de hace semanas no es "hoy")
-  const lastOp = lastOperatedDate(trades);
-  const active = lastOp ? daysBetween(lastOp, todayStr()) <= 7 : false;
-  const slStreak = active ? currentSlStreak(trades) : 0;
-
+  // ── ROJO: reglas duras de HOY (para AHORA) ──
   if (todaySL >= UMBRALES.slDia) stops.push(`${todaySL} SL hoy`);
-  else if (todaySL === UMBRALES.avisoSlDia) warns.push(`${todaySL} SL hoy`);
-
   if (todays.length >= UMBRALES.maxTradesDia) stops.push(`${todays.length} trades hoy (máx ${UMBRALES.maxTradesDia})`);
-  else if (todays.length === UMBRALES.avisoTradesDia) warns.push(`${todays.length} trades hoy`);
-
   if (todayPnl <= UMBRALES.ddDiario) stops.push(`${todayPnl.toFixed(1)}% hoy (límite ${UMBRALES.ddDiario}%)`);
   if (todays.some(t => badEmotions.has(t.sensacion))) stops.push('sensación negativa hoy');
-  // Venganza: rojo solo confirmada (emoción negativa o fuera de plan); si no, aviso
   const veng = casosVenganzaHoy(todays);
   if (veng.confirmados) stops.push('trade de venganza hoy');
-  else if (veng.casos) warns.push('reentrada rápida tras un SL');
 
-  if (slStreak >= UMBRALES.rachaSl.alerta) stops.push(`racha de ${slStreak} SL`);
-  else if (slStreak === UMBRALES.rachaSl.aviso) warns.push(`racha de ${slStreak} SL`);
+  // ── NARANJA: avisos del día (cerca de un límite) ──
+  if (todaySL === UMBRALES.avisoSlDia) warns.push(`${todaySL} SL hoy`);
+  if (todays.length === UMBRALES.avisoTradesDia) warns.push(`${todays.length} trades hoy`);
+  if (!veng.confirmados && veng.casos) warns.push('reentrada rápida tras un SL');
+
+  // ── NARANJA: alertas GRAVES activas del Diagnóstico que no son parada de hoy
+  //    (racha de SL, plan incumplido, racha de días en rojo…). Así el semáforo
+  //    NUNCA está verde si el Diagnóstico tiene una alerta importante. ──
+  if (!stops.length) {
+    const n = countDangerAlerts(trades);
+    if (n) warns.push(`${n} alerta${n > 1 ? 's' : ''} importante${n > 1 ? 's' : ''} en tu diagnóstico`);
+  }
 
   if (stops.length) return { level: 'stop', reasons: stops };
-  if (warns.length) return { level: 'warn', reasons: warns };
+  if (warns.length) return { level: 'warn', reasons: [...new Set(warns)] };
   return { level: 'ok', reasons: [] };
 }

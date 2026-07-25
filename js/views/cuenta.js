@@ -8,13 +8,13 @@ import { openCuentaEditModal, confirmDeleteCuenta } from '../components/cuenta-e
 import { openWithdrawalModal } from '../components/withdrawal-modal.js';
 import { openModal } from '../components/modal.js';
 import {
-  accountStats, tradesForAccountPhase, totalWithdrawn, accountEquityCurve,
-  monthlyPnlUsd, fmtUsd, computeUsdPnl, advanceInfo,
+  accountStats, tradesForAccountPhase, accountEquityCurve,
+  monthlyPnlUsd, fmtUsd, advanceInfo,
 } from '../utils/account-stats.js';
 import { kpiCard } from '../components/kpi-card.js';
 import { openViewTradeModal } from '../components/trade-view-modal.js';
-import { sortChrono } from '../utils/calculations.js';
 import { formatDateShort, MONTHS_ES_SHORT } from '../utils/date-helpers.js';
+import { todayLocal } from '../utils/timezone.js';
 
 const FASE_LABEL = { challenge_1: 'Challenge 1ª', challenge_2: 'Challenge 2ª', fondeada: 'Fondeada' };
 const STATUS_LABEL = { activa: 'Activa', pausada: 'Pausada', pasada: 'Pasada', perdida: 'Perdida' };
@@ -265,7 +265,11 @@ function renderWithdrawalsSection(cuenta, stats) {
 
 // ── Ajustes de equity: listado (solo si hay alguno) ─────────
 function renderAjustesSection(cuenta) {
-  const ajustes = cuenta.adjustments || [];
+  // Solo los ajustes de la FASE actual: los de fases pasadas ya no afectan al
+  // equity (se reinicia al superar fase), así que listarlos con un botón que
+  // "no hace nada" confundiría. Es lo mismo que cuentan la curva y los stats.
+  const base = cuenta.equityBaseAt;
+  const ajustes = (cuenta.adjustments || []).filter(a => !base || (a.date || '') >= base);
   if (!ajustes.length) return '';
   const rows = [...ajustes].sort((a, b) => (b.date || '').localeCompare(a.date || '')).map(a => `
     <tr>
@@ -287,8 +291,8 @@ function renderAjustesSection(cuenta) {
 // Modal "Ajustar equity": el usuario escribe el equity REAL de la cuenta y se
 // guarda la DIFERENCIA como ajuste con fecha — el histórico no se toca.
 function openAjusteModal(cuenta, s, onDone) {
-  const hoy = new Date();
-  const today = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+  const today = todayLocal(auth.timezone());   // huso del perfil, no del navegador
+  const base = cuenta.equityBaseAt;            // inicio de la fase actual
   openModal({
     title: 'Ajustar equity',
     body: `
@@ -305,7 +309,7 @@ function openAjusteModal(cuenta, s, onDone) {
         <div class="form-row">
           <div class="form-field">
             <label class="form-label">Fecha del ajuste</label>
-            <input class="form-input" type="date" id="ajDate" value="${today}">
+            <input class="form-input" type="date" id="ajDate" value="${today}" ${base ? `min="${base}"` : ''} max="${today}">
           </div>
           <div class="form-field">
             <label class="form-label">Nota (opcional)</label>
@@ -330,8 +334,14 @@ function openAjusteModal(cuenta, s, onDone) {
           if (Math.abs(delta) < 0.01) {
             err.textContent = '⚠ El equity real coincide con el de la app — no hay nada que ajustar.'; err.style.display = 'flex'; return;
           }
+          const fecha = root.querySelector('#ajDate').value || today;
+          // Un ajuste con fecha anterior al inicio de la fase no contaría (el
+          // equity se reinició ahí): avisar en vez de guardarlo en silencio.
+          if (base && fecha < base) {
+            err.textContent = `⚠ La fecha no puede ser anterior al inicio de la fase actual (${formatDateShort(base)}).`; err.style.display = 'flex'; return;
+          }
           state.addAjuste(cuenta.id, {
-            date: root.querySelector('#ajDate').value || today,
+            date: fecha,
             amount: delta,
             note: root.querySelector('#ajNote').value,
           });
@@ -467,11 +477,6 @@ function paintMonthlyChart(container, monthly) {
 function signedPct(v, digits = 2) {
   if (v == null || isNaN(v)) return '0%';
   return (v >= 0 ? '+' : '') + v.toFixed(digits) + '%';
-}
-
-function signedDelta(v) {
-  if (v == null || isNaN(v) || v === 0) return '$0';
-  return (v >= 0 ? '+$' : '-$') + Math.abs(v).toLocaleString('en-US');
 }
 
 function renderProgressBars(s) {
