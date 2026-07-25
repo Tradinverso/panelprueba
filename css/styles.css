@@ -453,8 +453,9 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
   white-space: nowrap;
   transition: color var(--dur), border-color var(--dur), box-shadow var(--dur);
 }
-.chk-chip.pending { color: var(--muted); border-color: var(--border-strong); background: var(--glass-2); }
-.chk-chip.pending:hover { color: var(--text); border-color: var(--cyan); box-shadow: var(--glow-accent); }
+/* Pendiente en naranja: es un ritual que hay que hacer, no algo opcional (gris) */
+.chk-chip.pending { color: var(--orange); border-color: var(--orange); background: var(--orange-bg); }
+.chk-chip.pending:hover { filter: brightness(1.08); box-shadow: 0 4px 14px -8px var(--orange); }
 .chk-chip.done { color: var(--green); border-color: var(--green); background: transparent; opacity: .85; }
 .chk-chip.done:hover { background: var(--green-bg); opacity: 1; }
 

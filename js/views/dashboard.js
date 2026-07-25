@@ -428,7 +428,7 @@ function checklistChip() {
   const hecho = checklistCompleto();
   return `<button class="chk-chip ${hecho ? 'done' : 'pending'}" id="semaforoChk"
             title="${hecho ? 'Checklist de esta sesión completado — pulsa para verlo' : 'Pulsa para abrir el checklist pre-sesión'}">
-            ${hecho ? '✓ Checklist' : '☑ Checklist pendiente'}
+            ${hecho ? '✓ Checklist' : '☐ Checklist pendiente'}
           </button>`;
 }
 
