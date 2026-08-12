@@ -22,10 +22,11 @@ import { backtestTabs } from '../components/backtest-tabs.js';
 import { openBacktestFormModal } from '../components/backtest-form-modal.js';
 import { openViewTradeModal } from '../components/trade-view-modal.js';
 
-// Filtro de periodo (año/mes) — compartido entre las 3 pestañas de estrategia.
-// Filtra KPIs, gráficos y tabla, como el filtro del Dashboard.
-let btYear = 'all';
-let btMonth = 'all';
+// Filtros — TODOS arriba y filtrando TODO (KPIs, gráficas y tablas), no solo
+// el listado. Compartidos entre las 3 pestañas; se auto-resetean si el valor
+// no existe en la estrategia activa.
+let btYear = 'all', btMonth = 'all';
+let btPair = 'all', btSetup = 'all', btZone = 'all', btEntry = 'all', btRes = 'all';
 
 export function backtestView(container, sheet) {
   render(container, sheet);
@@ -33,36 +34,69 @@ export function backtestView(container, sheet) {
   return unsub;
 }
 
-function filtroPeriodo(trades) {
+function hasZone(t, z) {
+  return Array.isArray(t.zone) ? t.zone.includes(z) : t.zone === z;
+}
+function hasEntry(t, e) {
+  return Array.isArray(t.entry) ? t.entry.includes(e) : t.entry === e;
+}
+
+function filtro(trades) {
   return trades.filter(t => {
     if (btYear !== 'all' && !(t.date || '').startsWith(btYear)) return false;
     if (btMonth !== 'all' && !(t.date || '').startsWith(btMonth)) return false;
+    if (btPair !== 'all' && t.pair !== btPair) return false;
+    if (btSetup !== 'all' && t.setup !== btSetup) return false;
+    if (btZone !== 'all' && !hasZone(t, btZone)) return false;
+    if (btEntry !== 'all' && !hasEntry(t, btEntry)) return false;
+    if (btRes !== 'all' && t.result !== btRes) return false;
     return true;
   });
 }
 
-function filtrosHtml(allSheet) {
+function hayFiltros() {
+  return btYear !== 'all' || btMonth !== 'all' || btPair !== 'all'
+    || btSetup !== 'all' || btZone !== 'all' || btEntry !== 'all' || btRes !== 'all';
+}
+
+// Barra única de filtros bajo el encabezado. Opciones derivadas de los DATOS
+// de la estrategia (no solo de la config: los imports pueden traer variantes).
+function filtrosHtml(allSheet, meta) {
   const years = [...new Set(allSheet.map(t => (t.date || '').substring(0, 4)))].filter(Boolean).sort();
-  // Si el filtro apunta a un periodo sin datos (cambio de estrategia…), se resetea
   if (btYear !== 'all' && !years.includes(btYear)) { btYear = 'all'; btMonth = 'all'; }
   const months = [...new Set(allSheet.map(t => (t.date || '').substring(0, 7)))].filter(Boolean).sort()
     .filter(m => btYear === 'all' || m.startsWith(btYear));
   if (btMonth !== 'all' && !months.includes(btMonth)) btMonth = 'all';
-  return `
-    <select id="btYearF" class="select">
-      <option value="all" ${btYear === 'all' ? 'selected' : ''}>Todos los años</option>
-      ${years.map(y => `<option value="${y}" ${btYear === y ? 'selected' : ''}>${y}</option>`).join('')}
-    </select>
-    <select id="btMonthF" class="select">
-      <option value="all" ${btMonth === 'all' ? 'selected' : ''}>Todos los meses</option>
-      ${months.map(m => `<option value="${m}" ${btMonth === m ? 'selected' : ''}>${MONTHS_ES_SHORT[+m.split('-')[1] - 1]} ${m.substring(0, 4)}</option>`).join('')}
+
+  const pairs = [...new Set(allSheet.map(t => t.pair).filter(Boolean))].sort();
+  if (btPair !== 'all' && !pairs.includes(btPair)) btPair = 'all';
+  const zones = [...new Set(allSheet.flatMap(t => Array.isArray(t.zone) ? t.zone : [t.zone]).filter(Boolean))].sort();
+  if (btZone !== 'all' && !zones.includes(btZone)) btZone = 'all';
+  const entries = [...new Set(allSheet.flatMap(t => Array.isArray(t.entry) ? t.entry : [t.entry]).filter(Boolean))].sort();
+  if (btEntry !== 'all' && !entries.includes(btEntry)) btEntry = 'all';
+
+  const sel = (id, value, options) => `
+    <select id="${id}" class="select">
+      ${options.map(o => `<option value="${o.v}" ${o.v === value ? 'selected' : ''}>${o.l}</option>`).join('')}
     </select>`;
+
+  return `
+    <div class="td-filters">
+      ${sel('btYearF', btYear, [{ v: 'all', l: 'Todos los años' }, ...years.map(y => ({ v: y, l: y }))])}
+      ${sel('btMonthF', btMonth, [{ v: 'all', l: 'Todos los meses' }, ...months.map(m => ({ v: m, l: `${MONTHS_ES_SHORT[+m.split('-')[1] - 1]} ${m.substring(0, 4)}` }))])}
+      ${pairs.length > 1 ? sel('btPairF', btPair, [{ v: 'all', l: 'Todos los pares' }, ...pairs.map(p => ({ v: p, l: p }))]) : ''}
+      ${sel('btSetupF', btSetup, [{ v: 'all', l: 'Todas las direcciones' }, { v: 'LONG', l: 'LONG' }, { v: 'SHORT', l: 'SHORT' }])}
+      ${zones.length > 1 ? sel('btZoneF', btZone, [{ v: 'all', l: 'Todas las zonas' }, ...zones.map(z => ({ v: z, l: z }))]) : ''}
+      ${entries.length > 1 ? sel('btEntryF', btEntry, [{ v: 'all', l: 'Todas las entradas' }, ...entries.map(e => ({ v: e, l: e }))]) : ''}
+      ${sel('btResF', btRes, [{ v: 'all', l: 'Todos los resultados' }, { v: 'TP', l: 'Solo TP' }, { v: 'SL', l: 'Solo SL' }, { v: 'BE', l: 'Solo BE' }])}
+      ${hayFiltros() ? '<button class="btn ghost" id="btClearF">× Limpiar filtros</button>' : ''}
+    </div>`;
 }
 
 function render(container, sheet) {
   const meta = STRATEGIES[sheet];
   const allSheet = state.backtests.filter(t => t.sheet === sheet);
-  const all = filtroPeriodo(allSheet);
+  const all = filtro(allSheet);
   const c = tradeCounts(all);
   const decisive = c.tp + c.sl;
 
@@ -86,23 +120,23 @@ function render(container, sheet) {
     return;
   }
 
-  // Con datos en la estrategia pero ninguno en el periodo filtrado
+  // Con datos en la estrategia pero ninguno que pase los filtros
   if (!all.length) {
     container.innerHTML = `
       ${backtestTabs(sheet)}
       <div class="page-header">
         <div>
           <h1>Backtesting <span>·</span> ${meta.label}</h1>
-          <div class="sub">0 de ${allSheet.length} backtests en el periodo elegido</div>
+          <div class="sub">0 de ${allSheet.length} backtests con esos filtros</div>
         </div>
         <div class="page-actions">
-          ${filtrosHtml(allSheet)}
           <button class="btn primary" id="btNewBtn">+ Nuevo trade</button>
         </div>
       </div>
+      ${filtrosHtml(allSheet, meta)}
       <div class="empty">
         <div class="big">🔍</div>
-        <div>Ningún backtest de ${meta.label} en ese periodo. Cambia el filtro de año/mes arriba.</div>
+        <div>Ningún backtest de ${meta.label} pasa esos filtros. Ajústalos arriba o límpialos.</div>
       </div>`;
     wire(container, sheet);
     return;
@@ -125,10 +159,11 @@ function render(container, sheet) {
         <div class="sub">${all.length}${all.length !== allSheet.length ? ` de ${allSheet.length}` : ''} backtests · separado de tu journal real</div>
       </div>
       <div class="page-actions">
-        ${filtrosHtml(allSheet)}
         <button class="btn primary" id="btNewBtn">+ Nuevo trade</button>
       </div>
     </div>
+
+    ${filtrosHtml(allSheet, meta)}
 
     <div class="kpi-grid">
       ${kpiCard({ label: 'Backtests', value: all.length, sub: `${c.tp} TP · ${c.sl} SL · ${c.be} BE`, tone: 'blue' })}
@@ -240,6 +275,9 @@ function render(container, sheet) {
   renderTradeTable(container.querySelector('#btTable'), all, {
     canDelete: true,
     variant: 'backtest',
+    // Sin barra de filtros propia: los filtros de arriba ya filtran TODO
+    // (incluida esta tabla) — evitamos el doble juego de selects y el scroll.
+    showFilters: false,
     emptyMsg: 'Sin backtests.',
     // Ver en modo backtest: sin filas del journal, y Editar abre el formulario
     // de backtest (jamás el editor del journal real).
@@ -267,11 +305,24 @@ function render(container, sheet) {
 function wire(container, sheet) {
   const btn = container.querySelector('#btNewBtn');
   if (btn) btn.addEventListener('click', () => openBacktestFormModal(sheet, null, null));
-  // Filtros de periodo: año resetea el mes (como en el Dashboard)
-  const yf = container.querySelector('#btYearF');
-  if (yf) yf.addEventListener('change', () => { btYear = yf.value; btMonth = 'all'; render(container, sheet); });
-  const mf = container.querySelector('#btMonthF');
-  if (mf) mf.addEventListener('change', () => { btMonth = mf.value; render(container, sheet); });
+
+  // Filtros: todos re-renderizan la vista entera (KPIs + gráficas + tabla)
+  const on = (id, fn) => {
+    const el = container.querySelector(id);
+    if (el) el.addEventListener('change', () => { fn(el.value); render(container, sheet); });
+  };
+  on('#btYearF', v => { btYear = v; btMonth = 'all'; });   // año resetea mes
+  on('#btMonthF', v => { btMonth = v; });
+  on('#btPairF', v => { btPair = v; });
+  on('#btSetupF', v => { btSetup = v; });
+  on('#btZoneF', v => { btZone = v; });
+  on('#btEntryF', v => { btEntry = v; });
+  on('#btResF', v => { btRes = v; });
+  const clear = container.querySelector('#btClearF');
+  if (clear) clear.addEventListener('click', () => {
+    btYear = btMonth = btPair = btSetup = btZone = btEntry = btRes = 'all';
+    render(container, sheet);
+  });
 }
 
 function paintGroupTable(tbody, groups) {
