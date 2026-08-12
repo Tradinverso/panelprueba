@@ -22,19 +22,51 @@ import { backtestTabs } from '../components/backtest-tabs.js';
 import { openBacktestFormModal } from '../components/backtest-form-modal.js';
 import { openViewTradeModal } from '../components/trade-view-modal.js';
 
+// Filtro de periodo (año/mes) — compartido entre las 3 pestañas de estrategia.
+// Filtra KPIs, gráficos y tabla, como el filtro del Dashboard.
+let btYear = 'all';
+let btMonth = 'all';
+
 export function backtestView(container, sheet) {
   render(container, sheet);
   const unsub = state.on(() => render(container, sheet));
   return unsub;
 }
 
+function filtroPeriodo(trades) {
+  return trades.filter(t => {
+    if (btYear !== 'all' && !(t.date || '').startsWith(btYear)) return false;
+    if (btMonth !== 'all' && !(t.date || '').startsWith(btMonth)) return false;
+    return true;
+  });
+}
+
+function filtrosHtml(allSheet) {
+  const years = [...new Set(allSheet.map(t => (t.date || '').substring(0, 4)))].filter(Boolean).sort();
+  // Si el filtro apunta a un periodo sin datos (cambio de estrategia…), se resetea
+  if (btYear !== 'all' && !years.includes(btYear)) { btYear = 'all'; btMonth = 'all'; }
+  const months = [...new Set(allSheet.map(t => (t.date || '').substring(0, 7)))].filter(Boolean).sort()
+    .filter(m => btYear === 'all' || m.startsWith(btYear));
+  if (btMonth !== 'all' && !months.includes(btMonth)) btMonth = 'all';
+  return `
+    <select id="btYearF" class="select">
+      <option value="all" ${btYear === 'all' ? 'selected' : ''}>Todos los años</option>
+      ${years.map(y => `<option value="${y}" ${btYear === y ? 'selected' : ''}>${y}</option>`).join('')}
+    </select>
+    <select id="btMonthF" class="select">
+      <option value="all" ${btMonth === 'all' ? 'selected' : ''}>Todos los meses</option>
+      ${months.map(m => `<option value="${m}" ${btMonth === m ? 'selected' : ''}>${MONTHS_ES_SHORT[+m.split('-')[1] - 1]} ${m.substring(0, 4)}</option>`).join('')}
+    </select>`;
+}
+
 function render(container, sheet) {
   const meta = STRATEGIES[sheet];
-  const all = state.backtests.filter(t => t.sheet === sheet);
+  const allSheet = state.backtests.filter(t => t.sheet === sheet);
+  const all = filtroPeriodo(allSheet);
   const c = tradeCounts(all);
   const decisive = c.tp + c.sl;
 
-  if (!all.length) {
+  if (!allSheet.length) {
     container.innerHTML = `
       ${backtestTabs(sheet)}
       <div class="page-header">
@@ -43,13 +75,34 @@ function render(container, sheet) {
           <div class="sub">Histórico de backtests · separado de tu journal real</div>
         </div>
         <div class="page-actions">
-          <a class="btn" href="#/bt-importar">⬆ Importar</a>
           <button class="btn primary" id="btNewBtn">+ Nuevo trade</button>
         </div>
       </div>
       <div class="empty">
         <div class="big">🧪</div>
         <div>Aún no hay backtests de ${meta.label}. Registra aquí tus operaciones backtesteadas<br>para validar la operativa con datos — sin mezclarlas con tu cuenta real.<br><br>¿Los tienes en tu plantilla de Sheets? <a href="#/bt-importar">Impórtalos de golpe →</a></div>
+      </div>`;
+    wire(container, sheet);
+    return;
+  }
+
+  // Con datos en la estrategia pero ninguno en el periodo filtrado
+  if (!all.length) {
+    container.innerHTML = `
+      ${backtestTabs(sheet)}
+      <div class="page-header">
+        <div>
+          <h1>Backtesting <span>·</span> ${meta.label}</h1>
+          <div class="sub">0 de ${allSheet.length} backtests en el periodo elegido</div>
+        </div>
+        <div class="page-actions">
+          ${filtrosHtml(allSheet)}
+          <button class="btn primary" id="btNewBtn">+ Nuevo trade</button>
+        </div>
+      </div>
+      <div class="empty">
+        <div class="big">🔍</div>
+        <div>Ningún backtest de ${meta.label} en ese periodo. Cambia el filtro de año/mes arriba.</div>
       </div>`;
     wire(container, sheet);
     return;
@@ -69,10 +122,10 @@ function render(container, sheet) {
     <div class="page-header">
       <div>
         <h1>Backtesting <span>·</span> ${meta.label}</h1>
-        <div class="sub">${all.length} backtests · separado de tu journal real</div>
+        <div class="sub">${all.length}${all.length !== allSheet.length ? ` de ${allSheet.length}` : ''} backtests · separado de tu journal real</div>
       </div>
       <div class="page-actions">
-        <a class="btn" href="#/bt-importar">⬆ Importar</a>
+        ${filtrosHtml(allSheet)}
         <button class="btn primary" id="btNewBtn">+ Nuevo trade</button>
       </div>
     </div>
@@ -214,6 +267,11 @@ function render(container, sheet) {
 function wire(container, sheet) {
   const btn = container.querySelector('#btNewBtn');
   if (btn) btn.addEventListener('click', () => openBacktestFormModal(sheet, null, null));
+  // Filtros de periodo: año resetea el mes (como en el Dashboard)
+  const yf = container.querySelector('#btYearF');
+  if (yf) yf.addEventListener('change', () => { btYear = yf.value; btMonth = 'all'; render(container, sheet); });
+  const mf = container.querySelector('#btMonthF');
+  if (mf) mf.addEventListener('change', () => { btMonth = mf.value; render(container, sheet); });
 }
 
 function paintGroupTable(tbody, groups) {

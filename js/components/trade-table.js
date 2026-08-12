@@ -284,7 +284,7 @@ function row(t, canDelete, isBacktest = false) {
   return `
     <tr>
       <td>${viewBtn}</td>
-      <td>${formatDateShort(t.date)}</td>
+      <td>${isBacktest ? formatDateShort(t.date) + '/' + String(t.date || '').substring(2, 4) : formatDateShort(t.date)}</td>
       <td>${t.open_str || '–'}</td>
       <td><span class="strat-pill ${STRAT_CLS[t.sheet]}">${STRAT_LABEL[t.sheet] || t.sheet}</span></td>
       <td>${t.pair || '–'}</td>
