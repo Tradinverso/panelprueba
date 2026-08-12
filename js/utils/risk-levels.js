@@ -3,16 +3,17 @@
 // adaptada a la app: el "balance" NO se introduce a mano — se deriva del equity
 // de la cuenta (initialBalance + trades − retiros) vía accountStats().
 //
-// Modelo:
+// Modelo (operativa de la academia — replica el Excel oficial, por DRAWDOWN):
 //   - Cada cuenta tiene un riesgo_base (ej. 0.005 = 0,5%) y un multiplicador
 //     (ej. 1.3). Con eso se generan 7 niveles de riesgo escalado:
 //       pct(i) = riesgo_base × multiplicador^(i-1)
-//   - El NIVEL ACTIVO se calcula desde el drawdown de la cuenta:
+//   - El NIVEL ACTIVO se calcula desde el DRAWDOWN de la cuenta:
 //       · cuenta en positivo  → Nivel 1 siempre
-//       · cuenta en negativo  → sube de nivel cuando la pérdida acumulada
-//         supera los umbrales acumulados (suma de los pct de niveles previos).
+//       · cuenta en negativo  → sube de nivel cuando la pérdida acumulada (en %
+//         del capital) supera los umbrales acumulados (suma de los pct previos).
 //   - Es una gestión de recuperación: cuanto más abajo, más riesgo para
-//     recuperar antes.
+//     recuperar antes. Un TP que reduce el DD baja el nivel; solo vuelve a N1
+//     cuando el equity recupera a positivo.
 
 export const NUM_NIVELES = 7;
 
@@ -44,7 +45,7 @@ export function calcNiveles(riesgoBase, multiplicador, capital) {
   return niveles;
 }
 
-// Nivel activo a partir del equity actual y el capital nominal.
+// Nivel activo a partir del equity actual y el capital nominal (por drawdown).
 //   - equity ≥ capital  → Nivel 1 (la cuenta está en positivo).
 //   - equity < capital  → sube de nivel a medida que la pérdida acumulada
 //     (en % del capital) supera la suma acumulada de los pct de los niveles.
