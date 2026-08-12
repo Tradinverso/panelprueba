@@ -544,6 +544,29 @@ export const state = {
     return true;
   },
 
+  // Importación masiva de backtests (Sheet/CSV/rejilla) con dedupe: reimportar
+  // el mismo Sheet no duplica. Misma clave que el journal (sheet|date|open|par|setup).
+  addBacktestsMany(list) {
+    const key = b => `${b.sheet}|${b.date}|${b.open_str}|${b.pair}|${b.setup}`;
+    const existing = new Set(this.backtests.map(key));
+    const added = [];
+    let dup = 0;
+    for (const raw of (list || [])) {
+      const b = sanitizeBacktest(raw);
+      if (!b || !b.sheet || !b.date) continue;
+      const k = key(b);
+      if (existing.has(k)) { dup++; continue; }
+      existing.add(k);
+      this.backtests.push(b);
+      added.push(b);
+    }
+    if (added.length) {
+      this.emit();
+      fireAndForget(sync.saveBacktestsBatch(targetUid(), added), 'saveBacktestsBatch');
+    }
+    return { added: added.length, dup };
+  },
+
   addMany(trades) {
     if (ignoreIfReadOnly('addMany')) return { added: 0, dup: 0 };
     let added = 0, dup = 0;

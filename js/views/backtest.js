@@ -43,12 +43,13 @@ function render(container, sheet) {
           <div class="sub">Histórico de backtests · separado de tu journal real</div>
         </div>
         <div class="page-actions">
+          <a class="btn" href="#/bt-importar">⬆ Importar</a>
           <button class="btn primary" id="btNewBtn">+ Nuevo trade</button>
         </div>
       </div>
       <div class="empty">
         <div class="big">🧪</div>
-        <div>Aún no hay backtests de ${meta.label}. Registra aquí tus operaciones backtesteadas<br>para validar la operativa con datos — sin mezclarlas con tu cuenta real.</div>
+        <div>Aún no hay backtests de ${meta.label}. Registra aquí tus operaciones backtesteadas<br>para validar la operativa con datos — sin mezclarlas con tu cuenta real.<br><br>¿Los tienes en tu plantilla de Sheets? <a href="#/bt-importar">Impórtalos de golpe →</a></div>
       </div>`;
     wire(container, sheet);
     return;
@@ -71,6 +72,7 @@ function render(container, sheet) {
         <div class="sub">${all.length} backtests · separado de tu journal real</div>
       </div>
       <div class="page-actions">
+        <a class="btn" href="#/bt-importar">⬆ Importar</a>
         <button class="btn primary" id="btNewBtn">+ Nuevo trade</button>
       </div>
     </div>
