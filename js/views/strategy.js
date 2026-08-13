@@ -129,8 +129,8 @@ function render(container, sheet) {
         <div class="page-actions">
           <a class="btn primary" href="#/nuevo">+ Nuevo trade</a>
         </div>
+        ${filtrosHtml(allSheet)}
       </div>
-      ${filtrosHtml(allSheet)}
       <div class="empty">
         <div class="big">🔍</div>
         <div>Ningún trade de ${meta.label} pasa esos filtros. Ajústalos arriba o límpialos.</div>
@@ -158,9 +158,8 @@ function render(container, sheet) {
       <div class="page-actions">
         <a class="btn primary" href="#/nuevo">+ Nuevo trade</a>
       </div>
+      ${filtrosHtml(allSheet)}
     </div>
-
-    ${filtrosHtml(allSheet)}
 
     <div class="kpi-grid">
       ${kpiCard({ label: 'Trades', value: c.total, sub: `${c.tp} TP · ${c.sl} SL · ${c.be} BE`, tone: 'blue' })}

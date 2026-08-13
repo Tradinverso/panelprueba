@@ -132,8 +132,8 @@ function render(container, sheet) {
         <div class="page-actions">
           <button class="btn primary" id="btNewBtn">+ Nuevo trade</button>
         </div>
+        ${filtrosHtml(allSheet, meta)}
       </div>
-      ${filtrosHtml(allSheet, meta)}
       <div class="empty">
         <div class="big">🔍</div>
         <div>Ningún backtest de ${meta.label} pasa esos filtros. Ajústalos arriba o límpialos.</div>
@@ -161,9 +161,8 @@ function render(container, sheet) {
       <div class="page-actions">
         <button class="btn primary" id="btNewBtn">+ Nuevo trade</button>
       </div>
+      ${filtrosHtml(allSheet, meta)}
     </div>
-
-    ${filtrosHtml(allSheet, meta)}
 
     <div class="kpi-grid">
       ${kpiCard({ label: 'Backtests', value: all.length, sub: `${c.tp} TP · ${c.sl} SL · ${c.be} BE`, tone: 'blue' })}

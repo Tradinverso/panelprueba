@@ -328,6 +328,10 @@ body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 1
 .page-header h1 span { color: var(--green); }
 .page-header .sub { font-size: 12px; color: var(--muted); font-family: var(--mono); margin-top: 4px; }
 .page-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+/* Barra de filtros integrada en el encabezado (Estrategias/Backtesting):
+   fila propia bajo el título, ENCIMA de la línea divisoria — así no se pega
+   a los KPIs ni los rompe visualmente. */
+.page-header .td-filters { flex-basis: 100%; margin: 10px 0 0; }
 
 .section-title { font-size: 11px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin: 28px 0 14px; display: flex; align-items: center; gap: 10px; }
 .section-title::after { content:''; flex:1; height:1px; background: var(--border); }
