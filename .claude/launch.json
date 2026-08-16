@@ -4,7 +4,7 @@
     {
       "name": "tradinverso",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8000"],
+      "runtimeArgs": [".claude/devserver.py"],
       "port": 8000
     }
   ]
