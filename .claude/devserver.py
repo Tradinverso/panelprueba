@@ -3,8 +3,10 @@
 # Igual que `python -m http.server`, pero mandando Cache-Control: no-store.
 # Sin eso el navegador cachea los ES modules y sigue ejecutando la versión
 # anterior de un .js recién editado, aunque recargues.
+#
+# ThreadingHTTPServer (no TCPServer): con un solo hilo, una conexión keep-alive
+# del navegador bloquea todas las demás peticiones y la página se queda colgada.
 import http.server
-import socketserver
 
 PORT = 8000
 
@@ -17,7 +19,7 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
 
-socketserver.TCPServer.allow_reuse_address = True
-with socketserver.TCPServer(('', PORT), NoCacheHandler) as httpd:
+http.server.ThreadingHTTPServer.allow_reuse_address = True
+with http.server.ThreadingHTTPServer(('', PORT), NoCacheHandler) as httpd:
     print(f'Sirviendo en http://localhost:{PORT} (sin cache)')
     httpd.serve_forever()
