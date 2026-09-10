@@ -179,7 +179,7 @@ export function renderTradeTable(container, trades, opts = {}) {
   function renderTable(filtered) {
     // Más reciente arriba: ordenamos cronológicamente y luego invertimos.
     const sorted = sortChrono(filtered).reverse();
-    const colspan = (isBacktest ? 12 : 15) + (canDelete ? 1 : 0);
+    const colspan = (isBacktest ? 11 : 15) + (canDelete ? 1 : 0);
     const bodyContent = sorted.length
       ? sorted.map(t => row(t, canDelete, isBacktest, getMarked())).join('')
       : `<tr><td colspan="${colspan}" class="empty" style="padding:30px;">Ningún trade coincide con los filtros</td></tr>`;
@@ -200,7 +200,6 @@ export function renderTradeTable(container, trades, opts = {}) {
               <th>Sens. al ejecutar</th>
               <th>Plan</th>
               <th>Cuentas</th>`}
-              ${isBacktest ? '<th>Tomado</th>' : ''}
               <th>Resultado</th>
               <th>Dur.</th>
               <th>% P&L${isBacktest ? '' : ' sistema'}</th>
@@ -331,9 +330,7 @@ function row(t, canDelete, isBacktest = false, markedId = '') {
       <td>${t.setup || '–'}</td>
       <td>${(Array.isArray(t.zone) ? t.zone.join(' · ') : t.zone) || '–'}</td>
       <td>${(Array.isArray(t.entry) ? t.entry.join(' · ') : t.entry) || '–'}</td>
-      ${isBacktest ? `<td>${t.not_taken
-        ? '<span class="nt-tag" title="La señal apareció pero no se entró">✗ No tomado</span>'
-        : '<span class="plan-icon-yes" title="Trade tomado">✓</span>'}</td>` : ''}
+
       ${isBacktest ? '' : `
       <td>${sens}</td>
       <td class="td-plan">${t.plan_followed === true ? '<span class="plan-icon-yes" title="Dentro del plan">✓</span>' : t.plan_followed === false ? '<span class="plan-icon-no" title="Fuera del plan">✗</span>' : '<span class="plan-icon-na" title="No registrado">–</span>'}</td>
