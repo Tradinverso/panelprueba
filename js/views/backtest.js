@@ -30,6 +30,7 @@ import {
 // no existe en la estrategia activa.
 let btPeriod = newPeriod();   // rango de meses { from, to }
 let btPair = 'all', btSetup = 'all', btZone = 'all', btEntry = 'all', btRes = 'all';
+let btTaken = 'all';   // 'all' | 'si' (tomados) | 'no' (no tomados)
 
 export function backtestView(container, sheet) {
   render(container, sheet);
@@ -52,12 +53,14 @@ function filtro(trades) {
     if (btZone !== 'all' && !hasZone(t, btZone)) return false;
     if (btEntry !== 'all' && !hasEntry(t, btEntry)) return false;
     if (btRes !== 'all' && t.result !== btRes) return false;
+    if (btTaken === 'si' && t.not_taken === true) return false;
+    if (btTaken === 'no' && t.not_taken !== true) return false;
     return true;
   });
 }
 
 function hayFiltros() {
-  return periodActive(btPeriod) || btPair !== 'all'
+  return periodActive(btPeriod) || btPair !== 'all' || btTaken !== 'all'
     || btSetup !== 'all' || btZone !== 'all' || btEntry !== 'all' || btRes !== 'all';
 }
 
@@ -87,6 +90,7 @@ function filtrosHtml(allSheet, meta) {
       ${zones.length > 1 ? sel('btZoneF', btZone, [{ v: 'all', l: 'Todas las zonas' }, ...zones.map(z => ({ v: z, l: z }))]) : ''}
       ${entries.length > 1 ? sel('btEntryF', btEntry, [{ v: 'all', l: 'Todas las entradas' }, ...entries.map(e => ({ v: e, l: e }))]) : ''}
       ${sel('btResF', btRes, [{ v: 'all', l: 'Todos los resultados' }, { v: 'TP', l: 'Solo TP' }, { v: 'SL', l: 'Solo SL' }, { v: 'BE', l: 'Solo BE' }])}
+      ${sel('btTakenF', btTaken, [{ v: 'all', l: 'Tomados y no tomados' }, { v: 'si', l: 'Solo tomados' }, { v: 'no', l: 'Solo NO tomados' }])}
       ${hayFiltros() ? '<button class="btn ghost" id="btClearF">× Limpiar filtros</button>' : ''}
     </div>`;
 }
@@ -314,10 +318,11 @@ function wire(container, sheet) {
   on('#btZoneF', v => { btZone = v; });
   on('#btEntryF', v => { btEntry = v; });
   on('#btResF', v => { btRes = v; });
+  on('#btTakenF', v => { btTaken = v; });
   const clear = container.querySelector('#btClearF');
   if (clear) clear.addEventListener('click', () => {
     btPeriod = newPeriod();
-    btPair = btSetup = btZone = btEntry = btRes = 'all';
+    btPair = btSetup = btZone = btEntry = btRes = btTaken = 'all';
     render(container, sheet);
   });
 }

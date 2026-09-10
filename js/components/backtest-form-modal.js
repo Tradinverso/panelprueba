@@ -30,6 +30,7 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null) {
     close_str: existing.close_str || '',
     pnl_pct: existing.pnl_pct != null ? String(existing.pnl_pct) : '',
     rr: existing.rr != null ? String(existing.rr) : '',
+    not_taken: existing.not_taken === true,
     url1: existing.url1 || '',
     url2: existing.url2 || '',
     reflexion: existing.reflexion || '',
@@ -43,6 +44,7 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null) {
     close_str: '',
     pnl_pct: '',
     rr: '',
+    not_taken: false,
     url1: '',
     url2: '',
     reflexion: '',
@@ -107,6 +109,11 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null) {
             <label class="form-label">RR</label>
             <input class="form-input" type="number" step="0.1" data-input="rr" value="${data.rr}" placeholder="2">
           </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">¿Se tomó el trade?</label>
+          <div data-field="not_taken"></div>
+          <div class="bti-hint">Marca <b>No tomado</b> si la señal apareció pero no entraste (se escapó, dudaste, no estabas delante). Cuenta igual en las estadísticas — el sistema habría dado lo que dio — y podrás aislarlos con el filtro.</div>
         </div>
       </div>
 
@@ -184,6 +191,12 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null) {
       onChange: v => { data.entry = meta.entriesMulti ? v : (v ? [v] : []); },
     });
   }
+  renderPills(root.querySelector('[data-field="not_taken"]'), {
+    name: 'not_taken',
+    options: [{ value: 'si', label: '✓ Tomado' }, { value: 'no', label: '✗ No tomado' }],
+    value: data.not_taken ? 'no' : 'si',
+    onChange: v => { data.not_taken = v === 'no'; },
+  });
   root.querySelectorAll('[data-input]').forEach(el => {
     el.addEventListener('input', () => { data[el.dataset.input] = el.value; });
   });
@@ -201,6 +214,7 @@ function buildPayload(sheet, meta, data) {
     close_str: data.close_str,
     pnl_pct: parseFloat(data.pnl_pct),
     rr: data.rr !== '' && isFinite(parseFloat(data.rr)) ? parseFloat(data.rr) : null,
+    not_taken: data.not_taken === true,
     url1: data.url1.trim(),
     url2: (data.url2 || '').trim(),
     reflexion: data.reflexion,
@@ -242,6 +256,7 @@ function confirmBody(b) {
       <dt>Zona</dt><dd>${esc((b.zone || []).join(' · '))}</dd>
       ${b.entry && b.entry.length ? `<dt>Entrada</dt><dd>${esc(b.entry.join(' · '))}</dd>` : ''}
       ${b.rr != null ? `<dt>RR</dt><dd>${b.rr}</dd>` : ''}
+      <dt>Ejecución</dt><dd>${b.not_taken ? '<span class="nt-tag">✗ No tomado</span>' : '<span style="color:var(--green);">✓ Tomado</span>'}</dd>
       <dt>% P&L</dt><dd><strong style="color:${color};">${fmtPct(b.pnl_pct)}</strong> · <span class="res-pill res-${result.toLowerCase()}">${result}</span></dd>
       ${b.reflexion ? `<dt>Notas</dt><dd style="white-space:pre-wrap;">${esc(b.reflexion)}</dd>` : ''}
     </dl>
