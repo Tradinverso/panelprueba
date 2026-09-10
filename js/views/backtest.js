@@ -122,9 +122,10 @@ function render(container, sheet) {
   const titulo = esNoTomados
     ? 'Backtesting <span>·</span> No tomados'
     : `Backtesting <span>·</span> ${meta.label}`;
-  // En No tomados no hay "+ Nuevo trade": un trade no tomado se crea en su
-  // estrategia y se marca allí; si no, habría que preguntar antes a cuál va.
-  const botonNuevo = esNoTomados ? '' : '<button class="btn primary" id="btNewBtn">+ Nuevo trade</button>';
+  // También se crea desde aquí: el formulario lleva dentro el selector de
+  // estrategia y nace ya marcado como no tomado. Se crea donde va a vivir, en
+  // vez de crearlo en su estrategia y verlo desaparecer de allí al guardar.
+  const botonNuevo = `<button class="btn primary" id="btNewBtn">+ ${esNoTomados ? 'Nuevo no tomado' : 'Nuevo trade'}</button>`;
   const subtituloBase = esNoTomados
     ? 'Trades que se escaparon · NO cuentan en las estadísticas de cada estrategia'
     : 'Histórico de backtests · separado de tu journal real';
@@ -142,7 +143,7 @@ function render(container, sheet) {
       <div class="empty">
         <div class="big">${esNoTomados ? '👀' : '🧪'}</div>
         <div>${esNoTomados
-          ? 'Aún no has marcado ningún trade como <b>no tomado</b>.<br>Cuando una señal aparezca y no entres, regístrala en su estrategia<br>y marca <b>✗ No tomado</b>: saldrá aquí, sin ensuciar sus estadísticas.'
+          ? 'Aún no has registrado ningún trade <b>no tomado</b>.<br>Cuando una señal aparezca y no entres, dale a <b>+ Nuevo no tomado</b>:<br>eliges la estrategia dentro y queda aquí, sin ensuciar sus estadísticas.'
           : `Aún no hay backtests de ${meta.label}. Registra aquí tus operaciones backtesteadas<br>para validar la operativa con datos — sin mezclarlas con tu cuenta real.<br><br>¿Los tienes en tu plantilla de Sheets? <a href="#/bt-importar">Impórtalos de golpe →</a>`}</div>
       </div>`;
     wire(container, sheet);
@@ -330,7 +331,15 @@ function render(container, sheet) {
 
 function wire(container, sheet) {
   const btn = container.querySelector('#btNewBtn');
-  if (btn) btn.addEventListener('click', () => openBacktestFormModal(sheet, null, null));
+  if (btn) btn.addEventListener('click', () => {
+    if (sheet === 'NO_TOMADOS') {
+      // Sin estrategia fija: se elige dentro. Si hay uno filtrado, se precarga.
+      openBacktestFormModal(btSheetF !== 'all' ? btSheetF : null, null, null, null,
+        { pickSheet: true, notTaken: true });
+    } else {
+      openBacktestFormModal(sheet, null, null);
+    }
+  });
 
   // Filtros: todos re-renderizan la vista entera (KPIs + gráficas + tabla)
   const on = (id, fn) => {

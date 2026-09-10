@@ -555,11 +555,26 @@ export const state = {
 
   // Borrado masivo de backtests. Espejo de removeBySheet/replaceAll del journal,
   // pero SOLO sobre la colección backtests: no puede tocar this.trades.
+  //
+  // Por estrategia se borran los TOMADOS: los no tomados viven en su propia
+  // pestaña y tienen su propio borrado, para que cada botón elimine exactamente
+  // lo que se ve en la sección que representa.
   removeBacktestsBySheet(sheet) {
     if (ignoreIfReadOnly('removeBacktestsBySheet')) return 0;
-    const ids = this.backtests.filter(b => b.sheet === sheet).map(b => b.id);
+    const afecta = b => b.sheet === sheet && b.not_taken !== true;
+    const ids = this.backtests.filter(afecta).map(b => b.id);
     if (!ids.length) return 0;
-    this.backtests = this.backtests.filter(b => b.sheet !== sheet);
+    this.backtests = this.backtests.filter(b => !afecta(b));
+    this.emit();
+    fireAndForget(sync.deleteBacktestsBatch(targetUid(), ids), 'deleteBacktestsBatch');
+    return ids.length;
+  },
+
+  removeNotTakenBacktests() {
+    if (ignoreIfReadOnly('removeNotTakenBacktests')) return 0;
+    const ids = this.backtests.filter(b => b.not_taken === true).map(b => b.id);
+    if (!ids.length) return 0;
+    this.backtests = this.backtests.filter(b => b.not_taken !== true);
     this.emit();
     fireAndForget(sync.deleteBacktestsBatch(targetUid(), ids), 'deleteBacktestsBatch');
     return ids.length;
