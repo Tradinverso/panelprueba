@@ -7,7 +7,7 @@ import { tradeRealPnl } from '../utils/calculations.js';
 import { state } from '../state.js';
 import { fmtPct } from '../utils/number-format-es.js';
 import { formatDateEs } from '../utils/date-helpers.js';
-import { STRATEGIES } from '../utils/strategy-config.js';
+import { STRATEGIES, modelLabel } from '../utils/strategy-config.js';
 import { accountUsd, fmtUsd } from '../utils/account-stats.js';
 
 const STRAT_LABEL = { ZONAS: 'Zonas', LIQUIDEZ: 'Liquidez', NASDAQ: 'Nasdaq' };
@@ -64,6 +64,7 @@ export function openViewTradeModal(trade, opts = {}) {
         <dt>Setup</dt><dd>${escapeHtml(trade.setup || '–')}</dd>
         <dt>Zona</dt><dd>${escapeHtml((Array.isArray(trade.zone) ? trade.zone.join(' · ') : trade.zone) || '–')}</dd>
         ${meta.showEntry ? `<dt>Entrada</dt><dd>${escapeHtml((Array.isArray(trade.entry) ? trade.entry.join(' · ') : trade.entry) || '–')}</dd>` : ''}
+        ${meta.models ? `<dt>Modelo</dt><dd>${escapeHtml(modelLabel(trade.model))}</dd>` : ''}
         ${trade.rr != null ? `<dt>RR</dt><dd>${trade.rr}</dd>` : ''}
         ${trade.pips != null ? `<dt>Pips SL</dt><dd>${trade.pips}</dd>` : ''}
         <dt>Resultado</dt><dd><span class="res-pill res-${(trade.result || '').toLowerCase()}">${trade.result || '–'}</span></dd>

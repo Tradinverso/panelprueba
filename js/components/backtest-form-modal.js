@@ -8,7 +8,7 @@ import { state } from '../state.js';
 import { auth } from '../auth.js';
 import { openModal } from './modal.js';
 import { renderPills } from './pills.js';
-import { STRATEGIES } from '../utils/strategy-config.js';
+import { STRATEGIES, modelLabel } from '../utils/strategy-config.js';
 import { todayLocal } from '../utils/timezone.js';
 import { formatDateEs, durationMinutes } from '../utils/date-helpers.js';
 import { fmtPct } from '../utils/number-format-es.js';
@@ -37,6 +37,7 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
     setup: existing.setup || '',
     zone: Array.isArray(existing.zone) ? [...existing.zone] : [],
     entry: Array.isArray(existing.entry) ? [...existing.entry] : [],
+    model: existing.model || '',
     date: existing.date || todayLocal(auth.timezone()),
     open_str: existing.open_str || '',
     close_str: existing.close_str || '',
@@ -51,6 +52,7 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
     setup: '',
     zone: [],
     entry: meta.entries && meta.entries.length === 1 ? [meta.entries[0]] : [],
+    model: '',
     date: todayLocal(auth.timezone()),
     open_str: '',
     close_str: '',
@@ -94,6 +96,11 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
             <div data-field="entry"></div>
           </div>` : ''}
         </div>
+        ${meta.models ? `
+        <div class="form-field">
+          <label class="form-label">Modelo de entrada</label>
+          <div data-field="model"></div>
+        </div>` : ''}
       </div>
 
       <div class="nt-section">
@@ -211,6 +218,14 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
       onChange: v => { data.entry = meta.entriesMulti ? v : (v ? [v] : []); },
     });
   }
+  if (meta.models) {
+    renderPills(root.querySelector('[data-field="model"]'), {
+      name: 'model',
+      options: [...meta.models, { value: '', label: 'Sin modelo' }],
+      value: data.model || '',
+      onChange: v => { data.model = v || ''; },
+    });
+  }
   if (pickSheet) {
     renderPills(root.querySelector('[data-field="sheet"]'), {
       name: 'sheet',
@@ -240,6 +255,7 @@ function buildPayload(sheet, meta, data) {
     setup: data.setup,
     zone: data.zone,
     entry: data.entry,
+    model: meta.models ? (data.model || '') : '',
     date: data.date,
     open_str: data.open_str,
     close_str: data.close_str,
@@ -286,6 +302,7 @@ function confirmBody(b) {
       <dt>Setup</dt><dd>${esc(b.setup)}</dd>
       <dt>Zona</dt><dd>${esc((b.zone || []).join(' · '))}</dd>
       ${b.entry && b.entry.length ? `<dt>Entrada</dt><dd>${esc(b.entry.join(' · '))}</dd>` : ''}
+      ${STRATEGIES[b.sheet].models ? `<dt>Modelo</dt><dd>${esc(modelLabel(b.model))}</dd>` : ''}
       ${b.rr != null ? `<dt>RR</dt><dd>${b.rr}</dd>` : ''}
       <dt>Ejecución</dt><dd>${b.not_taken ? '<span class="nt-tag">✗ No tomado</span>' : '<span style="color:var(--green);">✓ Tomado</span>'}</dd>
       <dt>% P&L</dt><dd><strong style="color:${color};">${fmtPct(b.pnl_pct)}</strong> · <span class="res-pill res-${result.toLowerCase()}">${result}</span></dd>
@@ -311,6 +328,7 @@ function draftForSheet(d, sheet) {
     pair: meta.pairs.length === 1 ? meta.pairs[0] : '',
     zone: [],
     entry: meta.entries && meta.entries.length === 1 ? [meta.entries[0]] : [],
+    model: '',
   };
 }
 

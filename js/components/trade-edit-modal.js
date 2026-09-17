@@ -23,6 +23,7 @@ export function openEditTradeModal(trade) {
     setup: trade.setup || '',
     zone: Array.isArray(trade.zone) ? [...trade.zone] : (trade.zone ? [trade.zone] : []),
     entry: Array.isArray(trade.entry) ? [...trade.entry] : (trade.entry ? [trade.entry] : []),
+    model: trade.model || '',
     rr: trade.rr != null ? String(trade.rr) : '',
     pips: trade.pips != null ? String(trade.pips) : '',
     pnl_pct: trade.pnl_pct != null ? String(trade.pnl_pct) : '',
@@ -74,6 +75,11 @@ export function openEditTradeModal(trade) {
               </div>` : ''}
           </div>` : ''}
         </div>
+        ${meta.models ? `
+        <div class="form-field">
+          <label class="form-label">Modelo de entrada</label>
+          <div data-field="model"></div>
+        </div>` : ''}
 
         <div class="form-row cols-3">
           <div class="form-field">
@@ -183,6 +189,14 @@ export function openEditTradeModal(trade) {
         onChange: v => { data.entry = meta.entriesMulti ? v : (v ? [v] : []); },
       });
     }
+    if (meta.models) {
+      renderPills(root.querySelector('[data-field="model"]'), {
+        name: 'model',
+        options: [...meta.models, { value: '', label: 'Sin modelo' }],
+        value: data.model || '',
+        onChange: v => { data.model = v || ''; },
+      });
+    }
 
     const sensEl = root.querySelector('[data-field="sensacion"]');
     if (sensEl) renderPills(sensEl, {
@@ -259,6 +273,7 @@ function doSave(trade, data, close) {
     pair: data.pair || trade.pair,
     zone: Array.isArray(data.zone) ? data.zone : (data.zone ? [data.zone] : []),
     entry: Array.isArray(data.entry) ? data.entry : (data.entry ? [data.entry] : []),
+    model: data.model || '',
     rr: data.rr ? parseFloat(data.rr) : null,
     pips: data.pips ? parseFloat(data.pips) : null,
     sensacion: data.sensacion || '',

@@ -9,7 +9,7 @@ import { auth } from '../auth.js';
 import { todayLocal } from '../utils/timezone.js';
 import { fmtPct } from '../utils/number-format-es.js';
 import { fmtUsd } from '../utils/account-stats.js';
-import { STRATEGIES as STRAT_META } from '../utils/strategy-config.js';
+import { STRATEGIES as STRAT_META, modelLabel } from '../utils/strategy-config.js';
 
 export function newTradeView(container) {
   let sheet = 'ZONAS';
@@ -82,6 +82,7 @@ function init(sheet) {
     zone: [],
     // Si la estrategia tiene una sola entrada posible, autoseleccionar.
     entry: meta.entries && meta.entries.length === 1 ? [meta.entries[0]] : [],
+    model: '',   // modelo de entrada (solo estrategias con meta.models)
     rr: '',
     pips: '',
     pnl_pct: '',
@@ -124,6 +125,11 @@ function renderForm(wrap, sheet, data, getter) {
             <div data-field="entry"></div>
           </div>` : ''}
         </div>
+        ${meta.models ? `
+        <div class="form-field">
+          <label class="form-label">Modelo de entrada</label>
+          <div data-field="model"></div>
+        </div>` : ''}
       </div>
 
       <div class="nt-section">
@@ -230,6 +236,14 @@ function renderForm(wrap, sheet, data, getter) {
       name: 'entry', options: meta.entries, value: data.entry,
       multi: !!meta.entriesMulti,
       onChange: v => { data.entry = meta.entriesMulti ? v : (v ? [v] : []); },
+    });
+  }
+  if (meta.models) {
+    renderPills(wrap.querySelector('[data-field="model"]'), {
+      name: 'model',
+      options: [...meta.models, { value: '', label: 'Sin modelo' }],
+      value: data.model || '',
+      onChange: v => { data.model = v || ''; },
     });
   }
   renderPills(wrap.querySelector('[data-field="sensacion"]'), {
@@ -355,6 +369,7 @@ function buildTrade(sheet, data) {
     pair: data.pair,
     zone: Array.isArray(data.zone) ? data.zone : (data.zone ? [data.zone] : []),
     entry: Array.isArray(data.entry) ? data.entry : (data.entry ? [data.entry] : []),
+    model: STRAT_META[sheet].models ? (data.model || '') : '',
     rr: data.rr ? parseFloat(data.rr) : null,
     pips: data.pips ? parseFloat(data.pips) : null,
     sensacion: data.sensacion,
@@ -391,6 +406,7 @@ function confirmBody(t) {
       <dt>Setup</dt><dd>${esc(t.setup)}</dd>
       <dt>Zona</dt><dd>${esc((t.zone || []).join(' · '))}</dd>
       ${t.entry && t.entry.length ? `<dt>Entrada</dt><dd>${esc(t.entry.join(' · '))}</dd>` : ''}
+      ${STRAT_META[t.sheet].models ? `<dt>Modelo</dt><dd>${esc(modelLabel(t.model))}</dd>` : ''}
       ${t.rr != null ? `<dt>RR</dt><dd>${t.rr}</dd>` : ''}
       ${t.pips != null ? `<dt>Pips</dt><dd>${t.pips}</dd>` : ''}
       <dt>% P&L sistema</dt><dd><strong style="color:${t.result === 'TP' ? 'var(--green)' : t.result === 'SL' ? 'var(--red)' : 'var(--orange)'};">${fmtPct(t.pnl_pct)}</strong> · <span class="res-pill res-${t.result.toLowerCase()}">${t.result}</span></dd>

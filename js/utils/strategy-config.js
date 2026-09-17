@@ -19,7 +19,26 @@ const LIQ_ENTRIES = [
 // valores NO se tocan: se siguen viendo y filtrando (las opciones de los
 // filtros salen de los datos, no de esta config).
 const NQ_ZONES = LIQ_ZONES.filter(z => z !== 'MECHA' && z !== 'VOL');
-const NQ_ENTRIES = LIQ_ENTRIES.filter(e => e !== 'LIMIT' && e !== 'CHOCH');
+const NQ_ENTRIES = [...LIQ_ENTRIES.filter(e => e !== 'LIMIT' && e !== 'CHOCH'), 'BAG'];
+
+// Modelos de entrada de NASDAQ. Se guarda el código (M1…M4), no el texto: si
+// mañana se renombra un modelo, los trades ya registrados siguen apuntando al
+// mismo y cambian de nombre solos.
+const NQ_MODELS = [
+  { value: 'M1', label: '1 · ORB' },
+  { value: 'M2', label: '2 · AMD + IFVG' },
+  { value: 'M3', label: '3 · Liquidez externa' },
+  { value: 'M4', label: '4 · Continuación' },
+];
+
+// Nombre visible de un modelo guardado. Códigos desconocidos se muestran tal
+// cual (nunca se pierden) y vacío es "sin modelo" — los trades anteriores a que
+// existiera este campo.
+const MODEL_LABELS = Object.fromEntries(NQ_MODELS.map(m => [m.value, m.label]));
+export function modelLabel(code) {
+  if (!code) return 'Sin modelo';
+  return MODEL_LABELS[code] || code;
+}
 
 export const STRATEGIES = {
   ZONAS: {
@@ -69,6 +88,8 @@ export const STRATEGIES = {
     pairFixed: true,
     zones: NQ_ZONES,
     entries: NQ_ENTRIES,
+    // Solo NASDAQ tiene modelos: en el resto de estrategias el campo no aparece.
+    models: NQ_MODELS,
     zonesMulti: true,
     entriesMulti: true,
     showRR: true,

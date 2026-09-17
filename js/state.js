@@ -45,6 +45,7 @@ const ENTRY_CANONICAL = {
   'market': 'MARKET',
   'limit': 'LIMIT',
   'choch': 'CHOCH',
+  'bag': 'BAG',
 };
 
 function canonicalEntry(s) {
@@ -119,6 +120,9 @@ function sanitizeTrade(t) {
     pair: t.pair || '',
     zone: toStrArr(t.zone).map(canonicalZone),
     entry: toStrArr(t.entry).map(canonicalEntry),
+    // Modelo de entrada (NASDAQ: M1…M4). Opcional: los trades anteriores a este
+    // campo quedan con '' y se muestran como "Sin modelo", sin tocar nada más.
+    model: typeof t.model === 'string' ? t.model : '',
     rr: t.rr != null ? t.rr : null,
     pips: t.pips != null ? t.pips : null,
     sensacion: SENS_VALID.has(t.sensacion) ? t.sensacion : '',
@@ -157,11 +161,11 @@ function sanitizeBacktest(t) {
     pair: t.pair || '',
     zone: toStrArr(t.zone).map(canonicalZone),
     entry: toStrArr(t.entry).map(canonicalEntry),
+    model: typeof t.model === 'string' ? t.model : '',
     rr: t.rr != null ? t.rr : null,
     // Trade NO TOMADO: la señal apareció pero no se entró (se escapó, dudaste,
-    // no estabas delante...). Es un backtest a todos los efectos — cuenta en las
-    // estadísticas igual que los demás, porque el sistema habría dado lo que dio
-    // — pero se marca y se puede aislar con el filtro para repasar lo que se fue.
+    // no estabas delante...). Vive en su propia pestaña de Backtesting y NO cuenta
+    // en las estadísticas de su estrategia: si no se entró, no valida la operativa.
     not_taken: t.not_taken === true,
     url1: t.url1 || '',
     url2: t.url2 || '',
