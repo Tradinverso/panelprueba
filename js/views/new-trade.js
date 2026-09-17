@@ -127,7 +127,7 @@ function renderForm(wrap, sheet, data, getter) {
         </div>
         ${meta.models ? `
         <div class="form-field">
-          <label class="form-label">Modelo de entrada</label>
+          <label class="form-label">Modelo de entrada <span class="required">*</span></label>
           <div data-field="model"></div>
         </div>` : ''}
       </div>
@@ -241,7 +241,7 @@ function renderForm(wrap, sheet, data, getter) {
   if (meta.models) {
     renderPills(wrap.querySelector('[data-field="model"]'), {
       name: 'model',
-      options: [...meta.models, { value: '', label: 'Sin modelo' }],
+      options: meta.models,   // obligatorio: en un alta no se puede dejar sin modelo
       value: data.model || '',
       onChange: v => { data.model = v || ''; },
     });
@@ -339,6 +339,7 @@ function validate(sheet, data) {
   if (!data.setup) errs.push({ field: 'setup', msg: 'Selecciona LONG o SHORT' });
   if (!data.zone || !data.zone.length) errs.push({ field: 'zone', msg: 'Selecciona la zona' });
   if (meta.showEntry && (!data.entry || !data.entry.length)) errs.push({ field: 'entry', msg: 'Selecciona el tipo de entrada' });
+  if (meta.models && !data.model) errs.push({ field: 'model', msg: 'Selecciona el modelo de entrada' });
   if (!data.date) errs.push({ field: 'date', msg: 'Fecha obligatoria' });
   if (!data.open_str) errs.push({ field: 'open_str', msg: 'Hora apertura obligatoria' });
   const pnl = parseFloat(data.pnl_pct);

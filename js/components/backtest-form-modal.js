@@ -32,6 +32,9 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
   const sheetActual = sheet || (draft && draft.sheet) || Object.keys(STRATEGIES)[0];
   sheet = sheetActual;
   const meta = STRATEGIES[sheet];
+  // Modelo obligatorio en Nasdaq, salvo al editar un backtest anterior a los
+  // modelos (importado o registrado antes): no se obliga a clasificarlo.
+  const modeloOpcional = !!(existing && !existing.model);
   const data = draft ? cloneData(draft) : existing ? {
     pair: existing.pair || '',
     setup: existing.setup || '',
@@ -98,7 +101,7 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
         </div>
         ${meta.models ? `
         <div class="form-field">
-          <label class="form-label">Modelo de entrada</label>
+          <label class="form-label">Modelo de entrada${modeloOpcional ? '' : ' <span class="required">*</span>'}</label>
           <div data-field="model"></div>
         </div>` : ''}
       </div>
@@ -171,7 +174,7 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
       {
         label: existing ? 'Guardar cambios' : 'Guardar backtest', variant: 'primary',
         onClick: close => {
-          const err = validate(meta, data);
+          const err = validate(meta, data, modeloOpcional);
           const errEl = document.getElementById('modal-root').querySelector('#btErr');
           if (err) {
             errEl.textContent = '⚠ ' + err;
@@ -221,7 +224,7 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
   if (meta.models) {
     renderPills(root.querySelector('[data-field="model"]'), {
       name: 'model',
-      options: [...meta.models, { value: '', label: 'Sin modelo' }],
+      options: modeloOpcional ? [...meta.models, { value: '', label: 'Sin modelo' }] : meta.models,
       value: data.model || '',
       onChange: v => { data.model = v || ''; },
     });
@@ -332,11 +335,12 @@ function draftForSheet(d, sheet) {
   };
 }
 
-function validate(meta, data) {
+function validate(meta, data, modeloOpcional = false) {
   if (!meta.pairFixed && !data.pair) return 'Selecciona el par.';
   if (!data.setup) return 'Selecciona el setup (LONG/SHORT).';
   if (!data.zone || !data.zone.length) return 'Selecciona la zona.';
   if (meta.showEntry && (!data.entry || !data.entry.length)) return 'Selecciona el tipo de entrada.';
+  if (meta.models && !modeloOpcional && !data.model) return 'Selecciona el modelo de entrada.';
   if (!data.date) return 'Pon la fecha.';
   if (!data.open_str) return 'Pon la hora de apertura.';
   const pnl = parseFloat(data.pnl_pct);

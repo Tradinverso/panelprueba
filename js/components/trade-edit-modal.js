@@ -77,8 +77,11 @@ export function openEditTradeModal(trade) {
         </div>
         ${meta.models ? `
         <div class="form-field">
-          <label class="form-label">Modelo de entrada</label>
+          <label class="form-label">Modelo de entrada${trade.model ? ' <span class="required">*</span>' : ''}</label>
           <div data-field="model"></div>
+          ${trade.model ? '' : `<div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:4px;">
+            Trade anterior a los modelos de entrada: puedes asignarle uno o dejarlo sin modelo.
+          </div>`}
         </div>` : ''}
 
         <div class="form-row cols-3">
@@ -192,7 +195,9 @@ export function openEditTradeModal(trade) {
     if (meta.models) {
       renderPills(root.querySelector('[data-field="model"]'), {
         name: 'model',
-        options: [...meta.models, { value: '', label: 'Sin modelo' }],
+        // "Sin modelo" solo para trades que nunca lo tuvieron: editar uno antiguo
+        // no obliga a clasificarlo, pero un modelo ya puesto no se puede quitar.
+        options: trade.model ? meta.models : [...meta.models, { value: '', label: 'Sin modelo' }],
         value: data.model || '',
         onChange: v => { data.model = v || ''; },
       });
@@ -254,6 +259,8 @@ function doSave(trade, data, close) {
   if (!data.date) return showErr('Falta la fecha.');
   if (!data.setup) return showErr('Falta el setup (LONG o SHORT).');
   if (data.plan_followed !== true && data.plan_followed !== false) return showErr('Indica si has seguido el plan (Sí o No).');
+  const metaSave = STRATEGIES[trade.sheet] || {};
+  if (metaSave.models && trade.model && !data.model) return showErr('Selecciona el modelo de entrada.');
 
   const pnl_pct = +pnl.toFixed(4);
   const result = pnl_pct > 0.2 ? 'TP' : pnl_pct < -0.2 ? 'SL' : 'BE';
