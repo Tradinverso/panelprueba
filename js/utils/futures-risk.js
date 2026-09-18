@@ -45,21 +45,57 @@ export const GESTIONES_FUTUROS = [
 
 const DEFAULT_POR_FASE = { challenge: 'ch-conservadora', fondeada: 'fo-conservadora' };
 
+// ── Gestiones personalizadas ──
+// Además de las 7 de la academia, cada usuario puede crear las suyas (se guardan
+// en su config: futGestionesCustom). Mismo formato; `custom: true` las marca
+// como editables/borrables. Las funciones de abajo reciben esa lista: el módulo
+// sigue sin depender de state.
+export function todasGestiones(custom = []) {
+  return [...GESTIONES_FUTUROS, ...(Array.isArray(custom) ? custom : []).map(sanitizeGestion).filter(Boolean)];
+}
+
+export function sanitizeGestion(g) {
+  if (!g || !g.id || !g.nombre) return null;
+  const num = v => { const n = Number(v); return isFinite(n) && n > 0 ? n : null; };
+  const min = num(g.min), max = num(g.max) || min;
+  if (!min) return null;
+  const refs = (Array.isArray(g.refs) ? g.refs : [])
+    .map(r => ({ rr: num(r && r.rr), usd: num(r && r.usd) }))
+    .filter(r => r.rr && r.usd);
+  return {
+    id: String(g.id), custom: true,
+    fase: g.fase === 'fondeada' ? 'fondeada' : 'challenge',
+    nombre: String(g.nombre).trim().slice(0, 40),
+    min, max: Math.max(min, max),
+    pct: `${fmtPct(min)}${max && max !== min ? '–' + fmtPct(max) : ''} %`,
+    objetivo: num(g.objetivo) || undefined,
+    consistencia: g.consistencia ? String(g.consistencia).trim().slice(0, 30) : undefined,
+    nota: g.nota ? String(g.nota).trim().slice(0, 120) : undefined,
+    refs,
+  };
+}
+
+// % sobre 50.000 con coma decimal: 750 → "1,5"
+function fmtPct(usd) {
+  return String(+(usd / BASE_CAPITAL * 100).toFixed(2)).replace('.', ',');
+}
+
 export function faseGestion(cuenta) {
   return cuenta && cuenta.fase === 'fondeada' ? 'fondeada' : 'challenge';
 }
 
-export function gestionesDeFase(fase) {
-  return GESTIONES_FUTUROS.filter(g => g.fase === fase);
+export function gestionesDeFase(fase, custom = []) {
+  return todasGestiones(custom).filter(g => g.fase === fase);
 }
 
 // Gestión que se aplica a la cuenta. Si no tiene ninguna elegida, o la que
 // tiene es de otra fase (p. ej. acaba de pasar de challenge a fondeada), se
 // usa la conservadora de su fase y se marca `pendiente` para que la vista pida
 // elegir una.
-export function gestionEfectiva(cuenta) {
+// Si la gestión elegida era personalizada y se ha borrado, también cae aquí.
+export function gestionEfectiva(cuenta, custom = []) {
   const fase = faseGestion(cuenta);
-  const elegida = GESTIONES_FUTUROS.find(g => g.id === (cuenta && cuenta.futGestion));
+  const elegida = todasGestiones(custom).find(g => g.id === (cuenta && cuenta.futGestion));
   if (elegida && elegida.fase === fase) return { gestion: elegida, pendiente: false };
   return {
     gestion: GESTIONES_FUTUROS.find(g => g.id === DEFAULT_POR_FASE[fase]),
@@ -76,8 +112,8 @@ export function escala(cuenta) {
 // gestión con referencias, el valor de la tabla más cercano a ese RR; sin RR o
 // sin referencias, el mínimo de la gestión (la opción prudente). Escalado al
 // capital de la cuenta.
-export function riesgoSugerido(cuenta, rr) {
-  const { gestion } = gestionEfectiva(cuenta);
+export function riesgoSugerido(cuenta, rr, custom = []) {
+  const { gestion } = gestionEfectiva(cuenta, custom);
   let base = gestion.min;
   let ref = null;
   const r = Number(rr);

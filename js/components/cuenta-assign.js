@@ -64,7 +64,7 @@ export function renderCuentaAssign(container, initial = [], onChange = () => {},
     const pnlPct = currentPnlPct();
     if (c.tipo === 'Futuros') {
       const rr = typeof opts.getRR === 'function' ? opts.getRR() : NaN;
-      return +(pnlPct * riesgoSugerido(c, rr).usd).toFixed(2);
+      return +(pnlPct * riesgoSugerido(c, rr, state.config.futGestionesCustom).usd).toFixed(2);
     }
     const def = typeof opts.getDefaultRisk === 'function' ? opts.getDefaultRisk() : 1;
     const risk = isFinite(def) && def > 0 ? def : 1;

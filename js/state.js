@@ -261,7 +261,8 @@ function sanitizeCuenta(c) {
     enRotacion: c.enRotacion === false ? false : true,
     rotacionOrden: typeof c.rotacionOrden === 'number' ? c.rotacionOrden : (parseFloat(c.rotacionOrden) || 0),
     // ── Futuros (utils/futures-risk.js) ──
-    // Gestión de riesgo elegida (id de GESTIONES_FUTUROS). null = sin elegir: se
+    // Gestión de riesgo elegida (id de GESTIONES_FUTUROS o de una personalizada
+    // de config.futGestionesCustom). null = sin elegir: se
     // aplica la conservadora de su fase y la vista pide elegir una.
     futGestion: c.futGestion ? String(c.futGestion) : null,
     // Grupo de copiado ('' = cuenta suelta). Las cuentas de un mismo grupo rotan
