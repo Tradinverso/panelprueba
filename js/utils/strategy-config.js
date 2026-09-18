@@ -23,7 +23,7 @@ const LIQ_ENTRIES = [
 // a secas se conservan tal cual (no se puede saber de cuál eran).
 const NQ_ZONES = LIQ_ZONES
   .filter(z => z !== 'MECHA' && z !== 'VOL')
-  .flatMap(z => z === 'FVG' ? ['FVG LTF', 'FVG HTF'] : [z]);
+  .flatMap(z => z === 'FVG' ? ['FVG M15', 'FVG HTF'] : [z]);
 const NQ_ENTRIES = [...LIQ_ENTRIES.filter(e => !['LIMIT', 'CHOCH', 'MARKET'].includes(e)), 'BAG'];
 
 // Modelos de entrada de NASDAQ. Se guarda el código (M1…M4), no el texto: si
@@ -92,7 +92,6 @@ export const STRATEGIES = {
     pairs: ['NQ'],
     pairFixed: true,
     zones: NQ_ZONES,
-    zonesHint: 'FVG LTF = 15 min · FVG HTF = 1H, 4H o diario',
     entries: NQ_ENTRIES,
     // Solo NASDAQ tiene modelos: en el resto de estrategias el campo no aparece.
     models: NQ_MODELS,

@@ -60,6 +60,9 @@ const ZONE_CANONICAL = {
   // ZONAS: legacy '< 7 días' → 'Entre 2 y 7 días' (decisión del usuario)
   '< 7 días': 'Entre 2 y 7 días',
   '<7 días':  'Entre 2 y 7 días',
+  // NASDAQ: 'FVG LTF' fue el nombre provisional del FVG de 15 min (solo existió
+  // en el panel de pruebas); el definitivo es 'FVG M15'.
+  'fvg ltf': 'FVG M15',
 };
 
 function canonicalZone(s) {

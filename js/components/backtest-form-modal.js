@@ -93,7 +93,6 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
           <div class="form-field">
             <label class="form-label">Zona <span class="required">*</span></label>
             <div data-field="zone"></div>
-            ${meta.zonesHint ? `<div class="bti-hint">${meta.zonesHint}</div>` : ''}
           </div>
           ${meta.showEntry ? `<div class="form-field">
             <label class="form-label">Tipo de entrada <span class="required">*</span></label>

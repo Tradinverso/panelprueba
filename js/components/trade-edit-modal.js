@@ -64,7 +64,6 @@ export function openEditTradeModal(trade) {
           <div class="form-field">
             <label class="form-label">Zona${meta.zonesMulti ? ' <span style="color:var(--muted);font-size:11px;">(varias permitidas)</span>' : ''}</label>
             <div data-field="zone"></div>
-            ${meta.zonesHint ? `<div class="bti-hint">${meta.zonesHint}</div>` : ''}
             ${data.zone.some(z => !meta.zones.includes(z)) ? `
               <div style="font-size:10px;color:var(--orange);font-family:var(--mono);margin-top:4px;">
                 Valor(es) actual(es) "${escapeHtml(data.zone.filter(z => !meta.zones.includes(z)).join(', '))}" no están en la lista (legacy). Mantenidos si no eliges otro.
