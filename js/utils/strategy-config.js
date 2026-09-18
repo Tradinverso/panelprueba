@@ -13,7 +13,9 @@ const LIQ_ENTRIES = [
   'BPR', 'FVG', 'IFVG', 'ENVOL', 'MARKET', 'LIMIT', 'CHOCH',
 ];
 
-// NASDAQ tiene las suyas: sin MECHA/VOL en zonas ni LIMIT/CHOCH/MARKET en entradas.
+// NASDAQ tiene las suyas: sin MECHA/VOL/CONT en zonas ni LIMIT/CHOCH/MARKET en
+// entradas. CONT sale porque la continuación ya es un modelo de entrada (M4):
+// tenerla también como zona duplicaba el dato.
 // Listas propias, no un filtrado de las de LIQUIDEZ, para que cada estrategia
 // pueda evolucionar sin arrastrar a la otra. Los trades ya guardados con esos
 // valores NO se tocan: se siguen viendo y filtrando (las opciones de los
@@ -22,7 +24,7 @@ const LIQ_ENTRIES = [
 // 4H o diario. Ocupan el sitio del FVG genérico. Los trades antiguos con "FVG"
 // a secas se conservan tal cual (no se puede saber de cuál eran).
 const NQ_ZONES = LIQ_ZONES
-  .filter(z => z !== 'MECHA' && z !== 'VOL')
+  .filter(z => !['MECHA', 'VOL', 'CONT'].includes(z))
   .flatMap(z => z === 'FVG' ? ['FVG M15', 'FVG HTF'] : [z]);
 const NQ_ENTRIES = [...LIQ_ENTRIES.filter(e => !['LIMIT', 'CHOCH', 'MARKET'].includes(e)), 'BAG'];
 
