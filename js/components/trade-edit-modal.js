@@ -43,22 +43,17 @@ export function openEditTradeModal(trade) {
     meta: `${trade.date} · ${trade.pair || ''} · ${trade.setup || ''} · ${trade.result}`,
     body: `
       <div class="form" style="max-width:none;gap:14px;">
-        ${meta.models ? `
-        <div class="form-field">
+        <div class="form-row">
+          ${!meta.pairFixed ? `<div class="form-field">
+            <label class="form-label">Par</label>
+            <div data-field="pair"></div>
+          </div>` : (meta.models ? `<div class="form-field">
           <label class="form-label">Modelo de entrada${trade.model ? ' <span class="required">*</span>' : ''}</label>
           <div data-field="model"></div>
           ${trade.model ? '' : `<div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:4px;">
             Trade anterior a los modelos de entrada: puedes asignarle uno o dejarlo sin modelo.
           </div>`}
-        </div>` : ''}
-        <div class="form-row">
-          ${!meta.pairFixed ? `<div class="form-field">
-            <label class="form-label">Par</label>
-            <div data-field="pair"></div>
-          </div>` : `<div class="form-field">
-            <label class="form-label">Par</label>
-            <div class="form-input" style="background:var(--card2);">${escapeHtml(meta.pairs[0])}</div>
-          </div>`}
+        </div>` : '')}
           <div class="form-field">
             <label class="form-label">Setup</label>
             <div data-field="setup"></div>
@@ -69,6 +64,7 @@ export function openEditTradeModal(trade) {
           <div class="form-field">
             <label class="form-label">Zona${meta.zonesMulti ? ' <span style="color:var(--muted);font-size:11px;">(varias permitidas)</span>' : ''}</label>
             <div data-field="zone"></div>
+            ${meta.zonesHint ? `<div class="bti-hint">${meta.zonesHint}</div>` : ''}
             ${data.zone.some(z => !meta.zones.includes(z)) ? `
               <div style="font-size:10px;color:var(--orange);font-family:var(--mono);margin-top:4px;">
                 Valor(es) actual(es) "${escapeHtml(data.zone.filter(z => !meta.zones.includes(z)).join(', '))}" no están en la lista (legacy). Mantenidos si no eliges otro.

@@ -13,13 +13,18 @@ const LIQ_ENTRIES = [
   'BPR', 'FVG', 'IFVG', 'ENVOL', 'MARKET', 'LIMIT', 'CHOCH',
 ];
 
-// NASDAQ tiene las suyas: sin MECHA/VOL en zonas ni LIMIT/CHOCH en entradas.
+// NASDAQ tiene las suyas: sin MECHA/VOL en zonas ni LIMIT/CHOCH/MARKET en entradas.
 // Listas propias, no un filtrado de las de LIQUIDEZ, para que cada estrategia
 // pueda evolucionar sin arrastrar a la otra. Los trades ya guardados con esos
 // valores NO se tocan: se siguen viendo y filtrando (las opciones de los
 // filtros salen de los datos, no de esta config).
-const NQ_ZONES = LIQ_ZONES.filter(z => z !== 'MECHA' && z !== 'VOL');
-const NQ_ENTRIES = [...LIQ_ENTRIES.filter(e => e !== 'LIMIT' && e !== 'CHOCH'), 'BAG'];
+// FVG se parte por temporalidad: no es lo mismo un FVG de 15 min que uno de 1H,
+// 4H o diario. Ocupan el sitio del FVG genérico. Los trades antiguos con "FVG"
+// a secas se conservan tal cual (no se puede saber de cuál eran).
+const NQ_ZONES = LIQ_ZONES
+  .filter(z => z !== 'MECHA' && z !== 'VOL')
+  .flatMap(z => z === 'FVG' ? ['FVG LTF', 'FVG HTF'] : [z]);
+const NQ_ENTRIES = [...LIQ_ENTRIES.filter(e => !['LIMIT', 'CHOCH', 'MARKET'].includes(e)), 'BAG'];
 
 // Modelos de entrada de NASDAQ. Se guarda el código (M1…M4), no el texto: si
 // mañana se renombra un modelo, los trades ya registrados siguen apuntando al
@@ -87,6 +92,7 @@ export const STRATEGIES = {
     pairs: ['NQ'],
     pairFixed: true,
     zones: NQ_ZONES,
+    zonesHint: 'FVG LTF = 15 min · FVG HTF = 1H, 4H o diario',
     entries: NQ_ENTRIES,
     // Solo NASDAQ tiene modelos: en el resto de estrategias el campo no aparece.
     models: NQ_MODELS,

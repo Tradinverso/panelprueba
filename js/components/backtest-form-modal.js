@@ -76,19 +76,14 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
       </div>` : ''}
       <div class="nt-section">
         <div class="nt-section-title">Operativa</div>
-        ${meta.models ? `
-        <div class="form-field">
-          <label class="form-label">Modelo de entrada${modeloOpcional ? '' : ' <span class="required">*</span>'}</label>
-          <div data-field="model"></div>
-        </div>` : ''}
         <div class="form-row">
           ${!meta.pairFixed ? `<div class="form-field">
             <label class="form-label">Par <span class="required">*</span></label>
             <div data-field="pair"></div>
-          </div>` : `<div class="form-field">
-            <label class="form-label">Par</label>
-            <div class="form-input" style="background:var(--card);">${meta.pairs[0]}</div>
-          </div>`}
+          </div>` : (meta.models ? `<div class="form-field">
+          <label class="form-label">Modelo de entrada${modeloOpcional ? '' : ' <span class="required">*</span>'}</label>
+          <div data-field="model"></div>
+        </div>` : '')}
           <div class="form-field">
             <label class="form-label">Setup <span class="required">*</span></label>
             <div data-field="setup"></div>
@@ -98,6 +93,7 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
           <div class="form-field">
             <label class="form-label">Zona <span class="required">*</span></label>
             <div data-field="zone"></div>
+            ${meta.zonesHint ? `<div class="bti-hint">${meta.zonesHint}</div>` : ''}
           </div>
           ${meta.showEntry ? `<div class="form-field">
             <label class="form-label">Tipo de entrada <span class="required">*</span></label>
