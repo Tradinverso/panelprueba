@@ -18,9 +18,13 @@ import {
   calcNiveles, calcNivelActivo, resolveRiesgoConfig,
   PERFILES_BUILTIN,
 } from '../utils/risk-levels.js';
+import { renderFuturos, cuentasFuturos } from './riesgo-futuros.js';
 
 let activeTab = 'cuentas';   // cuentas | resumen | gestionar | perfiles
-let filterTipo = 'all';      // all | CFD | Futuros
+// CFD y Futuros son dos gestiones de riesgo DISTINTAS (niveles por drawdown vs
+// riesgo fijo por gestión), no un filtro: cada una tiene su sección y su
+// rotación. null = aún sin elegir → CFD si hay cuentas CFD, si no Futuros.
+let filterTipo = null;       // CFD | Futuros
 const openAccordions = new Set();
 
 const GRUPOS = [
@@ -36,9 +40,10 @@ const FASE_TO_GRUPO = Object.fromEntries(GRUPOS.map(g => [g.fase, g]));
 function cuentasActivas() {
   return state.cuentas.filter(c => c.status === 'activa');
 }
-// Subconjunto que ven las pestañas: activas filtradas por tipo (CFD/Futuros).
+// Cuentas de la sección CFD (niveles + perfiles + rotación de CFD). Las de
+// futuros viven en riesgo-futuros.js.
 function cuentasModulo() {
-  return cuentasActivas().filter(c => filterTipo === 'all' || c.tipo === filterTipo);
+  return cuentasActivas().filter(c => c.tipo !== 'Futuros');
 }
 
 // Perfiles disponibles = 4 presets (siempre presentes, desde código) + perfiles
@@ -100,18 +105,22 @@ const pf = n => (n >= 0 ? '+' : '') + (n * 100).toFixed(2) + '%';
 function render(container) {
   const activas = cuentasActivas();
   const cuentas = cuentasModulo();
+  const futuros = cuentasFuturos();
+  if (!filterTipo) filterTipo = cuentas.length || !futuros.length ? 'CFD' : 'Futuros';
+  const esFut = filterTipo === 'Futuros';
+  const n = esFut ? futuros.length : cuentas.length;
 
   container.innerHTML = `
     ${gestionTabs('riesgo')}
     <div class="page-header">
       <div>
-        <h1>Riesgo / Rotación</h1>
-        <div class="sub">Escalado de riesgo por niveles · ${cuentas.length} cuenta${cuentas.length !== 1 ? 's' : ''} activa${cuentas.length !== 1 ? 's' : ''}${filterTipo !== 'all' ? ` · ${esc(filterTipo)}` : ''}</div>
+        <h1>Riesgo / Rotación <span>·</span> ${esFut ? 'Futuros' : 'CFD'}</h1>
+        <div class="sub">${esFut ? 'Riesgo fijo por gestión · rotación por grupos' : 'Escalado de riesgo por niveles'} · ${n} cuenta${n !== 1 ? 's' : ''} activa${n !== 1 ? 's' : ''}</div>
       </div>
       ${activas.length ? `<div class="page-actions"><div class="type-tabs" id="rgTypeTabs"></div></div>` : ''}
     </div>
 
-    ${activas.length === 0 ? emptyState() : `
+    ${activas.length === 0 ? emptyState() : esFut ? '<div id="rgFut"></div>' : `
       <div class="rg-tabs" id="rgTabs">
         ${tabBtn('cuentas', 'Cuentas')}
         ${tabBtn('resumen', 'Resumen')}
@@ -119,7 +128,7 @@ function render(container) {
         ${tabBtn('perfiles', 'Perfiles')}
       </div>
       ${cuentas.length === 0
-        ? '<div class="empty">No tienes cuentas activas de este tipo.</div>'
+        ? '<div class="empty">No tienes cuentas <b>CFD</b> activas.</div>'
         : '<div id="rgPanel"></div>'}
     `}
   `;
@@ -129,15 +138,18 @@ function render(container) {
     renderPills(typeTabsEl, {
       name: 'rgTipo',
       options: [
-        { value: 'all', label: 'Todas' },
-        { value: 'CFD', label: 'CFD' },
-        { value: 'Futuros', label: 'Futuros' },
+        { value: 'CFD', label: `CFD (${cuentas.length})` },
+        { value: 'Futuros', label: `Futuros (${futuros.length})` },
       ],
       value: filterTipo,
       onChange: v => { filterTipo = v; render(container); },
     });
   }
 
+  if (activas.length && esFut) {
+    renderFuturos(container.querySelector('#rgFut'), () => render(container));
+    return;
+  }
   if (activas.length) {
     container.querySelectorAll('[data-tab]').forEach(b => {
       b.addEventListener('click', () => { activeTab = b.dataset.tab; render(container); });

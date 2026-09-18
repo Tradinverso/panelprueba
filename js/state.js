@@ -8,6 +8,7 @@ import { parseTime, durationMinutes } from './utils/date-helpers.js';
 import { sync } from './sync.js';
 import { auth } from './auth.js';
 import { convertTradesTz, DEFAULT_TZ } from './utils/timezone.js';
+import { unidadesRotacion, unidadActiva } from './utils/futures-risk.js';
 
 const SENS_VALID = new Set([
   'Seguro - Confiado',
@@ -259,6 +260,13 @@ function sanitizeCuenta(c) {
     perfilId: c.perfilId != null && c.perfilId !== '' ? String(c.perfilId) : null,
     enRotacion: c.enRotacion === false ? false : true,
     rotacionOrden: typeof c.rotacionOrden === 'number' ? c.rotacionOrden : (parseFloat(c.rotacionOrden) || 0),
+    // ── Futuros (utils/futures-risk.js) ──
+    // Gestión de riesgo elegida (id de GESTIONES_FUTUROS). null = sin elegir: se
+    // aplica la conservadora de su fase y la vista pide elegir una.
+    futGestion: c.futGestion ? String(c.futGestion) : null,
+    // Grupo de copiado ('' = cuenta suelta). Las cuentas de un mismo grupo rotan
+    // juntas; cada una conserva su gestión, saldo y drawdown propios.
+    grupo: String(c.grupo || '').trim(),
     createdAt: c.createdAt || Date.now(),
   };
 }
@@ -769,11 +777,13 @@ export const state = {
     });
   },
 
-  // Lista de rotación: cuentas activas en rotación, ordenadas por rotacionOrden
-  // y antigüedad. (Misma lógica que rotacionList() en la vista Riesgo.)
+  // Lista de rotación de CFD: cuentas activas en rotación, ordenadas por
+  // rotacionOrden y antigüedad. Las de FUTUROS tienen su propia rotación (por
+  // grupos, ver futures-risk.js): antes compartían esta lista y un SL en una
+  // cuenta de futuros movía la rotación de CFD.
   rotacionOrdenada() {
     return (this.cuentas || [])
-      .filter(c => c.status === 'activa' && c.enRotacion !== false)
+      .filter(c => c.status === 'activa' && c.enRotacion !== false && c.tipo !== 'Futuros')
       .sort((a, b) => (a.rotacionOrden || 0) - (b.rotacionOrden || 0) || (a.createdAt || 0) - (b.createdAt || 0));
   },
 
@@ -784,16 +794,30 @@ export const state = {
     if (this.config && this.config.riskModuleEnabled === false) return;
     const accts = (trade.accounts || []).map(a => a.accountId).filter(Boolean);
     if (!accts.length) return;
+
+    // CFD: solo avanza si el SL se asignó a la cuenta que estaba activa.
     const rot = this.rotacionOrdenada();
-    if (rot.length < 2) return;
-    const activaId = (this.config && this.config.rotacionActivaId && rot.some(c => c.id === this.config.rotacionActivaId))
-      ? this.config.rotacionActivaId
-      : rot[0].id;
-    // Solo avanza si el SL se ha asignado a la cuenta que estaba activa (la que tocaba).
-    if (!accts.includes(activaId)) return;
-    const idx = rot.findIndex(c => c.id === activaId);
-    const next = rot[(idx + 1) % rot.length];
-    if (next && next.id !== activaId) this.setConfig({ rotacionActivaId: next.id });
+    if (rot.length >= 2) {
+      const activaId = (this.config && this.config.rotacionActivaId && rot.some(c => c.id === this.config.rotacionActivaId))
+        ? this.config.rotacionActivaId
+        : rot[0].id;
+      if (accts.includes(activaId)) {
+        const idx = rot.findIndex(c => c.id === activaId);
+        const next = rot[(idx + 1) % rot.length];
+        if (next && next.id !== activaId) this.setConfig({ rotacionActivaId: next.id });
+      }
+    }
+
+    // Futuros: por unidades. Avanza si el SL tocó alguna cuenta de la unidad
+    // activa (con copiador, el trade se asigna a todo el grupo).
+    const units = unidadesRotacion(this.cuentas, (this.config && this.config.futRotacionOrden) || []);
+    if (units.length >= 2) {
+      const act = unidadActiva(units, this.config && this.config.futRotacionActiva);
+      if (act && act.cuentas.some(c => accts.includes(c.id))) {
+        const next = units[(units.indexOf(act) + 1) % units.length];
+        this.setConfig({ futRotacionActiva: next.key });
+      }
+    }
   },
 
   // Salta directamente a Fondeada (sin pasar fase a fase).

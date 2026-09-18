@@ -279,6 +279,8 @@ function renderForm(wrap, sheet, data, getter) {
         const n = parseFloat(data.pnl_pct);
         return isFinite(n) ? n : 0;
       },
+      // RR del trade: en cuentas de futuros elige el riesgo de la tabla de su gestión
+      getRR: () => parseFloat(data.rr),
     });
   }
 
