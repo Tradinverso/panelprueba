@@ -31,7 +31,9 @@ const NQ_ZONES = [
   'BSL/SSL', 'PDH/PDL', 'PWH/PWL',    // liquidez
   'IRL',     'FVG M15', 'FVG HTF',    // interna / imbalances
 ];
-const NQ_ENTRIES = [...LIQ_ENTRIES.filter(e => !['LIMIT', 'CHOCH', 'MARKET'].includes(e)), 'BAG'];
+// Orden explícito, en cuadrícula de 3 columnas: IFVG · ENVOL arriba y
+// FVG · BPR · BAG abajo (FVG abre fila: entriesRowStarts).
+const NQ_ENTRIES = ['IFVG', 'ENVOL', 'FVG', 'BPR', 'BAG'];
 
 // Modelos de entrada de NASDAQ. Se guarda el código (M1…M4), no el texto: si
 // mañana se renombra un modelo, los trades ya registrados siguen apuntando al
@@ -101,6 +103,8 @@ export const STRATEGIES = {
     zones: NQ_ZONES,
     zonesCols: 3,   // cuadrícula fija de 3 columnas: siempre 3 filas, en cualquier ancho
     entries: NQ_ENTRIES,
+    entriesCols: 3,
+    entriesRowStarts: ['FVG'],
     // Solo NASDAQ tiene modelos: en el resto de estrategias el campo no aparece.
     models: NQ_MODELS,
     zonesMulti: true,

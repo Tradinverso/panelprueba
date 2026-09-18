@@ -211,7 +211,7 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
   });
   if (meta.showEntry) {
     renderPills(root.querySelector('[data-field="entry"]'), {
-      name: 'entry', options: meta.entries, value: data.entry,
+      name: 'entry', options: meta.entries, value: data.entry, variant: meta.entriesCols ? `cols-${meta.entriesCols}` : '', rowStarts: meta.entriesRowStarts || [],
       multi: !!meta.entriesMulti,
       onChange: v => { data.entry = meta.entriesMulti ? v : (v ? [v] : []); },
     });

@@ -25,6 +25,7 @@
    y no depende del ancho de pantalla. */
 .pill-group.cols-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .pill-group.cols-3 .pill { justify-content: center; text-align: center; }
+.pill-group.cols-3 .pill-newrow { grid-column-start: 1; }
 .pill {
   background: var(--card2); border: 1px solid var(--border); color: var(--muted);
   padding: 7px 14px; border-radius: 20px; cursor: pointer; font-size: 12px;

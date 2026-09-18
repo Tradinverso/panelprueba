@@ -182,7 +182,7 @@ export function openEditTradeModal(trade) {
     if (meta.showEntry) {
       const entryEl = root.querySelector('[data-field="entry"]');
       if (entryEl) renderPills(entryEl, {
-        name: 'entry', options: meta.entries, value: data.entry,
+        name: 'entry', options: meta.entries, value: data.entry, variant: meta.entriesCols ? `cols-${meta.entriesCols}` : '', rowStarts: meta.entriesRowStarts || [],
         multi: !!meta.entriesMulti,
         onChange: v => { data.entry = meta.entriesMulti ? v : (v ? [v] : []); },
       });
