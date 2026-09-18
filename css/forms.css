@@ -23,7 +23,11 @@
 .pill-group { display: flex; flex-wrap: wrap; gap: 6px; }
 /* Cuadrícula fija (p. ej. zonas de Nasdaq): el orden de la lista decide las filas
    y no depende del ancho de pantalla. */
-.pill-group.cols-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+/* Columnas IGUALES y del ancho del botón más largo, no estiradas a todo el
+   campo: con `width: max-content`, cada 1fr mide lo que el botón más ancho del
+   grupo. Así los botones quedan alineados en filas y columnas pero con el mismo
+   tamaño compacto que el resto del formulario (modelo, setup, sensación…). */
+.pill-group.cols-3 { display: grid; grid-template-columns: repeat(3, 1fr); width: max-content; max-width: 100%; }
 .pill-group.cols-3 .pill { justify-content: center; text-align: center; }
 .pill-group.cols-3 .pill-newrow { grid-column-start: 1; }
 .pill {
