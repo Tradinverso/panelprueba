@@ -2,16 +2,19 @@
 // Todas las opciones de pills (par / zona / entrada) viven aquí para mantener
 // consistencia entre formularios.
 
-// Zonas de la operativa de liquidez (LIQUIDEZ)
+// Zonas de LIQUIDEZ, en cuadrícula fija de 3 columnas (zonesCols): cada grupo
+// de 3 es una fila. Sin CONT ni ORB, y el FVG es solo el de temporalidad alta.
+// Los trades antiguos con valores retirados (CONT, ORB, "FVG" a secas) se
+// conservan tal cual y se siguen pudiendo filtrar.
 const LIQ_ZONES = [
-  'BSL/SSL', 'ASIA', 'LONDON', 'PDH/PDL', 'PWH/PWL',
-  'CONT', 'IRL', 'ORB', 'FVG', 'MECHA', 'VOL',
+  'ASIA',    'LONDON',  'MECHA',
+  'PDH/PDL', 'PWH/PWL', 'BSL/SSL',
+  'IRL',     'FVG HTF', 'VOL',
 ];
 
-// Entradas de la operativa de liquidez (LIQUIDEZ)
-const LIQ_ENTRIES = [
-  'BPR', 'FVG', 'IFVG', 'ENVOL', 'MARKET', 'LIMIT', 'CHOCH',
-];
+// Entradas de LIQUIDEZ, cuadrícula de 3: ENVOL y LIMIT abren fila
+// (entriesRowStarts) → IFVG · FVG · BPR / ENVOL · CHOCH / LIMIT. Sin MARKET.
+const LIQ_ENTRIES = ['IFVG', 'FVG', 'BPR', 'ENVOL', 'CHOCH', 'LIMIT'];
 
 // NASDAQ tiene las suyas: sin MECHA/VOL/CONT en zonas ni LIMIT/CHOCH/MARKET en
 // entradas. CONT sale porque la continuación ya es un modelo de entrada (M4):
@@ -82,7 +85,10 @@ export const STRATEGIES = {
     pairs: ['EUR/USD', 'GBP/USD'],
     pairFixed: false,
     zones: LIQ_ZONES,
+    zonesCols: 3,
     entries: LIQ_ENTRIES,
+    entriesCols: 3,
+    entriesRowStarts: ['ENVOL', 'LIMIT'],
     zonesMulti: true,
     entriesMulti: true,
     showRR: true,
