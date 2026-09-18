@@ -102,6 +102,11 @@ function renderForm(wrap, sheet, data, getter) {
     <div class="form nt-form">
       <div class="nt-section">
         <div class="nt-section-title">Operativa</div>
+        ${meta.models ? `
+        <div class="form-field">
+          <label class="form-label">Modelo de entrada <span class="required">*</span></label>
+          <div data-field="model"></div>
+        </div>` : ''}
         <div class="form-row">
           ${!meta.pairFixed ? `<div class="form-field">
             <label class="form-label">Par <span class="required">*</span></label>
@@ -125,11 +130,6 @@ function renderForm(wrap, sheet, data, getter) {
             <div data-field="entry"></div>
           </div>` : ''}
         </div>
-        ${meta.models ? `
-        <div class="form-field">
-          <label class="form-label">Modelo de entrada <span class="required">*</span></label>
-          <div data-field="model"></div>
-        </div>` : ''}
       </div>
 
       <div class="nt-section">
@@ -405,9 +405,9 @@ function confirmBody(t) {
       <dt>Hora</dt><dd>${esc(t.open_str)}${t.close_str ? ' → ' + esc(t.close_str) : ''}${t.dur != null ? ` (${t.dur} min)` : ''}</dd>
       <dt>Par</dt><dd>${esc(t.pair)}</dd>
       <dt>Setup</dt><dd>${esc(t.setup)}</dd>
+      ${STRAT_META[t.sheet].models ? `<dt>Modelo</dt><dd>${esc(modelLabel(t.model))}</dd>` : ''}
       <dt>Zona</dt><dd>${esc((t.zone || []).join(' · '))}</dd>
       ${t.entry && t.entry.length ? `<dt>Entrada</dt><dd>${esc(t.entry.join(' · '))}</dd>` : ''}
-      ${STRAT_META[t.sheet].models ? `<dt>Modelo</dt><dd>${esc(modelLabel(t.model))}</dd>` : ''}
       ${t.rr != null ? `<dt>RR</dt><dd>${t.rr}</dd>` : ''}
       ${t.pips != null ? `<dt>Pips</dt><dd>${t.pips}</dd>` : ''}
       <dt>% P&L sistema</dt><dd><strong style="color:${t.result === 'TP' ? 'var(--green)' : t.result === 'SL' ? 'var(--red)' : 'var(--orange)'};">${fmtPct(t.pnl_pct)}</strong> · <span class="res-pill res-${t.result.toLowerCase()}">${t.result}</span></dd>

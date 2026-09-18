@@ -43,6 +43,14 @@ export function openEditTradeModal(trade) {
     meta: `${trade.date} · ${trade.pair || ''} · ${trade.setup || ''} · ${trade.result}`,
     body: `
       <div class="form" style="max-width:none;gap:14px;">
+        ${meta.models ? `
+        <div class="form-field">
+          <label class="form-label">Modelo de entrada${trade.model ? ' <span class="required">*</span>' : ''}</label>
+          <div data-field="model"></div>
+          ${trade.model ? '' : `<div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:4px;">
+            Trade anterior a los modelos de entrada: puedes asignarle uno o dejarlo sin modelo.
+          </div>`}
+        </div>` : ''}
         <div class="form-row">
           ${!meta.pairFixed ? `<div class="form-field">
             <label class="form-label">Par</label>
@@ -75,14 +83,6 @@ export function openEditTradeModal(trade) {
               </div>` : ''}
           </div>` : ''}
         </div>
-        ${meta.models ? `
-        <div class="form-field">
-          <label class="form-label">Modelo de entrada${trade.model ? ' <span class="required">*</span>' : ''}</label>
-          <div data-field="model"></div>
-          ${trade.model ? '' : `<div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:4px;">
-            Trade anterior a los modelos de entrada: puedes asignarle uno o dejarlo sin modelo.
-          </div>`}
-        </div>` : ''}
 
         <div class="form-row cols-3">
           <div class="form-field">

@@ -62,9 +62,9 @@ export function openViewTradeModal(trade, opts = {}) {
         <dt>Estrategia</dt><dd><span class="strat-pill ${(trade.sheet || '').toLowerCase()}">${STRAT_LABEL[trade.sheet] || trade.sheet}</span></dd>
         <dt>Par</dt><dd>${escapeHtml(trade.pair || '–')}</dd>
         <dt>Setup</dt><dd>${escapeHtml(trade.setup || '–')}</dd>
+        ${meta.models ? `<dt>Modelo</dt><dd>${escapeHtml(modelLabel(trade.model))}</dd>` : ''}
         <dt>Zona</dt><dd>${escapeHtml((Array.isArray(trade.zone) ? trade.zone.join(' · ') : trade.zone) || '–')}</dd>
         ${meta.showEntry ? `<dt>Entrada</dt><dd>${escapeHtml((Array.isArray(trade.entry) ? trade.entry.join(' · ') : trade.entry) || '–')}</dd>` : ''}
-        ${meta.models ? `<dt>Modelo</dt><dd>${escapeHtml(modelLabel(trade.model))}</dd>` : ''}
         ${trade.rr != null ? `<dt>RR</dt><dd>${trade.rr}</dd>` : ''}
         ${trade.pips != null ? `<dt>Pips SL</dt><dd>${trade.pips}</dd>` : ''}
         <dt>Resultado</dt><dd><span class="res-pill res-${(trade.result || '').toLowerCase()}">${trade.result || '–'}</span></dd>

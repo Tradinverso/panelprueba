@@ -76,6 +76,11 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
       </div>` : ''}
       <div class="nt-section">
         <div class="nt-section-title">Operativa</div>
+        ${meta.models ? `
+        <div class="form-field">
+          <label class="form-label">Modelo de entrada${modeloOpcional ? '' : ' <span class="required">*</span>'}</label>
+          <div data-field="model"></div>
+        </div>` : ''}
         <div class="form-row">
           ${!meta.pairFixed ? `<div class="form-field">
             <label class="form-label">Par <span class="required">*</span></label>
@@ -99,11 +104,6 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
             <div data-field="entry"></div>
           </div>` : ''}
         </div>
-        ${meta.models ? `
-        <div class="form-field">
-          <label class="form-label">Modelo de entrada${modeloOpcional ? '' : ' <span class="required">*</span>'}</label>
-          <div data-field="model"></div>
-        </div>` : ''}
       </div>
 
       <div class="nt-section">
@@ -303,9 +303,9 @@ function confirmBody(b) {
       <dt>Hora</dt><dd>${esc(b.open_str)}${b.close_str ? ' → ' + esc(b.close_str) : ''}${dur != null ? ` (${dur} min)` : ''}</dd>
       <dt>Par</dt><dd>${esc(b.pair)}</dd>
       <dt>Setup</dt><dd>${esc(b.setup)}</dd>
+      ${STRATEGIES[b.sheet].models ? `<dt>Modelo</dt><dd>${esc(modelLabel(b.model))}</dd>` : ''}
       <dt>Zona</dt><dd>${esc((b.zone || []).join(' · '))}</dd>
       ${b.entry && b.entry.length ? `<dt>Entrada</dt><dd>${esc(b.entry.join(' · '))}</dd>` : ''}
-      ${STRATEGIES[b.sheet].models ? `<dt>Modelo</dt><dd>${esc(modelLabel(b.model))}</dd>` : ''}
       ${b.rr != null ? `<dt>RR</dt><dd>${b.rr}</dd>` : ''}
       <dt>Ejecución</dt><dd>${b.not_taken ? '<span class="nt-tag">✗ No tomado</span>' : '<span style="color:var(--green);">✓ Tomado</span>'}</dd>
       <dt>% P&L</dt><dd><strong style="color:${color};">${fmtPct(b.pnl_pct)}</strong> · <span class="res-pill res-${result.toLowerCase()}">${result}</span></dd>
