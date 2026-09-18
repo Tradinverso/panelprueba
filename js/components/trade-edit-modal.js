@@ -174,7 +174,7 @@ export function openEditTradeModal(trade) {
 
     const zoneEl = root.querySelector('[data-field="zone"]');
     if (zoneEl) renderPills(zoneEl, {
-      name: 'zone', options: meta.zones, value: data.zone,
+      name: 'zone', options: meta.zones, value: data.zone, variant: meta.zonesCols ? `cols-${meta.zonesCols}` : '',
       multi: !!meta.zonesMulti,
       onChange: v => { data.zone = meta.zonesMulti ? v : (v ? [v] : []); },
     });

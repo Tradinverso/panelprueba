@@ -205,7 +205,7 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
     onChange: v => data.setup = v,
   });
   renderPills(root.querySelector('[data-field="zone"]'), {
-    name: 'zone', options: meta.zones, value: data.zone,
+    name: 'zone', options: meta.zones, value: data.zone, variant: meta.zonesCols ? `cols-${meta.zonesCols}` : '',
     multi: !!meta.zonesMulti,
     onChange: v => { data.zone = meta.zonesMulti ? v : (v ? [v] : []); },
   });

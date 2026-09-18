@@ -21,11 +21,16 @@ const LIQ_ENTRIES = [
 // valores NO se tocan: se siguen viendo y filtrando (las opciones de los
 // filtros salen de los datos, no de esta config).
 // FVG se parte por temporalidad: no es lo mismo un FVG de 15 min que uno de 1H,
-// 4H o diario. Ocupan el sitio del FVG genérico. Los trades antiguos con "FVG"
-// a secas se conservan tal cual (no se puede saber de cuál eran).
-const NQ_ZONES = LIQ_ZONES
-  .filter(z => !['MECHA', 'VOL', 'CONT'].includes(z))
-  .flatMap(z => z === 'FVG' ? ['FVG M15', 'FVG HTF'] : [z]);
+// 4H o diario. Los trades antiguos con "FVG" a secas se conservan tal cual (no
+// se puede saber de cuál eran).
+//
+// Lista explícita y en este ORDEN: se pinta como una cuadrícula fija de 3
+// columnas (zonesCols), así que cada grupo de 3 es una fila del formulario.
+const NQ_ZONES = [
+  'ORB',     'ASIA',    'LONDON',     // sesiones / rango de apertura
+  'BSL/SSL', 'PDH/PDL', 'PWH/PWL',    // liquidez
+  'IRL',     'FVG M15', 'FVG HTF',    // interna / imbalances
+];
 const NQ_ENTRIES = [...LIQ_ENTRIES.filter(e => !['LIMIT', 'CHOCH', 'MARKET'].includes(e)), 'BAG'];
 
 // Modelos de entrada de NASDAQ. Se guarda el código (M1…M4), no el texto: si
@@ -94,6 +99,7 @@ export const STRATEGIES = {
     pairs: ['NQ'],
     pairFixed: true,
     zones: NQ_ZONES,
+    zonesCols: 3,   // cuadrícula fija de 3 columnas: siempre 3 filas, en cualquier ancho
     entries: NQ_ENTRIES,
     // Solo NASDAQ tiene modelos: en el resto de estrategias el campo no aparece.
     models: NQ_MODELS,
