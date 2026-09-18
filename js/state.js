@@ -790,6 +790,17 @@ export const state = {
 
   // Al registrar un SL sobre la cuenta ACTIVA de la rotación, avanza el puntero a
   // la siguiente cuenta (TP/BE se quedan). Refleja la operativa real del equipo.
+  // ¿Está activa la gestión de riesgo de este tipo ('CFD' | 'Futuros')?
+  // Ajustes → Módulos: desactivada del todo (riskModuleEnabled=false) o
+  // activada para CFD, Futuros o ambos (riskTipos, por defecto ambos). Manda
+  // sobre pestañas, rutas y rotación.
+  riesgoActivo(tipo) {
+    const cfg = this.config || {};
+    if (cfg.riskModuleEnabled === false) return false;
+    const t = cfg.riskTipos || 'ambos';
+    return t === 'ambos' || t === tipo;
+  },
+
   rotateAfterSL(trade) {
     if (!trade || trade.result !== 'SL') return;
     if (this.config && this.config.riskModuleEnabled === false) return;
@@ -797,7 +808,7 @@ export const state = {
     if (!accts.length) return;
 
     // CFD: solo avanza si el SL se asignó a la cuenta que estaba activa.
-    const rot = this.rotacionOrdenada();
+    const rot = this.riesgoActivo('CFD') ? this.rotacionOrdenada() : [];
     if (rot.length >= 2) {
       const activaId = (this.config && this.config.rotacionActivaId && rot.some(c => c.id === this.config.rotacionActivaId))
         ? this.config.rotacionActivaId
@@ -811,7 +822,9 @@ export const state = {
 
     // Futuros: por unidades. Avanza si el SL tocó alguna cuenta de la unidad
     // activa (con copiador, el trade se asigna a todo el grupo).
-    const units = unidadesRotacion(this.cuentas, (this.config && this.config.futRotacionOrden) || []);
+    const units = this.riesgoActivo('Futuros')
+      ? unidadesRotacion(this.cuentas, (this.config && this.config.futRotacionOrden) || [])
+      : [];
     if (units.length >= 2) {
       const act = unidadActiva(units, this.config && this.config.futRotacionActiva);
       if (act && act.cuentas.some(c => accts.includes(c.id))) {

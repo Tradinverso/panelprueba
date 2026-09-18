@@ -11,7 +11,6 @@
 
 import { state } from '../state.js';
 import { openModal } from '../components/modal.js';
-import { renderPills } from '../components/pills.js';
 import { gestionTabs } from '../components/gestion-tabs.js';
 import { accountStats, fmtUsd } from '../utils/account-stats.js';
 import {
@@ -22,9 +21,9 @@ import { renderFuturos, cuentasFuturos } from './riesgo-futuros.js';
 
 let activeTab = 'cuentas';   // cuentas | resumen | gestionar | perfiles
 // CFD y Futuros son dos gestiones de riesgo DISTINTAS (niveles por drawdown vs
-// riesgo fijo por gestión), no un filtro: cada una tiene su sección y su
-// rotación. null = aún sin elegir → CFD si hay cuentas CFD, si no Futuros.
-let filterTipo = null;       // CFD | Futuros
+// riesgo fijo por gestión), no un filtro: cada una tiene su pestaña arriba
+// (#/riesgo y #/riesgo-futuros, ver gestion-tabs) y su rotación.
+let filterTipo = 'CFD';      // CFD | Futuros — lo fija la ruta
 const openAccordions = new Set();
 
 const GRUPOS = [
@@ -106,18 +105,16 @@ function render(container) {
   const activas = cuentasActivas();
   const cuentas = cuentasModulo();
   const futuros = cuentasFuturos();
-  if (!filterTipo) filterTipo = cuentas.length || !futuros.length ? 'CFD' : 'Futuros';
   const esFut = filterTipo === 'Futuros';
   const n = esFut ? futuros.length : cuentas.length;
 
   container.innerHTML = `
-    ${gestionTabs('riesgo')}
+    ${gestionTabs(esFut ? 'riesgo-futuros' : 'riesgo')}
     <div class="page-header">
       <div>
-        <h1>Riesgo / Rotación <span>·</span> ${esFut ? 'Futuros' : 'CFD'}</h1>
+        <h1>Riesgo ${esFut ? 'Futuros' : 'CFD'} <span>·</span> Rotación</h1>
         <div class="sub">${esFut ? 'Riesgo fijo por gestión · rotación por grupos' : 'Escalado de riesgo por niveles'} · ${n} cuenta${n !== 1 ? 's' : ''} activa${n !== 1 ? 's' : ''}</div>
       </div>
-      ${activas.length ? `<div class="page-actions"><div class="type-tabs" id="rgTypeTabs"></div></div>` : ''}
     </div>
 
     ${activas.length === 0 ? emptyState() : esFut ? '<div id="rgFut"></div>' : `
@@ -132,19 +129,6 @@ function render(container) {
         : '<div id="rgPanel"></div>'}
     `}
   `;
-
-  const typeTabsEl = container.querySelector('#rgTypeTabs');
-  if (typeTabsEl) {
-    renderPills(typeTabsEl, {
-      name: 'rgTipo',
-      options: [
-        { value: 'CFD', label: `CFD (${cuentas.length})` },
-        { value: 'Futuros', label: `Futuros (${futuros.length})` },
-      ],
-      value: filterTipo,
-      onChange: v => { filterTipo = v; render(container); },
-    });
-  }
 
   if (activas.length && esFut) {
     renderFuturos(container.querySelector('#rgFut'), () => render(container));
@@ -671,7 +655,8 @@ function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
 
-export function riesgoView(container) {
+export function riesgoView(container, tipo = 'CFD') {
+  filterTipo = tipo === 'Futuros' ? 'Futuros' : 'CFD';
   render(container);
   return state.on(() => render(container));
 }
