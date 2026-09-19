@@ -64,17 +64,21 @@ export function openEditTradeModal(trade) {
           <div class="form-field">
             <label class="form-label">Zona${meta.zonesMulti ? ' <span style="color:var(--muted);font-size:11px;">(varias permitidas)</span>' : ''}</label>
             <div data-field="zone"></div>
-            ${data.zone.some(z => !meta.zones.includes(z)) ? `
-              <div style="font-size:10px;color:var(--orange);font-family:var(--mono);margin-top:4px;">
-                Valor(es) actual(es) "${escapeHtml(data.zone.filter(z => !meta.zones.includes(z)).join(', '))}" no están en la lista (legacy). Mantenidos si no eliges otro.
+            ${data.zone.some(x => !meta.zones.includes(x)) ? `
+              <div class="legacy-note" data-legacy="zone">
+                Valor antiguo "${escapeHtml(data.zone.filter(x => !meta.zones.includes(x)).join(', '))}" (ya no está en la lista).
+                Se sustituye en cuanto elijas una zona, o
+                <button type="button" class="legacy-quitar" data-legacy-quitar="zone">quitarlo</button>
               </div>` : ''}
           </div>
           ${meta.showEntry ? `<div class="form-field">
             <label class="form-label">Entrada${meta.entriesMulti ? ' <span style="color:var(--muted);font-size:11px;">(varias permitidas)</span>' : ''}</label>
             <div data-field="entry"></div>
-            ${data.entry.some(e => !meta.entries.includes(e)) ? `
-              <div style="font-size:10px;color:var(--orange);font-family:var(--mono);margin-top:4px;">
-                Valor(es) actual(es) "${escapeHtml(data.entry.filter(e => !meta.entries.includes(e)).join(', '))}" no están en la lista (legacy).
+            ${data.entry.some(x => !meta.entries.includes(x)) ? `
+              <div class="legacy-note" data-legacy="entry">
+                Valor antiguo "${escapeHtml(data.entry.filter(x => !meta.entries.includes(x)).join(', '))}" (ya no está en la lista).
+                Se sustituye en cuanto elijas una entrada, o
+                <button type="button" class="legacy-quitar" data-legacy-quitar="entry">quitarlo</button>
               </div>` : ''}
           </div>` : ''}
         </div>
@@ -176,7 +180,9 @@ export function openEditTradeModal(trade) {
     if (zoneEl) renderPills(zoneEl, {
       name: 'zone', options: meta.zones, value: data.zone, variant: meta.zonesCols ? `cols-${meta.zonesCols}` : '',
       multi: !!meta.zonesMulti,
-      onChange: v => { data.zone = meta.zonesMulti ? v : (v ? [v] : []); },
+      // Con selección múltiple, un valor antiguo (sin botón) seguía guardado
+      // al marcar otros: PD + PDH/PDL. Al elegir de la lista, se sustituye.
+      onChange: v => { data.zone = limpiar(meta.zonesMulti ? v : (v ? [v] : []), meta.zones); quitarAviso('zone'); },
     });
 
     if (meta.showEntry) {
@@ -184,9 +190,16 @@ export function openEditTradeModal(trade) {
       if (entryEl) renderPills(entryEl, {
         name: 'entry', options: meta.entries, value: data.entry, variant: meta.entriesCols ? `cols-${meta.entriesCols}` : '', rowStarts: meta.entriesRowStarts || [],
         multi: !!meta.entriesMulti,
-        onChange: v => { data.entry = meta.entriesMulti ? v : (v ? [v] : []); },
+        onChange: v => { data.entry = limpiar(meta.entriesMulti ? v : (v ? [v] : []), meta.entries); quitarAviso('entry'); },
       });
     }
+    // "quitarlo": elimina los valores antiguos sin tocar el resto
+    root.querySelectorAll('[data-legacy-quitar]').forEach(b => b.addEventListener('click', () => {
+      const f = b.dataset.legacyQuitar;
+      data[f] = limpiar(data[f], f === 'zone' ? meta.zones : meta.entries);
+      quitarAviso(f);
+    }));
+    function quitarAviso(f) { root.querySelector(`[data-legacy="${f}"]`)?.remove(); }
     if (meta.models) {
       renderPills(root.querySelector('[data-field="model"]'), {
         name: 'model',
@@ -297,4 +310,9 @@ function escapeHtml(s) {
 }
 function escapeAttr(s) {
   return String(s == null ? '' : s).replace(/"/g, '&quot;');
+}
+
+// Deja solo los valores que están en la lista actual de la estrategia.
+function limpiar(valores, lista) {
+  return (valores || []).filter(v => lista.includes(v));
 }

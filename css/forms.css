@@ -133,3 +133,9 @@
 .trade-view-grid dd a { color: var(--accent); text-decoration: none; margin-right: 10px; }
 .trade-view-grid dd a:hover { text-decoration: underline; }
 .trade-view-reflex { white-space: pre-wrap; background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; }
+
+/* Aviso de valor antiguo (zona/entrada retirada de la lista) al editar */
+.legacy-note { font-size: 10px; color: var(--orange); font-family: var(--mono); margin-top: 6px; line-height: 1.5; }
+.legacy-quitar { background: none; border: none; padding: 0; color: var(--orange); font: inherit;
+  text-decoration: underline; cursor: pointer; }
+.legacy-quitar:hover { color: var(--text); }

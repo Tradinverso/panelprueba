@@ -93,10 +93,22 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
           <div class="form-field">
             <label class="form-label">Zona <span class="required">*</span></label>
             <div data-field="zone"></div>
+            ${data.zone.some(x => !meta.zones.includes(x)) ? `
+              <div class="legacy-note" data-legacy="zone">
+                Valor antiguo "${esc(data.zone.filter(x => !meta.zones.includes(x)).join(', '))}" (ya no está en la lista).
+                Se sustituye en cuanto elijas una zona, o
+                <button type="button" class="legacy-quitar" data-legacy-quitar="zone">quitarlo</button>
+              </div>` : ''}
           </div>
           ${meta.showEntry ? `<div class="form-field">
             <label class="form-label">Tipo de entrada <span class="required">*</span></label>
             <div data-field="entry"></div>
+            ${data.entry.some(x => !meta.entries.includes(x)) ? `
+              <div class="legacy-note" data-legacy="entry">
+                Valor antiguo "${esc(data.entry.filter(x => !meta.entries.includes(x)).join(', '))}" (ya no está en la lista).
+                Se sustituye en cuanto elijas una entrada, o
+                <button type="button" class="legacy-quitar" data-legacy-quitar="entry">quitarlo</button>
+              </div>` : ''}
           </div>` : ''}
         </div>
       </div>
@@ -207,15 +219,22 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
   renderPills(root.querySelector('[data-field="zone"]'), {
     name: 'zone', options: meta.zones, value: data.zone, variant: meta.zonesCols ? `cols-${meta.zonesCols}` : '',
     multi: !!meta.zonesMulti,
-    onChange: v => { data.zone = meta.zonesMulti ? v : (v ? [v] : []); },
+    // Al elegir de la lista, un valor antiguo se sustituye (ver trade-edit-modal).
+    onChange: v => { data.zone = limpiar(meta.zonesMulti ? v : (v ? [v] : []), meta.zones); quitarAviso('zone'); },
   });
   if (meta.showEntry) {
     renderPills(root.querySelector('[data-field="entry"]'), {
       name: 'entry', options: meta.entries, value: data.entry, variant: meta.entriesCols ? `cols-${meta.entriesCols}` : '', rowStarts: meta.entriesRowStarts || [],
       multi: !!meta.entriesMulti,
-      onChange: v => { data.entry = meta.entriesMulti ? v : (v ? [v] : []); },
+      onChange: v => { data.entry = limpiar(meta.entriesMulti ? v : (v ? [v] : []), meta.entries); quitarAviso('entry'); },
     });
   }
+  root.querySelectorAll('[data-legacy-quitar]').forEach(b => b.addEventListener('click', () => {
+    const f = b.dataset.legacyQuitar;
+    data[f] = limpiar(data[f], f === 'zone' ? meta.zones : meta.entries);
+    quitarAviso(f);
+  }));
+  function quitarAviso(f) { root.querySelector(`[data-legacy="${f}"]`)?.remove(); }
   if (meta.models) {
     renderPills(root.querySelector('[data-field="model"]'), {
       name: 'model',
@@ -345,4 +364,9 @@ function validate(meta, data, modeloOpcional = false) {
 
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+// Deja solo los valores que están en la lista actual de la estrategia.
+function limpiar(valores, lista) {
+  return (valores || []).filter(v => lista.includes(v));
 }
