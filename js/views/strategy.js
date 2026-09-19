@@ -75,9 +75,9 @@ function filtrosHtml(allSheet) {
       ${periodHtml(months, fPeriod, { idFrom: 'stFromF', idTo: 'stToF' })}
       ${pairs.length > 1 ? sel('stPairF', fPair, [{ v: 'all', l: 'Todos los pares' }, ...pairs.map(p => ({ v: p, l: p }))]) : ''}
       ${sel('stSetupF', fSetup, [{ v: 'all', l: 'Todas las direcciones' }, { v: 'LONG', l: 'LONG' }, { v: 'SHORT', l: 'SHORT' }])}
+      ${models.length > 1 ? sel('stModelF', fModel, [{ v: 'all', l: 'Todos los modelos' }, ...models.map(m => ({ v: m, l: modelLabel(m) }))]) : ''}
       ${zones.length > 1 ? sel('stZoneF', fZone, [{ v: 'all', l: 'Todas las zonas' }, ...zones.map(z => ({ v: z, l: z }))]) : ''}
       ${entries.length > 1 ? sel('stEntryF', fEntry, [{ v: 'all', l: 'Todas las entradas' }, ...entries.map(e => ({ v: e, l: e }))]) : ''}
-      ${models.length > 1 ? sel('stModelF', fModel, [{ v: 'all', l: 'Todos los modelos' }, ...models.map(m => ({ v: m, l: modelLabel(m) }))]) : ''}
       ${sel('stResF', fRes, [{ v: 'all', l: 'Todos los resultados' }, { v: 'TP', l: 'Solo TP' }, { v: 'SL', l: 'Solo SL' }, { v: 'BE', l: 'Solo BE' }])}
       ${hayFiltros() ? '<button class="btn ghost" id="stClearF">× Limpiar filtros</button>' : ''}
     </div>`;

@@ -95,9 +95,9 @@ function filtrosHtml(allSheet, meta, esNoTomados = false) {
       ${periodHtml(months, btPeriod, { idFrom: 'btFromF', idTo: 'btToF' })}
       ${pairs.length > 1 ? sel('btPairF', btPair, [{ v: 'all', l: 'Todos los pares' }, ...pairs.map(p => ({ v: p, l: p }))]) : ''}
       ${sel('btSetupF', btSetup, [{ v: 'all', l: 'Todas las direcciones' }, { v: 'LONG', l: 'LONG' }, { v: 'SHORT', l: 'SHORT' }])}
+      ${models.length > 1 ? sel('btModelF', btModel, [{ v: 'all', l: 'Todos los modelos' }, ...models.map(m => ({ v: m, l: modelLabel(m) }))]) : ''}
       ${zones.length > 1 ? sel('btZoneF', btZone, [{ v: 'all', l: 'Todas las zonas' }, ...zones.map(z => ({ v: z, l: z }))]) : ''}
       ${entries.length > 1 ? sel('btEntryF', btEntry, [{ v: 'all', l: 'Todas las entradas' }, ...entries.map(e => ({ v: e, l: e }))]) : ''}
-      ${models.length > 1 ? sel('btModelF', btModel, [{ v: 'all', l: 'Todos los modelos' }, ...models.map(m => ({ v: m, l: modelLabel(m) }))]) : ''}
       ${sel('btResF', btRes, [{ v: 'all', l: 'Todos los resultados' }, { v: 'TP', l: 'Solo TP' }, { v: 'SL', l: 'Solo SL' }, { v: 'BE', l: 'Solo BE' }])}
       ${esNoTomados ? sel('btSheetF', btSheetF, [{ v: 'all', l: 'Todas las estrategias' },
         ...Object.keys(STRATEGIES).map(k => ({ v: k, l: STRATEGIES[k].label }))]) : ''}

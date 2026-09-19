@@ -148,6 +148,10 @@ export function renderTradeTable(container, trades, opts = {}) {
           { v: 'all', l: 'Todos los pares' },
           ...pairs.map(p => ({ v: p, l: p })),
         ]) : ''}
+        ${showModel ? sel('model', filters.model, [
+          { v: 'all', l: 'Todos los modelos' },
+          ...models.map(m => ({ v: m, l: modelLabel(m) })),
+        ]) : ''}
         ${showZone ? sel('zone', filters.zone, [
           { v: 'all', l: 'Todas las zonas' },
           ...zones.map(z => ({ v: z, l: z })),
@@ -155,10 +159,6 @@ export function renderTradeTable(container, trades, opts = {}) {
         ${showEntry ? sel('entry', filters.entry, [
           { v: 'all', l: 'Todas las entradas' },
           ...entries.map(e => ({ v: e, l: e })),
-        ]) : ''}
-        ${showModel ? sel('model', filters.model, [
-          { v: 'all', l: 'Todos los modelos' },
-          ...models.map(m => ({ v: m, l: modelLabel(m) })),
         ]) : ''}
         ${showSens ? sel('sens', filters.sens, [
           { v: 'all', l: 'Todas las sensaciones' },
@@ -209,9 +209,9 @@ export function renderTradeTable(container, trades, opts = {}) {
               <th>Estrategia</th>
               <th>Activo</th>
               <th>Setup</th>
+              ${conModelos ? '<th>Modelo</th>' : ''}
               <th>Zona</th>
               <th>Entrada</th>
-              ${conModelos ? '<th>Modelo</th>' : ''}
               ${isBacktest ? '' : `
               <th>Sens. al ejecutar</th>
               <th>Plan</th>
@@ -345,11 +345,11 @@ function row(t, canDelete, isBacktest = false, markedId = '', conModelos = false
       <td><span class="strat-pill ${STRAT_CLS[t.sheet]}">${STRAT_LABEL[t.sheet] || t.sheet}</span></td>
       <td>${t.pair || '–'}</td>
       <td>${t.setup || '–'}</td>
-      <td>${(Array.isArray(t.zone) ? t.zone.join(' · ') : t.zone) || '–'}</td>
-      <td>${(Array.isArray(t.entry) ? t.entry.join(' · ') : t.entry) || '–'}</td>
       ${conModelos ? `<td>${tieneModelos(t)
         ? (t.model ? modelLabel(t.model) : '<span style="color:var(--muted);">Sin modelo</span>')
         : '–'}</td>` : ''}
+      <td>${(Array.isArray(t.zone) ? t.zone.join(' · ') : t.zone) || '–'}</td>
+      <td>${(Array.isArray(t.entry) ? t.entry.join(' · ') : t.entry) || '–'}</td>
 
       ${isBacktest ? '' : `
       <td>${sens}</td>
