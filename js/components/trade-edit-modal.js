@@ -64,6 +64,12 @@ export function openEditTradeModal(trade) {
           <div class="form-field">
             <label class="form-label">Zona${meta.zonesMulti ? ' <span style="color:var(--muted);font-size:11px;">(varias permitidas)</span>' : ''}</label>
             <div data-field="zone"></div>
+            ${!meta.zonesMulti && data.zone.filter(x => meta.zones.includes(x)).length > 1 ? `
+              <div class="legacy-note" data-multi="zone">
+                Este trade tenía varias: "${escapeHtml(data.zone.filter(x => meta.zones.includes(x)).join(' + '))}". Ahora es una sola:
+                al elegir una zona quedará solo esa, o
+                <button type="button" class="legacy-quitar" data-multi-keep="zone">quedarme con ${escapeHtml(data.zone.filter(x => meta.zones.includes(x))[0])}</button>
+              </div>` : ''}
             ${data.zone.some(x => !meta.zones.includes(x)) ? `
               <div class="legacy-note" data-legacy="zone">
                 Valor antiguo "${escapeHtml(data.zone.filter(x => !meta.zones.includes(x)).join(', '))}" (ya no está en la lista).
@@ -74,6 +80,12 @@ export function openEditTradeModal(trade) {
           ${meta.showEntry ? `<div class="form-field">
             <label class="form-label">Entrada${meta.entriesMulti ? ' <span style="color:var(--muted);font-size:11px;">(varias permitidas)</span>' : ''}</label>
             <div data-field="entry"></div>
+            ${!meta.entriesMulti && data.entry.filter(x => meta.entries.includes(x)).length > 1 ? `
+              <div class="legacy-note" data-multi="entry">
+                Este trade tenía varias: "${escapeHtml(data.entry.filter(x => meta.entries.includes(x)).join(' + '))}". Ahora es una sola:
+                al elegir una entrada quedará solo esa, o
+                <button type="button" class="legacy-quitar" data-multi-keep="entry">quedarme con ${escapeHtml(data.entry.filter(x => meta.entries.includes(x))[0])}</button>
+              </div>` : ''}
             ${data.entry.some(x => !meta.entries.includes(x)) ? `
               <div class="legacy-note" data-legacy="entry">
                 Valor antiguo "${escapeHtml(data.entry.filter(x => !meta.entries.includes(x)).join(', '))}" (ya no está en la lista).
@@ -194,12 +206,18 @@ export function openEditTradeModal(trade) {
       });
     }
     // "quitarlo": elimina los valores antiguos sin tocar el resto
+    root.querySelectorAll('[data-multi-keep]').forEach(b => b.addEventListener('click', () => {
+      const f = b.dataset.multiKeep;
+      const lista = f === 'zone' ? meta.zones : meta.entries;
+      data[f] = limpiar(data[f], lista).slice(0, 1);
+      quitarAviso(f);
+    }));
     root.querySelectorAll('[data-legacy-quitar]').forEach(b => b.addEventListener('click', () => {
       const f = b.dataset.legacyQuitar;
       data[f] = limpiar(data[f], f === 'zone' ? meta.zones : meta.entries);
       quitarAviso(f);
     }));
-    function quitarAviso(f) { root.querySelector(`[data-legacy="${f}"]`)?.remove(); }
+    function quitarAviso(f) { root.querySelectorAll(`[data-legacy="${f}"], [data-multi="${f}"]`).forEach(e => e.remove()); }
     if (meta.models) {
       renderPills(root.querySelector('[data-field="model"]'), {
         name: 'model',

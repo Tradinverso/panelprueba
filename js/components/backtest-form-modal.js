@@ -93,6 +93,12 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
           <div class="form-field">
             <label class="form-label">Zona <span class="required">*</span></label>
             <div data-field="zone"></div>
+            ${!meta.zonesMulti && data.zone.filter(x => meta.zones.includes(x)).length > 1 ? `
+              <div class="legacy-note" data-multi="zone">
+                Este trade tenía varias: "${esc(data.zone.filter(x => meta.zones.includes(x)).join(' + '))}". Ahora es una sola:
+                al elegir una zona quedará solo esa, o
+                <button type="button" class="legacy-quitar" data-multi-keep="zone">quedarme con ${esc(data.zone.filter(x => meta.zones.includes(x))[0])}</button>
+              </div>` : ''}
             ${data.zone.some(x => !meta.zones.includes(x)) ? `
               <div class="legacy-note" data-legacy="zone">
                 Valor antiguo "${esc(data.zone.filter(x => !meta.zones.includes(x)).join(', '))}" (ya no está en la lista).
@@ -103,6 +109,12 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
           ${meta.showEntry ? `<div class="form-field">
             <label class="form-label">Tipo de entrada <span class="required">*</span></label>
             <div data-field="entry"></div>
+            ${!meta.entriesMulti && data.entry.filter(x => meta.entries.includes(x)).length > 1 ? `
+              <div class="legacy-note" data-multi="entry">
+                Este trade tenía varias: "${esc(data.entry.filter(x => meta.entries.includes(x)).join(' + '))}". Ahora es una sola:
+                al elegir una entrada quedará solo esa, o
+                <button type="button" class="legacy-quitar" data-multi-keep="entry">quedarme con ${esc(data.entry.filter(x => meta.entries.includes(x))[0])}</button>
+              </div>` : ''}
             ${data.entry.some(x => !meta.entries.includes(x)) ? `
               <div class="legacy-note" data-legacy="entry">
                 Valor antiguo "${esc(data.entry.filter(x => !meta.entries.includes(x)).join(', '))}" (ya no está en la lista).
@@ -229,12 +241,18 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
       onChange: v => { data.entry = limpiar(meta.entriesMulti ? v : (v ? [v] : []), meta.entries); quitarAviso('entry'); },
     });
   }
+  root.querySelectorAll('[data-multi-keep]').forEach(b => b.addEventListener('click', () => {
+    const f = b.dataset.multiKeep;
+    const lista = f === 'zone' ? meta.zones : meta.entries;
+    data[f] = limpiar(data[f], lista).slice(0, 1);
+    quitarAviso(f);
+  }));
   root.querySelectorAll('[data-legacy-quitar]').forEach(b => b.addEventListener('click', () => {
     const f = b.dataset.legacyQuitar;
     data[f] = limpiar(data[f], f === 'zone' ? meta.zones : meta.entries);
     quitarAviso(f);
   }));
-  function quitarAviso(f) { root.querySelector(`[data-legacy="${f}"]`)?.remove(); }
+  function quitarAviso(f) { root.querySelectorAll(`[data-legacy="${f}"], [data-multi="${f}"]`).forEach(e => e.remove()); }
   if (meta.models) {
     renderPills(root.querySelector('[data-field="model"]'), {
       name: 'model',

@@ -89,8 +89,12 @@ export const STRATEGIES = {
     entries: LIQ_ENTRIES,
     entriesCols: 3,
     entriesRowStarts: ['ENVOL', 'LIMIT'],
-    zonesMulti: true,
-    entriesMulti: true,
+    // Una sola zona y un solo tipo de entrada por trade: las estadísticas por
+    // zona/entrada solo cuentan el PRIMER valor, así que con varios el trade
+    // caía en una u otra según el orden de los clics. Los trades antiguos con
+    // varios se conservan; al editarlos y elegir uno, queda solo ese.
+    zonesMulti: false,
+    entriesMulti: false,
     showRR: true,
     showPip: false,
     showEntry: true,
@@ -113,8 +117,12 @@ export const STRATEGIES = {
     entriesRowStarts: ['FVG'],
     // Solo NASDAQ tiene modelos: en el resto de estrategias el campo no aparece.
     models: NQ_MODELS,
-    zonesMulti: true,
-    entriesMulti: true,
+    // Una sola zona y un solo tipo de entrada por trade: las estadísticas por
+    // zona/entrada solo cuentan el PRIMER valor, así que con varios el trade
+    // caía en una u otra según el orden de los clics. Los trades antiguos con
+    // varios se conservan; al editarlos y elegir uno, queda solo ese.
+    zonesMulti: false,
+    entriesMulti: false,
     showRR: true,
     showPip: false,
     showEntry: true,
