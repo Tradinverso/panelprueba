@@ -5,6 +5,10 @@ import { openModal } from './modal.js';
 import { openViewTradeModal } from './trade-view-modal.js';
 import { state } from '../state.js';
 import { accountUsd, fmtUsd } from '../utils/account-stats.js';
+import { STRATEGIES, modelLabel } from '../utils/strategy-config.js';
+
+// ¿La estrategia del trade usa modelos de entrada? (hoy solo Nasdaq)
+const tieneModelos = t => !!(STRATEGIES[t.sheet] && STRATEGIES[t.sheet].models);
 
 const STRAT_LABEL = { ZONAS: 'Zonas', LIQUIDEZ: 'Liquidez', NASDAQ: 'Nasdaq' };
 const STRAT_CLS = { ZONAS: 'zonas', LIQUIDEZ: 'liquidez', NASDAQ: 'nasdaq' };
@@ -53,6 +57,11 @@ export function renderTradeTable(container, trades, opts = {}) {
   const zones = [...new Set(trades.flatMap(t => Array.isArray(t.zone) ? t.zone : (t.zone ? [t.zone] : [])).filter(Boolean))].sort();
   const entries = [...new Set(trades.flatMap(t => Array.isArray(t.entry) ? t.entry : (t.entry ? [t.entry] : [])).filter(Boolean))].sort();
   const sensaciones = [...new Set(trades.map(t => t.sensacion).filter(Boolean))];
+  // Modelos de entrada: columna y filtro solo si hay trades de una estrategia
+  // que los usa (Nasdaq). '' = sin modelo (trades anteriores al campo).
+  const conModelos = trades.some(tieneModelos);
+  const models = [...new Set(trades.filter(tieneModelos).map(t => t.model || ''))]
+    .sort((a, b) => (a === '') - (b === '') || a.localeCompare(b));
   const accountIds = [...new Set(trades.flatMap(t =>
     Array.isArray(t.accounts) ? t.accounts.map(a => a.accountId) : []
   ))];
@@ -60,7 +69,7 @@ export function renderTradeTable(container, trades, opts = {}) {
   // Estado de filtros (privado al componente)
   let filters = {
     sheet: 'all', result: 'all', setup: 'all',
-    pair: 'all', zone: 'all', entry: 'all',
+    pair: 'all', zone: 'all', entry: 'all', model: 'all',
     sens: 'all', account: 'all', plan: 'all',
   };
 
@@ -78,6 +87,7 @@ export function renderTradeTable(container, trades, opts = {}) {
         const entries = Array.isArray(t.entry) ? t.entry : (t.entry ? [t.entry] : []);
         if (!entries.includes(filters.entry)) return false;
       }
+      if (filters.model !== 'all' && (!tieneModelos(t) || (t.model || '') !== filters.model)) return false;
       if (filters.sens !== 'all') {
         if (filters.sens === '_empty' && t.sensacion) return false;
         if (filters.sens !== '_empty' && t.sensacion !== filters.sens) return false;
@@ -113,6 +123,7 @@ export function renderTradeTable(container, trades, opts = {}) {
     const showPair = pairs.length > 1;
     const showZone = zones.length > 1;
     const showEntry = entries.length > 1;
+    const showModel = models.length > 1;
     const showSens = sensaciones.length > 0;
     const showAccount = accountIds.length > 0;
     const hasActiveFilters = Object.values(filters).some(v => v !== 'all');
@@ -144,6 +155,10 @@ export function renderTradeTable(container, trades, opts = {}) {
         ${showEntry ? sel('entry', filters.entry, [
           { v: 'all', l: 'Todas las entradas' },
           ...entries.map(e => ({ v: e, l: e })),
+        ]) : ''}
+        ${showModel ? sel('model', filters.model, [
+          { v: 'all', l: 'Todos los modelos' },
+          ...models.map(m => ({ v: m, l: modelLabel(m) })),
         ]) : ''}
         ${showSens ? sel('sens', filters.sens, [
           { v: 'all', l: 'Todas las sensaciones' },
@@ -179,9 +194,9 @@ export function renderTradeTable(container, trades, opts = {}) {
   function renderTable(filtered) {
     // Más reciente arriba: ordenamos cronológicamente y luego invertimos.
     const sorted = sortChrono(filtered).reverse();
-    const colspan = (isBacktest ? 11 : 15) + (canDelete ? 1 : 0);
+    const colspan = (isBacktest ? 11 : 15) + (canDelete ? 1 : 0) + (conModelos ? 1 : 0);
     const bodyContent = sorted.length
-      ? sorted.map(t => row(t, canDelete, isBacktest, getMarked())).join('')
+      ? sorted.map(t => row(t, canDelete, isBacktest, getMarked(), conModelos)).join('')
       : `<tr><td colspan="${colspan}" class="empty" style="padding:30px;">Ningún trade coincide con los filtros</td></tr>`;
     return `
       <div class="trade-table-wrap">
@@ -196,6 +211,7 @@ export function renderTradeTable(container, trades, opts = {}) {
               <th>Setup</th>
               <th>Zona</th>
               <th>Entrada</th>
+              ${conModelos ? '<th>Modelo</th>' : ''}
               ${isBacktest ? '' : `
               <th>Sens. al ejecutar</th>
               <th>Plan</th>
@@ -223,6 +239,7 @@ export function renderTradeTable(container, trades, opts = {}) {
     const clear = container.querySelector('[data-clear-filters]');
     if (clear) clear.addEventListener('click', () => {
       filters = {
+        model: 'all',
         sheet: 'all', result: 'all', setup: 'all',
         pair: 'all', zone: 'all', entry: 'all',
         sens: 'all', account: 'all', plan: 'all',
@@ -282,7 +299,7 @@ export function renderTradeTable(container, trades, opts = {}) {
   paint();
 }
 
-function row(t, canDelete, isBacktest = false, markedId = '') {
+function row(t, canDelete, isBacktest = false, markedId = '', conModelos = false) {
   const sens = t.sensacion ? `<span class="sens-pill" data-s="${t.sensacion}">${t.sensacion}</span>` : '<span style="color:var(--dim)">–</span>';
 
   // Cuentas: solo la primera + "+N" si hay más. El detalle completo se ve en el modal del ojo.
@@ -330,6 +347,9 @@ function row(t, canDelete, isBacktest = false, markedId = '') {
       <td>${t.setup || '–'}</td>
       <td>${(Array.isArray(t.zone) ? t.zone.join(' · ') : t.zone) || '–'}</td>
       <td>${(Array.isArray(t.entry) ? t.entry.join(' · ') : t.entry) || '–'}</td>
+      ${conModelos ? `<td>${tieneModelos(t)
+        ? (t.model ? modelLabel(t.model) : '<span style="color:var(--muted);">Sin modelo</span>')
+        : '–'}</td>` : ''}
 
       ${isBacktest ? '' : `
       <td>${sens}</td>
