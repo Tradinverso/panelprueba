@@ -330,6 +330,8 @@ function render(container, sheet) {
     // OJO: la estrategia sale del backtest (bt.sheet), no de `sheet` — en la
     // pestaña No tomados `sheet` vale 'NO_TOMADOS', que no es una estrategia.
     onView: t => openViewTradeModal(t, { variant: 'backtest', onEdit: bt => openBacktestFormModal(bt.sheet, bt, null) }),
+    // Doble clic en la fila → directo al formulario de backtest
+    onEdit: bt => openBacktestFormModal(bt.sheet, bt, null),
     onDelete: id => state.removeBacktest(id),
   });
 

@@ -3,6 +3,7 @@ import { fmtPct } from '../utils/number-format-es.js';
 import { sortChrono, tradeRealPnl } from '../utils/calculations.js';
 import { openModal } from './modal.js';
 import { openViewTradeModal } from './trade-view-modal.js';
+import { openEditTradeModal } from './trade-edit-modal.js';
 import { state } from '../state.js';
 import { accountUsd, fmtUsd } from '../utils/account-stats.js';
 import { STRATEGIES, modelLabel } from '../utils/strategy-config.js';
@@ -42,8 +43,13 @@ export function renderTradeTable(container, trades, opts = {}) {
     showPlanFilter = variant !== 'backtest',
     onView = openViewTradeModal,
     onDelete = id => state.remove(id),
+    onEdit = null,
   } = opts;
   const isBacktest = variant === 'backtest';
+  // Doble clic en una fila = editar directamente. En backtests SOLO con el
+  // editor que pase la vista (opts.onEdit): el de por defecto es el del journal
+  // real y escribiría ahí. Sin editor, el doble clic abre la ficha.
+  const editar = onEdit || (isBacktest ? onView : openEditTradeModal);
 
   if (!trades.length) {
     container.innerHTML = `<div class="empty"><div>${emptyMsg}</div></div>`;
@@ -266,6 +272,17 @@ export function renderTradeTable(container, trades, opts = {}) {
         setMarked(getMarked() === id ? '' : id);   // volver a pulsar la desmarca
         paintMark();
       });
+      // Doble clic: abre el trade para editarlo. Los dos clics previos ponen y
+      // quitan la marca; aquí se deja puesta (es el trade con el que estás).
+      tr.addEventListener('dblclick', e => {
+        if (e.target.closest('button')) return;
+        const t = filtered.find(x => x.id === tr.dataset.rowId);
+        if (!t) return;
+        window.getSelection?.().removeAllRanges();   // el doble clic selecciona texto
+        setMarked(t.id);
+        paintMark();
+        editar(t);
+      });
     });
 
     container.querySelectorAll('.view-btn').forEach(b => {
@@ -338,7 +355,7 @@ function row(t, canDelete, isBacktest = false, markedId = '', conModelos = false
     ? `<td><button class="btn ghost danger del-btn" data-id="${t.id}" style="padding:4px 8px;font-size:11px;">×</button></td>`
     : '';
   return `
-    <tr data-row-id="${t.id}" class="${t.id === markedId ? 'row-marked' : ''}">
+    <tr data-row-id="${t.id}" class="${t.id === markedId ? 'row-marked' : ''}" title="Clic: marcar · Doble clic: editar">
       <td>${viewBtn}</td>
       <td>${isBacktest ? formatDateShort(t.date) + '/' + String(t.date || '').substring(2, 4) : formatDateShort(t.date)}</td>
       <td>${t.open_str || '–'}</td>
