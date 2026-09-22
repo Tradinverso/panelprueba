@@ -412,10 +412,21 @@ export function openCreateStudentModal(onCreated) {
           <label class="form-label">Email <span class="required">*</span></label>
           <input class="form-input" type="email" id="newEmail" placeholder="alumno@email.com" autocomplete="off">
         </div>
+        <!-- Repetir email y contraseña: el email de acceso no se puede editar
+             después desde la app, así que se evita el error al crearlo. Sin
+             pegar en los campos de repetir, para que se escriban de verdad. -->
+        <div class="form-field">
+          <label class="form-label">Repite el email <span class="required">*</span></label>
+          <input class="form-input" type="email" id="newEmail2" placeholder="alumno@email.com" autocomplete="off" onpaste="return false" ondrop="return false">
+        </div>
         <div class="form-field">
           <label class="form-label">Contraseña temporal <span class="required">*</span></label>
           <input class="form-input" type="text" id="newPassword" placeholder="Mínimo 6 caracteres" autocomplete="off">
           <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:4px;">El alumno podrá cambiarla desde su perfil.</div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Repite la contraseña <span class="required">*</span></label>
+          <input class="form-input" type="text" id="newPassword2" placeholder="Mínimo 6 caracteres" autocomplete="off" onpaste="return false" ondrop="return false">
         </div>
         <div id="createErr" class="auth-error" style="display:none;"></div>
       </div>
@@ -435,6 +446,10 @@ export function openCreateStudentModal(onCreated) {
 
           if (!email || !password) { showErr(errEl, 'Email y contraseña obligatorios'); return; }
           if (password.length < 6) { showErr(errEl, 'La contraseña debe tener al menos 6 caracteres'); return; }
+          const email2 = root.querySelector('#newEmail2').value.trim();
+          const password2 = root.querySelector('#newPassword2').value;
+          if (email.toLowerCase() !== email2.toLowerCase()) { showErr(errEl, 'Los dos emails no coinciden'); return; }
+          if (password !== password2) { showErr(errEl, 'Las dos contraseñas no coinciden'); return; }
 
           try {
             await auth.createStudent(email, password, nombre || email.split('@')[0]);
