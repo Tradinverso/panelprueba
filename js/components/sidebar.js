@@ -2,6 +2,7 @@ import { theme } from '../theme.js';
 import { router } from '../router.js';
 import { state } from '../state.js';
 import { auth } from '../auth.js';
+import { IS_TEST_ENV } from '../firebase.js';
 import { storage } from '../storage.js';
 import { tzLabel } from '../utils/timezone.js';
 import { countDangerAlerts } from '../utils/diagnostics.js';
@@ -133,7 +134,7 @@ export function renderSidebar(container) {
       <div class="brand-text">
         <span class="brand-line2">TRADINVERSO</span>
         <span class="brand-line1">Trading Journal</span>
-        <span class="brand-ver">v.2.5</span>
+        <span class="brand-ver">v.2.5${IS_TEST_ENV ? ' · <b style="color:var(--orange);">PRUEBAS</b>' : ''}</span>
       </div>
     </a>
     <div class="sidebar-tools">
