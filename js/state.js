@@ -22,16 +22,15 @@ const SENS_VALID = new Set([
 
 // Modelo de LIQUIDEZ deducido de la zona y la entrada, para clasificar los
 // trades anteriores a los modelos (ver clasificarModelosLiquidez):
-//   ASIA + LIMIT → L1 (MRA Limit) · ASIA + otra → L2 (MRA Confirm)
-//   otra zona sin LIMIT → L3 (Puntos líquidos)
-// Sin zona, o LIMIT fuera de ASIA (no encaja en ningún modelo): sin modelo.
+//   LIMIT (en cualquier zona: la orden del MRA va en una mecha, un FVG…) → L1
+//   ASIA sin LIMIT → L2 (MRA Confirm) · otra zona sin LIMIT → L3 (Puntos líquidos)
+// Sin zona ni LIMIT: sin modelo (no se puede saber).
 function modeloLiquidezDeducido(t) {
   const z = Array.isArray(t.zone) ? t.zone : (t.zone ? [t.zone] : []);
   const e = Array.isArray(t.entry) ? t.entry : (t.entry ? [t.entry] : []);
+  if (e.includes('LIMIT')) return 'L1';
   if (!z.length) return '';
-  const limit = e.includes('LIMIT');
-  if (z.includes('ASIA')) return limit ? 'L1' : 'L2';
-  return limit ? '' : 'L3';
+  return z.includes('ASIA') ? 'L2' : 'L3';
 }
 
 function deriveResult(pnl_pct) {

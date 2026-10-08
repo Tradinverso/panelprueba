@@ -64,8 +64,9 @@ const LIQ_MODELS = [
 //   entries   → las ÚNICAS entradas posibles (si es una, se marca sola)
 //   noEntries → entradas que no se pueden elegir con ese modelo
 //   zone      → zona que se marca sola al elegirlo (se pueden añadir más)
-// MRA Limit es por definición entrada LIMIT; los otros dos son con
-// confirmaciones, así que LIMIT no tiene sentido en ellos.
+// MRA Limit es por definición entrada LIMIT: la orden va por encima o por
+// debajo de Asia, en una mecha, un FVG u otra zona (se añade a ASIA). MRA
+// Confirm y Puntos líquidos son siempre con confirmaciones: nunca LIMIT.
 const LIQ_MODEL_RULES = {
   L1: { entries: ['LIMIT'], zone: 'ASIA' },
   L2: { noEntries: ['LIMIT'], zone: 'ASIA' },
