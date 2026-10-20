@@ -290,7 +290,7 @@ function renderShell(allTrades, filtered) {
         <th style="color:var(--zonas)">Zonas</th>
         <th style="color:var(--pair-gbp)">GBP/USD</th>
         <th style="color:var(--pair-eur)">EUR/USD</th>
-        <th style="color:var(--pair-gold)">XAU/USD</th>
+        <th style="color:var(--pair-gold)">ORO</th>
         <th style="color:var(--pair-sp500)">SP500</th>
         <th style="color:var(--pair-oil)">OIL</th>
       </tr></thead><tbody id="streakTbody"></tbody></table>
@@ -561,7 +561,7 @@ function paintStreaks(container, trades) {
     Zonas: trades.filter(t => t.sheet === 'ZONAS'),
     'GBP/USD': trades.filter(t => t.sheet === 'ZONAS' && t.pair === 'GBP/USD'),
     'EUR/USD': trades.filter(t => t.sheet === 'ZONAS' && t.pair === 'EUR/USD'),
-    'XAU/USD': trades.filter(t => t.sheet === 'ZONAS' && t.pair === 'XAU/USD'),
+    ORO: trades.filter(t => t.sheet === 'ZONAS' && t.pair === 'ORO'),
     SP500: trades.filter(t => t.sheet === 'ZONAS' && t.pair === 'SP500'),
     OIL: trades.filter(t => t.sheet === 'ZONAS' && t.pair === 'OIL'),
   };

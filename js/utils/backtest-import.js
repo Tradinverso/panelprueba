@@ -222,7 +222,7 @@ export function draftToBacktest(draft, sheet) {
     date,
     open_str: normTime(draft.open),
     close_str: normTime(draft.close),
-    pair: sheet === 'NASDAQ' ? 'NQ' : normalizePair(draft.pair || '', sheet),   // US500 → SP500, XAUUSD → XAU/USD…
+    pair: sheet === 'NASDAQ' ? 'NQ' : normalizePair(draft.pair || '', sheet),   // US500 → SP500, XAUUSD → ORO…
     setup,
     zone: draft.zone || '',
     entry: draft.entry || '',

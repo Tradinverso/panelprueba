@@ -6,11 +6,14 @@ const MAP = new Map([
   ['GBPUSD', 'GBP/USD'],
   ['GBP USD', 'GBP/USD'],
   ['GBP-USD', 'GBP/USD'],
-  ['XAUUSD', 'XAU/USD'],
-  ['XAU USD', 'XAU/USD'],
-  ['XAU-USD', 'XAU/USD'],
-  ['GOLD', 'XAU/USD'],
-  ['ORO', 'XAU/USD'],
+  // Oro: se llama ORO (antes XAU/USD; los trades antiguos se renombran al
+  // cargarlos, ver renamePair).
+  ['XAUUSD', 'ORO'],
+  ['XAU USD', 'ORO'],
+  ['XAU-USD', 'ORO'],
+  ['XAU/USD', 'ORO'],
+  ['ORO', 'ORO'],
+  ['GOLD', 'ORO'],
   // Índice S&P 500 (cada broker lo llama de una forma)
   ['SP500', 'SP500'],
   ['SP 500', 'SP500'],
@@ -46,4 +49,12 @@ export function normalizePair(p, sheet) {
   return raw;
 }
 
-export const ZONAS_PAIRS = ['EUR/USD', 'GBP/USD', 'XAU/USD', 'SP500', 'OIL'];
+export const ZONAS_PAIRS = ['EUR/USD', 'GBP/USD', 'ORO', 'SP500', 'OIL'];
+
+// Nombres antiguos de un activo → el actual. Se aplica al cargar los trades
+// (state.sanitize*) y en las vistas que leen datos sin pasar por ahí (grupo),
+// así los guardados con el nombre viejo cuentan junto a los nuevos.
+const RENOMBRADOS = { 'XAU/USD': 'ORO', GOLD: 'ORO' };
+export function renamePair(p) {
+  return RENOMBRADOS[p] || p || '';
+}
