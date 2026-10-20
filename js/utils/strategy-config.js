@@ -105,6 +105,9 @@ export const STRATEGIES = {
     cls: 'zonas',
     desc: 'Reacciones en zonas técnicas en EUR/USD, GBP/USD, ORO, SP500 y OIL',
     pairs: ['EUR/USD', 'GBP/USD', 'ORO', 'SP500', 'OIL'],
+    // Dos filas: divisas arriba (EUR/USD · GBP/USD), ORO · SP500 · OIL abajo.
+    pairsCols: 3,
+    pairsRowStarts: ['ORO'],
     pairFixed: false,
     zones: ['> 7 días', 'Entre 2 y 7 días', '< 2 días', 'Retest'],
     entries: ['Clásica', 'Otras', 'Volumen'],
