@@ -22,7 +22,7 @@ import {
   newPeriod, monthsOf, inPeriod, clampPeriod, periodHtml, wirePeriod, prevPeriod,
 } from '../components/period-filter.js';
 
-const STRAT_LABELS = { ZONAS: 'Forex, Oro, SP500 y Oil', LIQUIDEZ: 'EUR/USD', NASDAQ: 'NQ Futuros' };
+const STRAT_LABELS = { ZONAS: 'Forex, Oro y Oil', LIQUIDEZ: 'EUR/USD', NASDAQ: 'NQ Futuros' };
 
 let dashPeriod = newPeriod();   // rango de meses { from, to }
 let perfMode = 'sistema'; // 'sistema' | 'real'
@@ -291,7 +291,6 @@ function renderShell(allTrades, filtered) {
         <th style="color:var(--pair-gbp)">GBP/USD</th>
         <th style="color:var(--pair-eur)">EUR/USD</th>
         <th style="color:var(--pair-gold)">ORO</th>
-        <th style="color:var(--pair-sp500)">SP500</th>
         <th style="color:var(--pair-oil)">OIL</th>
       </tr></thead><tbody id="streakTbody"></tbody></table>
     </div>
@@ -562,7 +561,6 @@ function paintStreaks(container, trades) {
     'GBP/USD': trades.filter(t => t.sheet === 'ZONAS' && t.pair === 'GBP/USD'),
     'EUR/USD': trades.filter(t => t.sheet === 'ZONAS' && t.pair === 'EUR/USD'),
     ORO: trades.filter(t => t.sheet === 'ZONAS' && t.pair === 'ORO'),
-    SP500: trades.filter(t => t.sheet === 'ZONAS' && t.pair === 'SP500'),
     OIL: trades.filter(t => t.sheet === 'ZONAS' && t.pair === 'OIL'),
   };
   const keys = Object.keys(groups);

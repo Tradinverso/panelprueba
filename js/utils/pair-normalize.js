@@ -14,16 +14,6 @@ const MAP = new Map([
   ['XAU/USD', 'ORO'],
   ['ORO', 'ORO'],
   ['GOLD', 'ORO'],
-  // Índice S&P 500 (cada broker lo llama de una forma)
-  ['SP500', 'SP500'],
-  ['SP 500', 'SP500'],
-  ['S&P500', 'SP500'],
-  ['S&P 500', 'SP500'],
-  ['SPX', 'SP500'],
-  ['SPX500', 'SP500'],
-  ['US500', 'SP500'],
-  ['US 500', 'SP500'],
-  ['ES', 'SP500'],
   // Petróleo (WTI)
   ['OIL', 'OIL'],
   ['USOIL', 'OIL'],
@@ -49,7 +39,7 @@ export function normalizePair(p, sheet) {
   return raw;
 }
 
-export const ZONAS_PAIRS = ['EUR/USD', 'GBP/USD', 'ORO', 'SP500', 'OIL'];
+export const ZONAS_PAIRS = ['EUR/USD', 'GBP/USD', 'ORO', 'OIL'];
 
 // Nombres antiguos de un activo → el actual. Se aplica al cargar los trades
 // (state.sanitize*) y en las vistas que leen datos sin pasar por ahí (grupo),
