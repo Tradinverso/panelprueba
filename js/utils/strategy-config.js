@@ -135,10 +135,11 @@ export const STRATEGIES = {
     entriesRowStarts: ['ENVOL', 'LIMIT'],
     models: LIQ_MODELS,
     modelRules: LIQ_MODEL_RULES,
-    // Varias zonas (p. ej. ASIA + PDH/PDL en un MRA): en las estadísticas por
-    // zona el trade cuenta en cada una de sus zonas. Un solo tipo de entrada.
+    // Varias zonas (p. ej. ASIA + PDH/PDL en un MRA) y varias confirmaciones
+    // (p. ej. IFVG + CHOCH): en las estadísticas por zona y por entrada el
+    // trade cuenta en cada una. MRA Limit sigue siendo solo LIMIT (modelRules).
     zonesMulti: true,
-    entriesMulti: false,
+    entriesMulti: true,
     // Sin campo RR: el % P&L ya es la R conseguida, y el RR planeado no aporta
     // (el "RR medio" se calcula de los TP realizados, ver calculations.avgRR).
     showRR: false,
