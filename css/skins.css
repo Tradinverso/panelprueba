@@ -271,6 +271,13 @@
 :root[data-skin] .pill-group.liquidez .pill.active { background: var(--liquidez-bg); border-color: var(--liquidez); color: var(--text); }
 :root[data-skin] .pill-group.nasdaq .pill.active   { background: var(--nasdaq-bg); border-color: var(--nasdaq); color: var(--text); }
 
+/* Controles nativos (lista desplegable de los <select>, calendario de los
+   input date, barras de scroll) a juego con el esquema: sin esto, en el tema
+   oscuro la lista salía blanca con letras claras (ilegible). */
+:root[data-theme="dark"] { color-scheme: dark; }
+:root[data-theme="light"] { color-scheme: light; }
+select option { background: var(--surface); color: var(--text); }
+
 /* Inputs: radio 14 */
 :root[data-skin] .form-input, :root[data-skin] .form-textarea, :root[data-skin] .select, :root[data-skin] select.select {
   font-family: var(--font); border-radius: 14px; border: 1px solid var(--line); background: var(--card2); color: var(--text); font-size: 13px;
