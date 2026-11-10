@@ -154,6 +154,50 @@ body.hide-pnl .mini-stat-val, body.hide-pnl .stat-value, body.hide-pnl .cal-pnl,
   filter: blur(7px); user-select: none;
 }
 
+/* ── Dashboard: tarjetas por estrategia (anillo de winrate) ─── */
+.strat-card { display: block; text-decoration: none; color: inherit; position: relative; overflow: hidden; cursor: pointer; transition: transform .45s cubic-bezier(.2,.9,.25,1.2), border-color .2s; }
+.strat-card:hover { transform: translateY(-3px); border-color: var(--border-strong); }
+.strat-card::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; }
+.strat-card.zonas::before    { background: linear-gradient(90deg, var(--zonas) 0%, var(--zonas-bg) 55%, transparent 100%); }
+.strat-card.liquidez::before { background: linear-gradient(90deg, var(--liquidez) 0%, var(--liquidez-bg) 55%, transparent 100%); }
+.strat-card.nasdaq::before   { background: linear-gradient(90deg, var(--nasdaq) 0%, var(--nasdaq-bg) 55%, transparent 100%); }
+.strat-card.dim { opacity: .55; }
+.strat-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+.strat-head .card-sub { margin-bottom: 0; }
+.strat-status { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--card2); color: var(--muted); white-space: nowrap; }
+.strat-body { display: flex; align-items: center; gap: 18px; }
+.strat-ring { width: 74px; height: 74px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; background: conic-gradient(var(--line) 0 100%); }
+.strat-ring::before { content: ''; position: absolute; width: 56px; height: 56px; border-radius: 50%; background: var(--card); }
+.strat-ring { position: relative; }
+.strat-ring span, .strat-ring small { position: relative; }
+.strat-ring span { font-size: 15px; font-weight: 700; line-height: 1; }
+.strat-ring small { font-size: 8px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-left: 2px; }
+.strat-ring { flex-direction: column; gap: 2px; }
+.strat-lines { flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+.strat-lines div { display: flex; justify-content: space-between; gap: 10px; }
+.strat-lines span { color: var(--muted); }
+.strat-lines b { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Long vs Short compacto */
+.ls-dir { margin-bottom: 12px; }
+.ls-dir-head { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+.ls-dir-head span { font-weight: 700; }
+.ls-bar { height: 8px; border-radius: 99px; background: var(--card2); overflow: hidden; }
+.ls-bar div { height: 8px; border-radius: 99px; }
+.ls-dir-sub { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 5px; }
+.ls-table { margin-top: 6px; }
+.ls-table th, .ls-table td { padding: 6px 4px !important; font-size: 12px !important; }
+
+/* Mini-Diagnóstico */
+.diag-mini { display: flex; flex-direction: column; gap: 10px; }
+.diag-row { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; }
+.diag-row b { display: block; font-weight: 600; line-height: 1.3; }
+.diag-row small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+.diag-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; margin-top: 5px; background: var(--accent); }
+.diag-dot.danger { background: var(--red); }
+.diag-dot.warning { background: var(--warn, var(--orange)); }
+.diag-dot.success { background: var(--green); }
+
 /* ── Pop-up del checklist ───────────────────────────────────── */
 .chk-progress { margin-bottom: 14px; }
 .chk-progress-head { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 6px; }

@@ -11,8 +11,9 @@ import {
   formatDateShort, MONTHS_ES_SHORT,
 } from '../utils/date-helpers.js';
 import { kpiCard, kpiCardComposite } from '../components/kpi-card.js';
-import { createEquity, createDonut, createBar, createHourBar, createDayBar, createLongShort } from '../components/charts.js';
+import { createEquity, createBar, createHourBar, createDayBar } from '../components/charts.js';
 import { renderHeatmap } from '../components/heatmap.js';
+import { buildAlerts } from '../utils/diagnostics.js';
 import { renderPills } from '../components/pills.js';
 import { todayStatus } from '../utils/diagnostics.js';
 import { checklistProgress } from '../utils/checklist-items.js';
@@ -251,12 +252,12 @@ function renderShell(allTrades, filtered) {
     </div>
 
     <div class="section-title">Por estrategia</div>
-    <div class="grid-3" id="stratGrid">
+    <div class="grid-3 strat-grid" id="stratGrid">
       ${['ZONAS', 'LIQUIDEZ', 'NASDAQ'].map(s => stratCardShell(s)).join('')}
     </div>
 
-    <div class="section-title">Timing</div>
-    <div class="grid-2">
+    <div class="section-title">Timing y dirección</div>
+    <div class="grid-3">
       <div class="card">
         <div class="card-title">Winrate por franja horaria</div>
         <div class="card-sub">Hora de apertura · Línea = nº trades</div>
@@ -267,23 +268,32 @@ function renderShell(allTrades, filtered) {
         <div class="card-sub">WR + nº trades por día</div>
         <div class="chart-wrap" style="height:200px;"><canvas id="dayChart"></canvas></div>
       </div>
+      <div class="card" id="lsCard">
+        <div class="card-title">Long vs Short</div>
+        <div class="card-sub">Winrate y P&L según dirección</div>
+        <div id="lsBody"></div>
+      </div>
     </div>
 
-    <div class="section-title">Mapa de calor</div>
-    <div class="card" style="margin-bottom:24px;">
-      <div class="card-title">WR por día y hora</div>
-      <div class="card-sub">Verde = WR alto · Rojo = WR bajo · Gris = sin trades</div>
-      <div id="heatmap" style="margin-top:14px;"></div>
+    <div class="section-title">Mapa de calor y diagnóstico</div>
+    <div class="grid-2-1">
+      <div class="card">
+        <div class="card-title">WR por día y hora</div>
+        <div class="card-sub">Color fuerte = WR alto · rojo = WR bajo · gris = sin trades</div>
+        <div id="heatmap" style="margin-top:14px;"></div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div><div class="card-title">Diagnóstico</div><div class="card-sub">Lo más relevante ahora</div></div>
+          <a class="mesa-link" href="#/diagnostico">Todo →</a>
+        </div>
+        <div class="diag-mini" id="diagMini"></div>
+      </div>
     </div>
 
     <div class="section-title">Dirección y pares</div>
     <div class="grid-2">
-      <div class="card">
-        <div class="card-title">Long vs Short por estrategia</div>
-        <div class="card-sub">Winrate según dirección</div>
-        <div class="chart-wrap" style="height:200px;"><canvas id="lsChart"></canvas></div>
-      </div>
-      <div class="card table-card">
+      <div class="card table-card" style="grid-column: 1 / -1;">
         <div class="card-title">Rendimiento por par</div>
         <div class="card-sub">Pares con ≥1 trade</div>
         <table class="data-table"><thead><tr>
@@ -317,20 +327,31 @@ function renderShell(allTrades, filtered) {
   `;
 }
 
+// Tarjeta por estrategia: barra superior del color de la estrategia, nombre y
+// meta, estado, anillo de winrate (conic-gradient) y 4 líneas. Pulsable → la
+// página de esa estrategia.
+const STRAT_ROUTE = { ZONAS: '#/zonas', LIQUIDEZ: '#/liquidez', NASDAQ: '#/nasdaq' };
 function stratCardShell(s) {
   const cls = { ZONAS: 'zonas', LIQUIDEZ: 'liquidez', NASDAQ: 'nasdaq' }[s];
   return `
-    <div class="card" data-strat="${s}">
-      <div class="card-title">${s.charAt(0) + s.slice(1).toLowerCase()}</div>
-      <div class="card-sub" data-field="sub">– trades</div>
-      <div class="mini-stats">
-        <div><div class="mini-stat-val" data-field="wr" style="color:var(--${cls});">–</div><div class="mini-stat-lbl">Winrate</div></div>
-        <div><div class="mini-stat-val" data-field="pnl" style="color:var(--green);">–</div><div class="mini-stat-lbl">P&L sist.</div></div>
-        <div><div class="mini-stat-val" data-field="pnlReal" style="color:var(--green);">–</div><div class="mini-stat-lbl">P&L real</div></div>
-        <div><div class="mini-stat-val" data-field="pf" style="color:var(--orange);">–</div><div class="mini-stat-lbl">Profit Factor</div></div>
+    <a class="card strat-card ${cls}" data-strat="${s}" href="${STRAT_ROUTE[s]}" title="Ver análisis de ${s.charAt(0) + s.slice(1).toLowerCase()}">
+      <div class="strat-head">
+        <div>
+          <div class="card-title">${s.charAt(0) + s.slice(1).toLowerCase()}</div>
+          <div class="card-sub" data-field="sub">– trades</div>
+        </div>
+        <span class="strat-status" data-field="status">Activa</span>
       </div>
-      <div class="chart-wrap" style="height:130px;"><canvas data-field="donut"></canvas></div>
-    </div>
+      <div class="strat-body">
+        <div class="strat-ring" data-field="ring"><span data-field="wr">–</span><small>winrate</small></div>
+        <div class="strat-lines">
+          <div><span>P&L sist.</span><b data-field="pnl" class="pnl-value">–</b></div>
+          <div><span>P&L real</span><b data-field="pnlReal" class="pnl-value">–</b></div>
+          <div><span>PF</span><b data-field="pf">–</b></div>
+          <div><span>Trades</span><b data-field="n">–</b></div>
+        </div>
+      </div>
+    </a>
   `;
 }
 
@@ -507,11 +528,14 @@ function paintStrategy(container, sheet, trades) {
   const c = tradeCounts(sub);
   const subPnl = pnlPct(sub);
   const subPnlReal = pnlPctReal(sub);
-  const wrEl = card.querySelector('[data-field="wr"]');
   const subWr = winrate(sub);
-  wrEl.textContent = fmtPctNoSign(subWr);
-  // Winrate: cian de marca siempre, rojo si < 40%.
-  wrEl.style.color = (c.tp + c.sl) > 0 && subWr < 40 ? 'var(--red)' : 'var(--cyan)';
+  const decisive = c.tp + c.sl;
+  card.querySelector('[data-field="wr"]').textContent = decisive ? fmtPctNoSign(subWr) : '–';
+  // Anillo: verde hasta el WR, rojo el resto; gris si no hay trades.
+  const ring = card.querySelector('[data-field="ring"]');
+  ring.style.background = decisive
+    ? `conic-gradient(var(--green) 0 ${subWr}%, var(--red) ${subWr}% 100%)`
+    : 'conic-gradient(var(--line) 0 100%)';
   const pnlEl = card.querySelector('[data-field="pnl"]');
   pnlEl.textContent = fmtPct(subPnl, 1);
   pnlEl.style.color = subPnl >= 0 ? 'var(--green)' : 'var(--red)';
@@ -519,23 +543,73 @@ function paintStrategy(container, sheet, trades) {
   pnlRealEl.textContent = fmtPct(subPnlReal, 1);
   pnlRealEl.style.color = subPnlReal >= 0 ? 'var(--green)' : 'var(--red)';
   const subPf = profitFactor(sub);
-  card.querySelector('[data-field="pf"]').textContent = isFinite(subPf) ? fmtNum(subPf) : '∞';
+  card.querySelector('[data-field="pf"]').textContent = sub.length ? (isFinite(subPf) ? fmtNum(subPf) : '∞') : '–';
+  card.querySelector('[data-field="n"]').textContent = `${c.tp} TP · ${c.sl} SL · ${c.be} BE`;
   card.querySelector('[data-field="sub"]').textContent = `${sub.length} trades · ${STRAT_LABELS[sheet]}`;
-  createDonut(card.querySelector('[data-field="donut"]'), c.tp, c.sl, c.be);
+  // Estado: "Sin trades" si no hay; "Inactiva" si el último trade es de hace más de 60 días.
+  const last = sub.length ? sub.map(t => t.date).sort().pop() : null;
+  const daysAgo = last ? Math.round((Date.now() - new Date(last + 'T12:00:00').getTime()) / 86400000) : null;
+  const st = card.querySelector('[data-field="status"]');
+  st.textContent = !sub.length ? 'Sin trades' : (daysAgo > 60 ? 'Inactiva' : 'Activa');
+  card.classList.toggle('dim', !sub.length || daysAgo > 60);
 }
 
 function paintTiming(container, trades) {
   createHourBar(container.querySelector('#hourChart'), wrByHour(trades));
   createDayBar(container.querySelector('#dayChart'), wrByDay(trades));
   renderHeatmap(container.querySelector('#heatmap'), trades);
+  paintDiagMini(container, trades);
+}
+
+// Mini-Diagnóstico: los 5 avisos/insights más relevantes (rojo alerta, ámbar
+// aviso, verde insight), con enlace a la vista completa.
+function paintDiagMini(container, trades) {
+  const el = container.querySelector('#diagMini');
+  if (!el) return;
+  const a = buildAlerts(trades);
+  const rank = { danger: 0, warning: 1, success: 2 };
+  const all = [...a.tecAlertas, ...a.emoAlertas, ...a.planAlertas, ...a.tecInsights, ...a.emoInsights, ...a.planInsights]
+    .sort((x, y) => (rank[x.type] ?? 9) - (rank[y.type] ?? 9))
+    .slice(0, 5);
+  if (!all.length) {
+    el.innerHTML = `<div class="diag-row"><span class="diag-dot success"></span><div><b>Sin alertas</b><small>Todo en regla según tu plan.</small></div></div>`;
+    return;
+  }
+  el.innerHTML = all.map(x => `
+    <div class="diag-row">
+      <span class="diag-dot ${x.type}"></span>
+      <div><b>${escapeHtml(x.title || '')}</b>${x.body ? `<small>${escapeHtml(x.body)}</small>` : ''}</div>
+    </div>`).join('');
+}
+
+// Long vs Short compacto: WR + barra + nº trades + P&L por dirección, y una
+// mini-tabla WR Long/Short por estrategia (verde ≥ 50 %, rojo si no).
+function paintLongShort(container, trades) {
+  const el = container.querySelector('#lsBody');
+  if (!el) return;
+  const wrColor = (wr, n) => !n ? 'var(--muted)' : (wr >= 50 ? 'var(--green)' : 'var(--red)');
+  const dir = (label, d, realPnl) => `
+    <div class="ls-dir">
+      <div class="ls-dir-head"><b>${label}</b><span style="color:${wrColor(d.wr, d.n)}">${d.n ? fmtPctNoSign(d.wr) : '–'}</span></div>
+      <div class="ls-bar"><div style="width:${d.n ? Math.min(100, d.wr) : 0}%;background:${wrColor(d.wr, d.n)}"></div></div>
+      <div class="ls-dir-sub"><span>${d.n} trade${d.n === 1 ? '' : 's'}</span><span class="pnl-value">sist. ${fmtPct(d.pnl, 1)} · real ${fmtPct(realPnl, 1)}</span></div>
+    </div>`;
+  const all = longVsShort(trades);
+  const realLong = pnlPctReal(trades.filter(t => t.setup === 'LONG'));
+  const realShort = pnlPctReal(trades.filter(t => t.setup === 'SHORT'));
+  const rows = ['ZONAS', 'LIQUIDEZ', 'NASDAQ'].map(sheet => {
+    const d = longVsShort(trades.filter(t => t.sheet === sheet));
+    const cell = x => `<td style="color:${wrColor(x.wr, x.n)}">${x.n ? fmtPctNoSign(x.wr) : '–'}</td>`;
+    return `<tr><td><span class="strat-pill ${sheet.toLowerCase()}">${sheet.charAt(0) + sheet.slice(1).toLowerCase()}</span></td>${cell(d.long)}${cell(d.short)}</tr>`;
+  }).join('');
+  el.innerHTML = `
+    ${dir('Long', all.long, realLong)}
+    ${dir('Short', all.short, realShort)}
+    <table class="data-table ls-table"><thead><tr><th>WR</th><th>Long</th><th>Short</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 function paintDirectionAndPairs(container, trades) {
-  const ls = ['ZONAS', 'LIQUIDEZ', 'NASDAQ'].map(sheet => ({
-    label: sheet.charAt(0) + sheet.slice(1).toLowerCase(),
-    ...longVsShort(trades.filter(t => t.sheet === sheet)),
-  }));
-  createLongShort(container.querySelector('#lsChart'), ls);
+  paintLongShort(container, trades);
 
   // Pairs table — split EUR/USD by strategy when present in both ZONAS and LIQUIDEZ
   const pairKey = t => {
