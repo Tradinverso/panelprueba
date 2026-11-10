@@ -3,7 +3,7 @@
 // Todo se aplica al instante; la vista de debajo se repinta (los gráficos
 // leen los colores del tema al crearse).
 
-import { appearance, THEMES, ACCENTS, PNL, FONTS, CARD_STYLES, DENSITIES } from '../appearance.js';
+import { appearance, THEMES, ACCENTS, PNL, FONTS, CARD_STYLES, DENSITIES, NAV_STYLES } from '../appearance.js';
 import { router } from '../router.js';
 import { showToast } from './toast.js';
 
@@ -37,6 +37,7 @@ function onKey(e) { if (e.key === 'Escape') closeAppearancePanel(); }
 
 // Cambiar un ajuste → aplicar + repintar el panel (estado "on") + repintar la
 // vista con un pequeño retardo (varios clics seguidos = un solo repintado).
+// router.reload() también repinta barra superior, Mesa y pie (router.onChange).
 function change(patch) {
   appearance.set(patch);
   render();
@@ -72,6 +73,12 @@ function render() {
 
   const seg = (key, list) => `<div class="ap-seg">${list.map(([id, name]) =>
     `<button type="button" class="${p[key] === id ? 'on' : ''}" data-set="${key}" data-val="${id}">${name}</button>`).join('')}</div>`;
+
+  const toggle = (key, label, on) => `
+    <div class="ap-row">
+      <span>${label}</span>
+      <button type="button" class="ap-switch ${on ? 'on' : ''}" role="switch" aria-checked="${on ? 'true' : 'false'}" aria-label="${label}" data-toggle="${key}"><span></span></button>
+    </div>`;
 
   const fontOpts = FONTS.map(f => `
     <button type="button" class="ap-opt ${p.font === f.id ? 'on' : ''}" data-set="font" data-val="${f.id}">
@@ -119,9 +126,21 @@ function render() {
           <div class="ap-grid2">${fontOpts}</div>
         </div>
 
+        <div class="ap-grid2" style="gap:14px">
+          <div class="ap-sec">
+            <div class="ap-sec-title">Barra superior</div>
+            ${seg('nav', NAV_STYLES)}
+          </div>
+          <div class="ap-sec">
+            <div class="ap-sec-title">Densidad</div>
+            ${seg('density', DENSITIES)}
+          </div>
+        </div>
+
         <div class="ap-sec">
-          <div class="ap-sec-title">Densidad</div>
-          ${seg('density', DENSITIES)}
+          <div class="ap-sec-title">Paneles</div>
+          ${toggle('mesa', 'Mesa (columna izquierda) abierta', p.mesa)}
+          ${toggle('hidePnl', 'Ocultar importes de P&L', p.hidePnl)}
         </div>
 
         <button type="button" class="ap-reset" data-reset>Restaurar los de serie</button>
@@ -135,6 +154,8 @@ function render() {
   overlay.addEventListener('click', e => {
     const btn = e.target.closest('[data-set]');
     if (btn) { change({ [btn.dataset.set]: btn.dataset.val }); return; }
+    const tg = e.target.closest('[data-toggle]');
+    if (tg) { change({ [tg.dataset.toggle]: !appearance.get()[tg.dataset.toggle] }); return; }
     if (e.target.closest('[data-reset]')) {
       appearance.reset();
       render();

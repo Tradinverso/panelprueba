@@ -179,14 +179,14 @@
 
 /* Tarjeta Liquid Glass */
 :root[data-skin="glass"] .card, :root[data-skin="glass"] .kpi-card, :root[data-skin="glass"] .tile,
-:root[data-skin="glass"] #sidebar, :root[data-skin="glass"] .modal, :root[data-skin="glass"] .appearance-panel {
+:root[data-skin="glass"] .modal, :root[data-skin="glass"] .appearance-panel {
   background: linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.05) 35%, rgba(255,255,255,0.025) 65%, rgba(255,255,255,0.09) 100%);
   backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid rgba(255,255,255,0.16);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.40), inset 0 -1px 1px rgba(255,255,255,0.06), inset 0 0 22px rgba(255,255,255,0.03), 0 20px 45px rgba(0,0,0,0.35);
 }
 :root[data-skin="glassLight"] .card, :root[data-skin="glassLight"] .kpi-card, :root[data-skin="glassLight"] .tile,
-:root[data-skin="glassLight"] #sidebar, :root[data-skin="glassLight"] .modal, :root[data-skin="glassLight"] .appearance-panel {
+:root[data-skin="glassLight"] .modal, :root[data-skin="glassLight"] .appearance-panel {
   background: linear-gradient(135deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.42) 40%, rgba(255,255,255,0.30) 65%, rgba(255,255,255,0.62) 100%);
   backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid rgba(255,255,255,0.85);
@@ -197,12 +197,6 @@
 :root[data-skin] .card:has(.chart-wrap), :root[data-skin] .tile:has(.chart-wrap), :root[data-skin] .kpi-card:has(.chart-wrap) {
   backdrop-filter: none; -webkit-backdrop-filter: none;
 }
-/* Sidebar de cristal: sin radio (es una columna pegada al borde) */
-:root[data-skin="glass"] #sidebar, :root[data-skin="glassLight"] #sidebar { border-radius: 0; border-top: 0; border-bottom: 0; border-left: 0; box-shadow: none; }
-:root[data-skin] #sidebar { background: var(--surface); }
-:root[data-skin="glass"] #sidebar { background: rgba(255,255,255,0.06); }
-:root[data-skin="glassLight"] #sidebar { background: rgba(255,255,255,0.5); }
-
 /* Efecto "líquido": elevación al pasar y brillo que sigue al ratón (glass) */
 :root[data-skin] .kpi-card { transition: transform .45s cubic-bezier(.2,.9,.25,1.2), box-shadow .45s, border-color .2s; }
 :root[data-skin] .kpi-card:hover { transform: translateY(-3px) scale(1.012); border-color: var(--border-strong); }
@@ -300,14 +294,6 @@ select option { background: var(--surface); color: var(--text); }
 :root[data-skin] .page-header .sub { font-family: var(--font); font-size: 13px; }
 :root[data-skin] .page-header { border-bottom: 0; padding-bottom: 0; }
 
-/* Nav activa de la barra lateral: acento elegido */
-:root[data-skin] .nav-item.active { background: linear-gradient(90deg, var(--accent-bg), transparent 80%); }
-:root[data-skin] .nav-item.active::before { background: var(--accent); box-shadow: none; }
-:root[data-skin] .nav-item.active .nav-icon { background: var(--accent-bg); border-color: transparent; }
-:root[data-skin] .brand-logo { color: var(--accent); filter: none; }
-:root[data-skin] .formacion-cta { background: var(--accent-bg); border-color: transparent; }
-:root[data-skin] .formacion-cta .fc-icon { background: linear-gradient(140deg, var(--accent), var(--pos)); }
-:root[data-skin] .formacion-cta .fc-arrow { color: var(--accent); }
 :root[data-skin] ::selection { background: var(--accent-bg); }
 :root[data-skin] :focus-visible { outline-color: var(--accent); }
 
@@ -369,6 +355,11 @@ select option { background: var(--surface); color: var(--text); }
 .ap-seg button.on { background: var(--text); color: var(--bg); }
 :root[data-skin="glass"] .ap-seg button.on { color: #0b1020; }
 .ap-font-sample { font-size: 22px; font-weight: 600; }
+.ap-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 8px 10px; border-radius: 12px; background: var(--card2); }
+.ap-switch { width: 40px; height: 22px; border-radius: 99px; border: none; padding: 2px; display: flex; justify-content: flex-start; background: var(--line); cursor: pointer; transition: background .2s; }
+.ap-switch span { width: 18px; height: 18px; border-radius: 50%; background: #fff; display: block; transition: transform .2s; }
+.ap-switch.on { background: var(--accent); }
+.ap-switch.on span { transform: translateX(18px); }
 .ap-reset { border: 1px solid var(--line); background: transparent; color: var(--text); border-radius: 999px; padding: 10px; font-size: 13px; cursor: pointer; font-family: inherit; }
 .ap-reset:hover { background: var(--hover); }
 @media (max-width: 600px) { .appearance-overlay { padding: 0; } .appearance-panel { border-radius: 0; max-height: 100vh; } }

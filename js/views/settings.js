@@ -10,7 +10,7 @@ import { stampNow, slug, exportXlsx } from '../utils/sheet-export.js';
 import { TIMEZONES, tzLabel, guessTz } from '../utils/timezone.js';
 import { ajustesTabs } from '../components/ajustes-tabs.js';
 import { icon } from '../components/icons.js';
-import { renderSidebar } from '../components/sidebar.js';
+import { renderFooter } from '../components/footer.js';
 
 export function settingsView(container) {
   const inViewAs = !!state.viewAsUid;
@@ -264,7 +264,7 @@ export function settingsView(container) {
   const newsSel = container.querySelector('#newsSel');
   if (newsSel) newsSel.addEventListener('change', e => {
     storage.setNewsSource(e.target.value);
-    renderSidebar(document.getElementById('sidebar'));  // el acceso "Noticias" apunta a la nueva web
+    renderFooter(document.getElementById('footer'));  // el enlace "Calendario económico" del pie apunta a la nueva web
     flashOk(container, e.target.value === 'forexfactory' ? 'Noticias: ForexFactory' : 'Noticias: Investing.com');
   });
 

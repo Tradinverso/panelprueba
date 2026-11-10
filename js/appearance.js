@@ -49,8 +49,13 @@ export const FONTS = [
 export const CARD_STYLES = [['degradado', 'Degradado'], ['solido', 'Sólido'], ['cristal', 'Cristal']];
 export const DENSITIES = [['comfy', 'Cómodo'], ['compact', 'Compacto']];
 
+export const NAV_STYLES = [['pill', 'Píldora'], ['flat', 'Plano']];
+
 export const DEFAULTS = Object.freeze({
   theme: 'glass', accent: 'azul', pnl: 'clasico', cards: 'degradado', font: 'inter', density: 'comfy',
+  nav: 'pill',      // barra superior: píldora o plana
+  mesa: true,       // columna "Mesa" abierta (false = recogida en barrita)
+  hidePnl: false,   // enmascarar importes y porcentajes de P&L
 });
 
 let prefs = { ...DEFAULTS };
@@ -65,6 +70,9 @@ function sanitize(p) {
   if (CARD_STYLES.some(c => c[0] === p.cards)) out.cards = p.cards;
   if (FONTS.some(f => f.id === p.font)) out.font = p.font;
   if (DENSITIES.some(d => d[0] === p.density)) out.density = p.density;
+  if (NAV_STYLES.some(n => n[0] === p.nav)) out.nav = p.nav;
+  if (typeof p.mesa === 'boolean') out.mesa = p.mesa;
+  if (typeof p.hidePnl === 'boolean') out.hidePnl = p.hidePnl;
   return out;
 }
 
@@ -92,6 +100,11 @@ function applyDom() {
   root.setAttribute('data-cards', prefs.cards);
   root.setAttribute('data-font', prefs.font);
   root.setAttribute('data-density', prefs.density);
+  root.setAttribute('data-nav', prefs.nav);
+  if (document.body) {
+    document.body.classList.toggle('hide-pnl', !!prefs.hidePnl);
+    document.body.classList.toggle('mesa-closed', !prefs.mesa);
+  }
   // Esquema claro/oscuro: lo siguen leyendo las hojas antiguas y heatmap.js.
   theme.apply(t.dark ? 'dark' : 'light');
   const meta = document.querySelector('meta[name="theme-color"]');

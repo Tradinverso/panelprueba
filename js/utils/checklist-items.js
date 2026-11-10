@@ -69,7 +69,15 @@ export function dailyChecklistKey() {
 // ¿Está completo el checklist ACTUAL? Cada punto se comprueba en su ámbito:
 // los diarios contra la clave del día, los de sesión contra la del tramo.
 export function checklistCompleto() {
+  const p = checklistProgress();
+  return p.done === p.total;
+}
+
+// Puntos marcados / total del checklist actual (botón "Checklist n/5" y anillo
+// de la Mesa recogida).
+export function checklistProgress() {
   const tramo = storage.getChecklist(currentChecklistKey());
   const daily = storage.getChecklist(dailyChecklistKey());
-  return CHECKLIST_ITEMS.every((it, i) => (it.daily ? daily[i] : tramo[i]));
+  const done = CHECKLIST_ITEMS.filter((it, i) => (it.daily ? daily[i] : tramo[i])).length;
+  return { done, total: CHECKLIST_ITEMS.length };
 }

@@ -3,7 +3,6 @@ const KEYS = {
   theme: 'tradinverso_theme',
   url: 'tradinverso_apps_script_url',
   version: 'tradinverso_schema_version',
-  sidebar: 'tradinverso_sidebar_collapsed',
   news: 'tradinverso_news_source',
   checklist: 'tradinverso_checklist',
 };
@@ -29,13 +28,6 @@ export const storage = {
   },
   setTheme(t) {
     localStorage.setItem(KEYS.theme, t);
-  },
-  // Menú plegado a rail de iconos (solo escritorio; se recuerda entre sesiones).
-  getSidebarCollapsed() {
-    return localStorage.getItem(KEYS.sidebar) === '1';
-  },
-  setSidebarCollapsed(v) {
-    localStorage.setItem(KEYS.sidebar, v ? '1' : '0');
   },
   // Checklist pre-sesión: mapa {entries: {clave: [bool,...]}} donde conviven la
   // clave DIARIA ('YYYY-MM-DD|daily', ej. "he dormido bien") y la del TRAMO

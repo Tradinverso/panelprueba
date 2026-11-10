@@ -14,10 +14,12 @@ import { kpiCard, kpiCardComposite } from '../components/kpi-card.js';
 import { createEquity, createDonut, createBar, createHourBar, createDayBar, createLongShort } from '../components/charts.js';
 import { renderHeatmap } from '../components/heatmap.js';
 import { renderPills } from '../components/pills.js';
-import { openModal, closeModal } from '../components/modal.js';
 import { todayStatus } from '../utils/diagnostics.js';
-import { storage } from '../storage.js';
-import { CHECKLIST_ITEMS, currentChecklistKey, dailyChecklistKey, checklistCompleto } from '../utils/checklist-items.js';
+import { checklistProgress } from '../utils/checklist-items.js';
+import { openChecklistModal } from '../components/checklist-modal.js';
+import { periodStats, mondayOf } from '../utils/period-stats.js';
+import { todayLocal } from '../utils/timezone.js';
+import { appearance } from '../appearance.js';
 import {
   newPeriod, monthsOf, inPeriod, clampPeriod, periodHtml, wirePeriod, prevPeriod,
 } from '../components/period-filter.js';
@@ -51,22 +53,32 @@ function render(container) {
   container.innerHTML = impersonationBanner() + renderShell(allTrades, filtered);
   wireImpersonation(container);
 
-  // Semáforo "Checklist pendiente": pulsable → abre el modal del checklist
+  // Botón "Checklist n/5": abre el pop-up; al cerrarlo se repinta (contador y color).
   const chkBtn = container.querySelector('#semaforoChk');
-  if (chkBtn) chkBtn.addEventListener('click', () => openChecklistModal(container));
+  if (chkBtn) chkBtn.addEventListener('click', () => openChecklistModal(() => {
+    const b = container.querySelector('#semaforoChk');
+    if (b) b.outerHTML = checklistChip();
+    container.querySelector('#semaforoChk')?.addEventListener('click', () => chkBtn.click());
+  }));
 
   wirePeriod(container, dashPeriod, () => render(container), { idFrom: 'dashFrom', idTo: 'dashTo' });
 
-  // Toggle Sistema/Real
+  // Toggle Sistema 1R / Real (en la franja Pulso): cambia todas las cifras de P&L.
   const perfToggleEl = container.querySelector('#perfToggle');
   if (perfToggleEl) {
     renderPills(perfToggleEl, {
       name: 'perfMode',
-      options: [{ value: 'sistema', label: 'Sistema' }, { value: 'real', label: 'Real' }],
+      options: [{ value: 'sistema', label: 'Sistema 1R' }, { value: 'real', label: 'Real' }],
       value: perfMode,
       onChange: v => { perfMode = v; render(container); },
     });
   }
+  // Ocultar / mostrar importes de P&L (preferencia de Apariencia)
+  const hideBtn = container.querySelector('#pulseHide');
+  if (hideBtn) hideBtn.addEventListener('click', () => {
+    appearance.set({ hidePnl: !appearance.get().hidePnl });
+    render(container);
+  });
 
   // KPIs y tablas (HTML puro) se pintan ya.
   paintKpis(container, filtered, allTrades);
@@ -209,12 +221,11 @@ function renderShell(allTrades, filtered) {
       </div>
     </div>
 
+    ${pulseStrip(allTrades)}
+
     <div class="kpi-grid" id="kpis"></div>
 
-    <div class="section-title-row">
-      <div class="section-title" style="margin:0;">Rendimiento</div>
-      <div class="perf-toggle" id="perfToggle"></div>
-    </div>
+    <div class="section-title">Rendimiento</div>
     <div class="grid-2-1">
       <div class="card">
         <div class="card-head">
@@ -396,64 +407,59 @@ function semaforoPill(allTrades) {
   return `<a class="semaforo ${s.level}" href="#/diagnostico" title="${escapeHtml(title)}">${cfg.dot} ${cfg.label}</a>`;
 }
 
-// Chip del checklist: siempre visible (salvo viewAs) y siempre pulsable.
-// Pendiente = gris llamando a la acción · Hecho = verde discreto.
+// Botón del checklist: "☐ Checklist n/5" en ámbar mientras esté incompleto,
+// "✓ Checklist completo" en verde al terminarlo. Abre el pop-up (checklist-modal.js).
 function checklistChip() {
   if (state.viewAsUid) return '';
-  const hecho = checklistCompleto();
+  const p = checklistProgress();
+  const hecho = p.done === p.total;
   return `<button class="chk-chip ${hecho ? 'done' : 'pending'}" id="semaforoChk"
             title="${hecho ? 'Checklist de esta sesión completado — pulsa para verlo' : 'Pulsa para abrir el checklist pre-sesión'}">
-            ${hecho ? '✓ Checklist' : '☐ Checklist pendiente'}
+            ${hecho ? '✓ Checklist completo' : `☐ Checklist ${p.done}/${p.total}`}
           </button>`;
 }
 
-// ── Checklist pre-sesión (modal) ─────────────────────────────
-// El checklist ya no ocupa el dashboard: vive en la pastilla del semáforo.
-// Al pulsar "Checklist pendiente" se abre este modal; al marcar los 5 puntos
-// se cierra solo y el semáforo pasa a verde. El estado se guarda por TRAMO
-// (currentChecklistKey): se reactiva a medianoche y en las aperturas de
-// Londres y NY, porque hay quien opera dos sesiones.
-function openChecklistModal(container) {
-  const tramoKey = currentChecklistKey();
-  const dailyKey = dailyChecklistKey();
-  const tramoDone = storage.getChecklist(tramoKey);
-  const dailyDone = storage.getChecklist(dailyKey);
-  const marcado = (it, i) => (it.daily ? dailyDone[i] : tramoDone[i]);
-  // SIEMPRE se muestran los 5 puntos. Los diarios ("he dormido bien") ya
-  // respondidos hoy salen pre-marcados — nunca se ocultan: si desaparecieran,
-  // el alumno no sabría por qué (pasó: se marcó tras medianoche y "no estaba").
-  const body = `
-    <div class="card-sub" style="margin-bottom:14px;">
-      Marca los puntos antes de operar. Se reactiva cada día y en las aperturas de Londres y Nueva York.
-    </div>
-    <div class="checklist-items" style="flex-direction:column;gap:12px;">
-      ${CHECKLIST_ITEMS.map((it, i) => `
-        <label class="chk-item ${marcado(it, i) ? 'checked' : ''}">
-          <input type="checkbox" data-chk="${i}" ${marcado(it, i) ? 'checked' : ''}>
-          <span>${it.text}${it.daily ? ' <small style="color:var(--dim);">(una vez al día)</small>' : ''}</span>
-        </label>`).join('')}
+// ── Franja "Pulso" ───────────────────────────────────────────
+// Una sola tarjeta con 4 columnas (hoy · esta semana · mes · últimas 4
+// semanas) + selector Sistema 1R / Real + Ocultar P&L. Sustituye al número
+// hero. Siempre sobre TODOS los trades (el filtro Desde/Hasta no le afecta).
+function pulseStrip(allTrades) {
+  const today = todayLocal(auth.timezone());
+  const monday = mondayOf(today);
+  const monthStart = today.substring(0, 7) + '-01';
+  const d28 = new Date(today + 'T12:00:00'); d28.setDate(d28.getDate() - 27);
+  const from28 = d28.toISOString().substring(0, 10);
+  const cuentas = state.cuentas;
+  const hoy = periodStats(allTrades, cuentas, today, today);
+  const sem = periodStats(allTrades, cuentas, monday, today);
+  const mes = periodStats(allTrades, cuentas, monthStart, today);
+  const w4 = periodStats(allTrades, cuentas, from28, today);
+  const histWr = winrate(allTrades);
+  const pnlOf = s => perfMode === 'real' ? s.pnlReal : s.pnlSistema;
+  const tone = v => v > 0 ? 'green' : (v < 0 ? 'red' : '');
+  const mesNombre = new Date(today + 'T12:00:00').toLocaleDateString('es-ES', { month: 'long' });
+  const wrTxt = s => s.tp + s.sl > 0 ? `${s.wr.toFixed(0)}% WR` : 'sin WR';
+  const nTr = n => `${n} trade${n === 1 ? '' : 's'}`;
+  const w4Delta = w4.tp + w4.sl > 0 ? w4.wr - histWr : null;
+  const hide = appearance.get().hidePnl;
+  const col = (label, value, sub, cls = '') => `
+    <div class="pulse-col">
+      <div class="pulse-label">${label}</div>
+      <div class="pulse-val ${cls} pnl-value">${value}</div>
+      <div class="pulse-sub">${sub}</div>
     </div>`;
-  openModal({
-    title: 'Checklist pre-sesión',
-    body,
-    actions: [{ label: 'Cerrar', onClick: close => { close(); render(container); } }],
-  });
-  const root = document.getElementById('modal-root');
-  root.querySelectorAll('[data-chk]').forEach(input => {
-    input.addEventListener('change', () => {
-      const i = +input.dataset.chk;
-      const esDiario = CHECKLIST_ITEMS[i].daily;
-      const key = esDiario ? dailyKey : tramoKey;
-      const d = storage.getChecklist(key);
-      d[i] = input.checked;
-      storage.setChecklist(key, d);
-      input.closest('.chk-item').classList.toggle('checked', input.checked);
-      if (checklistCompleto()) {
-        closeModal();
-        render(container);   // semáforo a verde al instante
-      }
-    });
-  });
+  return `
+    <div class="card pulse">
+      ${col('Hoy', hoy.count ? fmtPct(pnlOf(hoy)) : '0 trades', hoy.count ? `${nTr(hoy.count)} · ${hoy.tp} TP · ${hoy.sl} SL` : 'Sin trades aún', hoy.count ? tone(pnlOf(hoy)) : 'muted')}
+      ${col('Esta semana', sem.count ? fmtPct(pnlOf(sem)) : '—', sem.count ? `${nTr(sem.count)} · ${wrTxt(sem)}` : 'Sin trades esta semana', tone(pnlOf(sem)))}
+      ${col(mesNombre, mes.count ? fmtPct(pnlOf(mes)) : '—', mes.count ? `${nTr(mes.count)} · ${wrTxt(mes)}` : 'Sin trades este mes', tone(pnlOf(mes)))}
+      ${col('Últimas 4 semanas', w4.tp + w4.sl > 0 ? `${w4.wr.toFixed(0)}% WR` : '—',
+            w4Delta == null ? 'Sin trades' : `vs ${histWr.toFixed(0)}% histórico · ${w4Delta >= 1 ? 'mejorando' : (w4Delta <= -1 ? 'empeorando' : 'estable')}`, 'blue')}
+      <div class="pulse-tools">
+        <div class="perf-toggle" id="perfToggle"></div>
+        <button type="button" class="pulse-hide" id="pulseHide">${hide ? 'Mostrar P&L' : 'Ocultar P&L'}</button>
+      </div>
+    </div>`;
 }
 
 // Año que muestra el gráfico mensual, o null = todo el histórico.

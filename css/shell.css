@@ -1,0 +1,207 @@
+/* ════════════════════════════════════════════════════════════════
+   Estructura de la página (rediseño nov 2026):
+
+   ┌──────────────────────────────────────────────────────────────┐
+   │ #topbar: logo · navegación en píldora · reloj · Apariencia   │
+   ├──────────────┬───────────────────────────────────────────────┤
+   │ #mesa 260px  │ #view (contenedor redondeado, fondo page-bg)  │
+   │ sticky       │                                               │
+   ├──────────────┴───────────────────────────────────────────────┤
+   │ #footer: versión · Formación · Calendario económico · Ajustes│
+   └──────────────────────────────────────────────────────────────┘
+   ════════════════════════════════════════════════════════════════ */
+
+body {
+  display: flex; flex-direction: column; min-height: 100vh;
+  padding: 14px; gap: 14px;
+}
+#topbar, #shell, #footer { position: relative; z-index: 1; }
+#shell { display: flex; gap: 14px; align-items: flex-start; flex: 1; }
+#mesa { flex: 0 0 260px; min-width: 240px; position: sticky; top: 14px; max-height: calc(100vh - 28px); overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+body.mesa-closed #mesa { flex: 0 0 58px; min-width: 58px; }
+#view {
+  flex: 1 1 560px; min-width: 0;
+  border-radius: 28px; border: 1px solid var(--line); background: var(--page-bg);
+  padding: var(--pad, 20px) calc(var(--pad, 20px) + 2px);
+}
+:root[data-skin="glass"] #view { backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+#mesa:empty, #topbar:empty, #footer:empty { display: none; }
+
+/* ── Barra superior ─────────────────────────────────────────── */
+#topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; z-index: 5; }
+.tb-brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; }
+.tb-logo { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--accent), var(--pos)); color: #fff; }
+.tb-logo svg { width: 26px; height: 26px; }
+.tb-brand-text { font-weight: 700; font-size: 17px; letter-spacing: -0.02em; white-space: nowrap; }
+.tb-test { color: var(--orange); font-size: 10px; letter-spacing: .12em; vertical-align: middle; margin-left: 4px; }
+
+.tb-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 4px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); }
+:root[data-nav="flat"] .tb-nav { background: transparent; border-color: transparent; }
+:root[data-skin="glass"] .tb-nav { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 30px rgba(0,0,0,0.3); }
+:root[data-skin="glassLight"] .tb-nav { background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.85); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 10px 30px rgba(0,0,0,0.08); }
+.tb-item {
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  padding: 7px 11px; border-radius: 999px; font-size: 13px; font-weight: 500;
+  color: var(--muted); text-decoration: none; transition: background var(--dur), color var(--dur);
+}
+.tb-item:hover { color: var(--text); background: var(--hover); }
+.tb-item.active { background: var(--text); color: var(--bg); font-weight: 600; }
+:root[data-skin="glass"] .tb-item.active { color: #0b1020; }
+.tb-sep { width: 1px; height: 18px; background: var(--line); margin: 0 4px; }
+.tb-badge { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--card2); color: var(--muted); }
+.tb-item.active .tb-badge { background: rgba(0,0,0,0.12); color: inherit; }
+.tb-badge.danger { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }
+
+.tb-right { display: flex; align-items: center; gap: 8px; }
+.tb-clock {
+  display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text);
+  padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.tb-clock svg { width: 15px; height: 15px; color: var(--accent); }
+.tb-clock-hora { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+.tb-clock-fecha { font-size: 11px; color: var(--muted); }
+.tb-clock.warn { border-color: var(--orange); color: var(--orange); }
+.tb-clock.warn svg { color: var(--orange); }
+.tb-tool {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer; text-decoration: none;
+  border: 1px solid var(--line); background: var(--card); color: var(--text);
+  border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 500; font-family: inherit;
+  transition: background var(--dur), border-color var(--dur);
+}
+.tb-tool:hover { background: var(--hover); border-color: var(--border-strong); }
+.tb-tool.tb-icon { width: 36px; height: 36px; padding: 0; justify-content: center; }
+.tb-tool.tb-icon svg { width: 16px; height: 16px; }
+.tb-tool.tb-icon.active { background: var(--text); color: var(--bg); }
+.tb-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.tb-avatar {
+  width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--card); border: 1px solid var(--line); font-size: 11px; font-weight: 700; color: var(--text); text-decoration: none;
+}
+.tb-viewas {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-family: inherit;
+  padding: 7px 12px; border-radius: 999px; font-size: 12px;
+  background: var(--orange-bg); border: 1px solid var(--orange); color: var(--orange);
+}
+.tb-viewas svg { width: 14px; height: 14px; }
+.tb-viewas strong { color: var(--text); }
+
+/* ── Mesa abierta ───────────────────────────────────────────── */
+.mesa-head { display: flex; justify-content: space-between; align-items: center; padding: 2px 4px; }
+.mesa-title { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.mesa-toggle { border: none; background: transparent; color: var(--muted); font-size: 12px; padding: 0; cursor: pointer; font-family: inherit; }
+.mesa-toggle:hover { color: var(--text); }
+.mesa-card { display: flex; flex-direction: column; gap: 16px; padding: var(--pad, 20px); }
+.mesa-block { display: flex; flex-direction: column; gap: 10px; }
+.mesa-block-head { display: flex; justify-content: space-between; align-items: baseline; }
+.mesa-block-head h2 { margin: 0; font-size: 13px; font-weight: 600; }
+.mesa-label { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.mesa-muted { font-size: 10px; color: var(--muted); }
+.mesa-link { font-size: 11px; color: var(--muted); text-decoration: none; }
+.mesa-link:hover { color: var(--text); }
+.mesa-sep { height: 1px; background: var(--line); }
+.mesa-acc { display: flex; flex-direction: column; gap: 5px; }
+.mesa-acc-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.mesa-acc-row.sub { font-size: 11px; color: var(--muted); font-weight: 400; }
+.mesa-acc-name { display: flex; align-items: center; gap: 7px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mesa-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; background: var(--green); }
+.mesa-dot.bad { background: var(--red); }
+.mesa-acc-pct { font-variant-numeric: tabular-nums; }
+.mesa-bar { height: 3px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.mesa-bar div { height: 3px; border-radius: 99px; background: var(--accent); }
+.mesa-empty { font-size: 12px; color: var(--muted); }
+.mesa-empty a { color: var(--accent); text-decoration: none; }
+.mesa-rule { font-size: 14px; font-weight: 600; line-height: 1.4; }
+.mesa-rule-sub { font-size: 11px; color: var(--muted); }
+
+/* ── Mesa recogida (barrita de 58 px) ───────────────────────── */
+.mesa-rail { box-sizing: border-box; width: 58px; padding: 12px 0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.mesa-rail-open { width: 38px; height: 38px; border-radius: 12px; border: none; background: var(--text); color: var(--bg); font-size: 16px; font-weight: 700; cursor: pointer; }
+:root[data-skin="glass"] .mesa-rail-open { color: #0b1020; }
+.mesa-rail-title { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.mesa-pill { width: 40px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; border-radius: 10px; background: var(--card2); }
+.mesa-pill-abbr { font-size: 9px; font-weight: 700; letter-spacing: .04em; }
+.mesa-pill-bar { width: 22px; height: 4px; border-radius: 99px; }
+.mesa-pill-sl { font-size: 9px; color: var(--muted); }
+.mesa-rail .mesa-sep { width: 26px; height: 1px; }
+.mesa-ring { width: 40px; height: 40px; border-radius: 50%; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.mesa-ring span { width: 30px; height: 30px; border-radius: 50%; background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: var(--text); }
+
+/* ── Pie ────────────────────────────────────────────────────── */
+#footer { display: flex; justify-content: flex-end; align-items: center; gap: 18px; font-size: 12px; color: var(--muted); padding: 0 6px; flex-wrap: wrap; }
+.ft-ver { margin-right: auto; font-size: 11px; color: var(--dim); }
+.ft-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; }
+.ft-link:hover { color: var(--text); }
+.ft-link svg { width: 13px; height: 13px; }
+
+/* ── Franja Pulso (Dashboard) ───────────────────────────────── */
+.pulse { display: flex; align-items: stretch; gap: 0; padding: 14px 6px; margin-bottom: var(--gap, 16px); overflow-x: auto; }
+.pulse-col { flex: 1 1 0; min-width: 130px; padding: 4px 18px; border-left: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; }
+.pulse-col:first-child { border-left: 0; }
+.pulse-label { font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 600; white-space: nowrap; }
+.pulse-val { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; color: var(--text); white-space: nowrap; }
+.pulse-val.green { color: var(--green); } .pulse-val.red { color: var(--red); }
+.pulse-val.blue { color: var(--blue-txt); } .pulse-val.muted { color: var(--muted); }
+.pulse-sub { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.pulse-tools { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 8px; padding: 0 12px 0 18px; border-left: 1px solid var(--line); }
+.pulse-hide { border: none; background: transparent; color: var(--muted); font-size: 11px; cursor: pointer; font-family: inherit; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
+.pulse-hide:hover { color: var(--text); }
+
+/* Ocultar importes de P&L: los valores se desenfocan (KPIs, Pulso, Mesa,
+   tarjetas de cuenta y celdas de P&L). Pasar el ratón no los revela. */
+body.hide-pnl .pnl-value, body.hide-pnl .kpi-value, body.hide-pnl .cuenta-equity,
+body.hide-pnl .mini-stat-val, body.hide-pnl .stat-value, body.hide-pnl .cal-pnl, body.hide-pnl .cal-day-pnl {
+  filter: blur(7px); user-select: none;
+}
+
+/* ── Pop-up del checklist ───────────────────────────────────── */
+.chk-progress { margin-bottom: 14px; }
+.chk-progress-head { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 6px; }
+.chk-progress-bar { height: 6px; border-radius: 99px; background: var(--card2); overflow: hidden; }
+.chk-progress-bar div { height: 6px; border-radius: 99px; background: var(--accent); transition: width .25s; }
+.chk-progress-bar div.done { background: var(--green); }
+.chk-list { display: flex; flex-direction: column; gap: 8px; }
+.chk-row {
+  display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 8px 12px; border-radius: 14px;
+  background: var(--card2); border: 1px solid transparent; color: var(--text); cursor: pointer; text-align: left; font-family: inherit; font-size: 13.5px;
+  transition: background var(--dur), border-color var(--dur);
+}
+.chk-row:hover { border-color: var(--border-strong); }
+.chk-row .chk-box { width: 22px; height: 22px; border-radius: 7px; border: 1.5px solid var(--border-strong); display: flex; align-items: center; justify-content: center; font-size: 13px; color: transparent; flex: none; }
+.chk-row.on { background: var(--accent-bg); }
+.chk-row.on .chk-box { background: var(--accent); border-color: var(--accent); color: #fff; }
+.chk-row.on .chk-text { color: var(--muted); text-decoration: line-through; }
+.chk-text small { color: var(--dim); }
+.chk-tools { display: flex; gap: 8px; margin-top: 14px; }
+
+/* ── Login (sin barra, Mesa ni pie) ─────────────────────────── */
+body[data-auth="false"] #topbar, body[data-auth="false"] #mesa, body[data-auth="false"] #footer { display: none; }
+body[data-auth="false"] #view { border: 0; background: transparent; padding: 0; }
+
+/* ── Pantallas estrechas ────────────────────────────────────── */
+/* Hasta ~1540 px no caben logo + 11 apartados + reloj en una fila: la
+   navegación pasa a una segunda fila, centrada; logo y herramientas arriba. */
+@media (max-width: 1540px) {
+  .tb-nav { order: 3; margin: 0 auto; }
+  .tb-brand { margin-right: auto; }
+}
+@media (max-width: 1100px) {
+  .tb-clock-fecha { display: none; }
+  .tb-appearance span + * { display: none; }
+}
+@media (max-width: 900px) {
+  body { padding: 10px; gap: 10px; }
+  #topbar { gap: 8px; }
+  .tb-nav { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; scrollbar-width: none; order: 3; flex-basis: 100%; }
+  .tb-nav::-webkit-scrollbar { display: none; }
+  .tb-brand-text { font-size: 15px; }
+  .tb-appearance { padding: 8px 10px; }
+  .tb-appearance { font-size: 0; gap: 0; }
+  #shell { flex-direction: column; gap: 10px; }
+  #mesa, body.mesa-closed #mesa { position: static; max-height: none; flex: none; width: 100%; min-width: 0; }
+  body.mesa-closed .mesa-rail { width: 100%; flex-direction: row; justify-content: flex-start; padding: 8px 10px; gap: 10px; }
+  .mesa-rail-title { writing-mode: horizontal-tb; transform: none; }
+  .mesa-rail .mesa-sep { width: 1px; height: 26px; }
+  #view { padding: 16px 12px; border-radius: 20px; }
+  .pulse-tools { padding-left: 12px; }
+}

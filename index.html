@@ -27,15 +27,18 @@
 <link rel="stylesheet" href="css/contabilidad.css">
 <link rel="stylesheet" href="css/ui.css">
 <link rel="stylesheet" href="css/skins.css">
+<link rel="stylesheet" href="css/shell.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 </head>
 <body>
   <!-- Manchas de luz del tema Liquid Glass (solo se ven en los temas glass) -->
   <div class="tvbg" aria-hidden="true"><div class="b1"></div><div class="b2"></div><div class="b3"></div></div>
-  <button id="navToggle" class="nav-toggle" aria-label="Abrir menú">☰</button>
-  <div id="navScrim" class="nav-scrim"></div>
-  <aside id="sidebar"></aside>
-  <main id="view"></main>
+  <header id="topbar"></header>
+  <div id="shell">
+    <aside id="mesa"></aside>
+    <main id="view"></main>
+  </div>
+  <footer id="footer"></footer>
   <div id="modal-root"></div>
   <script type="module" src="js/app.js"></script>
 </body>

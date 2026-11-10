@@ -5,7 +5,9 @@ import { auth } from './auth.js';
 import { state } from './state.js';
 import { appearance } from './appearance.js';
 import { router } from './router.js';
-import { renderSidebar } from './components/sidebar.js';
+import { renderTopbar } from './components/topbar.js';
+import { renderMesa } from './components/mesa.js';
+import { renderFooter } from './components/footer.js';
 import { maybeShowMigrationPrompt } from './components/migrate-modal.js';
 
 import { dashboardView } from './views/dashboard.js';
@@ -40,14 +42,17 @@ appearance.onChange(p => {
 });
 
 const view = document.getElementById('view');
-const sidebar = document.getElementById('sidebar');
+const topbar = document.getElementById('topbar');
+const mesa = document.getElementById('mesa');
+const footer = document.getElementById('footer');
 
-// ── Sidebar móvil (off-canvas con hamburguesa) ──────────────
-const navToggle = document.getElementById('navToggle');
-const navScrim = document.getElementById('navScrim');
-const closeNav = () => document.body.classList.remove('sidebar-open');
-if (navToggle) navToggle.addEventListener('click', () => document.body.classList.toggle('sidebar-open'));
-if (navScrim) navScrim.addEventListener('click', closeNav);
+// "Chrome" de la app: barra superior + Mesa + pie. Se repintan con cada ruta
+// (ítem activo, cuentas, reloj) y al cambiar auth/state (cada uno se suscribe).
+function renderChrome() {
+  renderTopbar(topbar);
+  renderMesa(mesa);
+  renderFooter(footer);
+}
 
 // Splash mientras Firebase resuelve la sesión inicial
 showSplash();
@@ -83,7 +88,7 @@ router
   .add('#/bt-no-tomados', (_, c) => backtestView(c, 'NO_TOMADOS'))
   .add('#/bt-importar', (_, c) => backtestImportView(c));
 
-router.onChange(() => { renderSidebar(sidebar); closeNav(); });
+router.onChange(() => renderChrome());
 
 // Cuando cambia el estado de auth: cargar datos + arrancar router
 let started = false;
@@ -99,7 +104,7 @@ auth.on(async () => {
     state.viewAsProfile = null;
     state.readOnly = false;
     state.emit();
-    renderSidebar(sidebar);
+    renderChrome();
     if (!started) { router.start(view, '#/login'); started = true; }
     else { router.go('#/login'); }
     lastUid = null;
@@ -116,7 +121,7 @@ auth.on(async () => {
     maybeShowMigrationPrompt();
   }
 
-  renderSidebar(sidebar);
+  renderChrome();
 
   if (!started) {
     router.start(view, auth.isAdmin() ? '#/admin' : '#/dashboard');

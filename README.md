@@ -3,7 +3,7 @@
 SPA local de trading journal y dashboard para David Rosell y la academia Tradinverso.
 
 Reemplaza el dashboard estático `v17.html` con una app completa de:
-- Dashboard con KPIs, equity, mensual, por estrategia, timing, heatmap, rachas y duración
+- Dashboard con franja Pulso (hoy, semana, mes, últimas 4 semanas), KPIs, equity, mensual, por estrategia, timing, heatmap, rachas y duración
 - Formulario de entrada de trades con campos dinámicos por estrategia
 - Vistas dedicadas para Zonas, Liquidez y Nasdaq
 - Calendario interactivo
@@ -97,7 +97,10 @@ tradinverso/
       import-table.js     tabla editable + paste-from-Excel
       settings.js         ajustes + export/wipe
     components/
-      sidebar.js          nav lateral + botón Apariencia
+      topbar.js           barra superior: navegación en píldora, reloj, Apariencia, avatar
+      mesa.js             columna "Mesa": cuentas activas, regla del día; recogible a barrita
+      footer.js           pie: Formación, Calendario económico, Ajustes
+      checklist-modal.js  pop-up del checklist pre-sesión
       appearance-panel.js panel Apariencia (tema, acento, TP/SL, letra, densidad)
       toast.js            toast de confirmación
       pills.js            selector de pills
