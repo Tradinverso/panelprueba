@@ -220,6 +220,9 @@ export async function restoreBackup(data, mode = 'merge', onProgress = () => {})
     if (s.profile) {
       try { await sync.updateProfile(s.uid, s.profile); } catch (e) { console.warn('profile fallo', s.uid, e.message); }
     }
+    // Doc padre users/{uid}: sin él el alumno no aparece en ningún listado
+    // (en un proyecto nuevo o vacío no existe hasta que alguien lo crea).
+    try { await sync.ensureUserStub(s.uid, s.profile?.email); } catch (e) { console.warn('stub users/{uid} fallo', s.uid, e.message); }
 
     // Trades en batch
     if (Array.isArray(s.trades) && s.trades.length) {

@@ -38,6 +38,15 @@ export const sync = {
     await setDoc(doc(db, 'users', uid, 'profile', 'data'), patch, { merge: true });
   },
 
+  // Stub en users/{uid}: Firestore NO lista en getDocs(collection('users')) los
+  // documentos "padre" que solo tienen subcolecciones y ningún campo propio. Sin
+  // este doc el alumno existe (profile, trades…) pero no sale en Mis Alumnos ni
+  // en el Admin. Lo crea createStudent al dar de alta; aquí se repone al
+  // restaurar un backup en un proyecto vacío (p. ej. el de pruebas).
+  async ensureUserStub(uid, email) {
+    await setDoc(doc(db, 'users', uid), { uid, email: email || '' }, { merge: true });
+  },
+
   // PAUSAR el acceso de un alumno (p. ej. deja de pagar): marca su profile como
   // bloqueado. No borra nada (trades, cuentas, reflexiones se conservan). No
   // puede entrar, y las reglas de Firestore le cierran sus datos hasta que se
