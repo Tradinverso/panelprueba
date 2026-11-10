@@ -33,6 +33,7 @@ export const ICONS = {
   aviso:     svg('<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/>'),
   luna:      svg('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>'),
   sol:       svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
+  paleta:    svg('<path d="M12 21a9 9 0 1 1 0-18c5 0 9 3.6 9 8a4 4 0 0 1-4 4h-1.5a1.5 1.5 0 0 0-1 2.6c.4.4.5.9.5 1.4a2 2 0 0 1-2 2Z"/><circle cx="7.5" cy="12.5" r="1"/><circle cx="10" cy="8" r="1"/><circle cx="14.5" cy="8" r="1"/><circle cx="17" cy="12" r="1"/>'),
   salir:     svg('<path d="M18.4 6.6a9 9 0 1 1-12.8 0"/><path d="M12 2v10"/>'),
   colapsar:  svg('<path d="m15 18-6-6 6-6"/>'),
   volver:    svg('<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>'),

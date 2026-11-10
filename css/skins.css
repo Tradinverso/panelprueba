@@ -1,0 +1,367 @@
+/* ════════════════════════════════════════════════════════════════
+   Apariencia — temas ("skins"), acento, colores TP/SL, tarjetas,
+   tipografía y densidad. Rediseño de nov 2026 (propuesta de Pablo).
+
+   Cómo funciona:
+   - <html data-theme="dark|light">  → esquema (lo que ya existía; las
+     hojas antiguas y heatmap.js siguen leyéndolo).
+   - <html data-skin="midnight|onyx|platinum|light|glass|glassLight">
+     → paleta de superficies. Sobrescribe los tokens de themes.css.
+   - <html data-accent="azul|cian|esmeralda|ambar|violeta|mono">
+   - <html data-pnl="clasico|daltonico|mono">   → colores TP / SL
+   - <html data-cards="degradado|solido|cristal"> (no afecta a los glass)
+   - <html data-font="inter|geist|jetbrains|fraunces">
+   - <html data-density="comfy|compact">
+   Todo se aplica desde js/appearance.js.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Tokens nuevos (con valores por defecto = tema oscuro actual) ── */
+:root {
+  --frame: var(--bg);              /* fondo exterior (marco) */
+  --page-bg: var(--bg);            /* fondo del contenedor principal */
+  --line: var(--border);
+  --card-radius: 24px;
+  --card-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 12px 30px rgba(0,0,0,0.35);
+  --card-bg: var(--card);          /* fondo real de la tarjeta (según data-cards) */
+  --pad: 20px;                     /* padding de tarjeta (densidad) */
+  --gap: 16px;                     /* separación entre tarjetas (densidad) */
+  --kpi-pad: 22px 20px 20px;
+  --warn: #fbbf24;
+  --purple: #c084fc;
+  --blue-txt: #60a5fa;
+  --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+}
+:root[data-theme="light"] {
+  --card-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 10px 30px rgba(15,23,42,0.06);
+  --warn: #b45309;
+  --purple: #7e22ce;
+  --blue-txt: #1d4ed8;
+}
+
+/* ── Temas ──────────────────────────────────────────────────── */
+/* Midnight · negro puro */
+:root[data-skin="midnight"] {
+  --frame: #050506; --bg: #0c0c0e; --page-bg: #0c0c0e;
+  --surface: #121214; --card: #151518; --card2: #1d1d21;
+  --text: #f4f4f5; --text-strong: #ffffff; --muted: #a1a1aa; --dim: #71717a;
+  --border: rgba(255,255,255,0.08); --line: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.16); --hover: rgba(255,255,255,0.05);
+  --glass: #151518; --glass-2: rgba(255,255,255,0.04); --glass-border: rgba(255,255,255,0.14);
+}
+/* Onyx · marco negro, página gris */
+:root[data-skin="onyx"] {
+  --frame: #0d0d0f; --bg: #1b1b1f; --page-bg: #1b1b1f;
+  --surface: #202024; --card: #25252a; --card2: #2e2e34;
+  --text: #f4f4f5; --text-strong: #ffffff; --muted: #a8a8b0; --dim: #7a7a84;
+  --border: rgba(255,255,255,0.09); --line: rgba(255,255,255,0.09);
+  --border-strong: rgba(255,255,255,0.18); --hover: rgba(255,255,255,0.05);
+  --glass: #25252a; --glass-2: rgba(255,255,255,0.04); --glass-border: rgba(255,255,255,0.16);
+}
+/* Platinum · gris mate (claro) */
+:root[data-skin="platinum"] {
+  --frame: #cfcfd4; --bg: #e5e5e8; --page-bg: #e5e5e8;
+  --surface: #f6f6f7; --card: #f6f6f7; --card2: #ebebee;
+  --text: #18181b; --text-strong: #09090b; --muted: #52525b; --dim: #86868f;
+  --border: rgba(0,0,0,0.08); --line: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.16); --hover: rgba(0,0,0,0.04);
+  --glass: #f6f6f7; --glass-2: rgba(255,255,255,0.6); --glass-border: rgba(0,0,0,0.12);
+}
+/* Light · blanco limpio */
+:root[data-skin="light"] {
+  --frame: #e9ecf4; --bg: #f4f6fb; --page-bg: #f4f6fb;
+  --surface: #ffffff; --card: #ffffff; --card2: #f1f3f8;
+  --text: #111827; --text-strong: #030712; --muted: #4b5563; --dim: #8b93a5;
+  --border: rgba(15,23,42,0.08); --line: rgba(15,23,42,0.08);
+  --border-strong: rgba(15,23,42,0.16); --hover: rgba(15,23,42,0.04);
+  --glass: #ffffff; --glass-2: rgba(255,255,255,0.6); --glass-border: rgba(15,23,42,0.12);
+}
+/* Liquid Glass · cristal sobre luz de color (oscuro) — POR DEFECTO */
+:root[data-skin="glass"] {
+  --frame: radial-gradient(circle at 15% 0%, #1b2440 0%, #070a14 55%, #05060b 100%);
+  --bg: #0b1020; --page-bg: rgba(255,255,255,0.025);
+  --surface: #131a2c; --card: #131a2c; --card2: rgba(255,255,255,0.07);
+  --text: #f8fafc; --text-strong: #ffffff; --muted: #b6bfcf; --dim: #7f8aa3;
+  --border: rgba(255,255,255,0.12); --line: rgba(255,255,255,0.12);
+  --border-strong: rgba(255,255,255,0.2); --hover: rgba(255,255,255,0.06);
+  --glass: rgba(255,255,255,0.05); --glass-2: rgba(255,255,255,0.06); --glass-border: rgba(255,255,255,0.18);
+  --card-radius: 26px;
+}
+/* Liquid Glass claro · cristal sobre tonos pastel */
+:root[data-skin="glassLight"] {
+  --frame: linear-gradient(135deg, #e3e9ff 0%, #f3efff 45%, #e6fbf1 100%);
+  --bg: #ffffff; --page-bg: rgba(255,255,255,0.28);
+  --surface: #ffffff; --card: #ffffff; --card2: rgba(255,255,255,0.6);
+  --text: #0f172a; --text-strong: #020617; --muted: #475569; --dim: #8a96ab;
+  --border: rgba(15,23,42,0.10); --line: rgba(15,23,42,0.10);
+  --border-strong: rgba(15,23,42,0.18); --hover: rgba(15,23,42,0.04);
+  --glass: rgba(255,255,255,0.5); --glass-2: rgba(255,255,255,0.8); --glass-border: rgba(255,255,255,0.9);
+  --card-radius: 26px;
+}
+
+/* ── Acento ─────────────────────────────────────────────────── */
+/* El cian es el "segundo acento" del diseño anterior (nav activo, foco,
+   glows): se alinea con el acento elegido para que el cambio sea coherente. */
+:root[data-accent="azul"]      { --accent: #3b82f6; --accent-bg: rgba(59,130,246,0.15); }
+:root[data-accent="cian"]      { --accent: #06b6d4; --accent-bg: rgba(6,182,212,0.15); }
+:root[data-accent="esmeralda"] { --accent: #10b981; --accent-bg: rgba(16,185,129,0.15); }
+:root[data-accent="ambar"]     { --accent: #f59e0b; --accent-bg: rgba(245,158,11,0.15); }
+:root[data-accent="violeta"]   { --accent: #8b5cf6; --accent-bg: rgba(139,92,246,0.15); }
+:root[data-accent="mono"]      { --accent: var(--text); --accent-bg: rgba(128,128,128,0.18); }
+:root[data-accent] {
+  --cyan: var(--accent); --cyan-bg: var(--accent-bg);
+  --glow-accent: 0 0 26px -6px var(--accent-bg);
+}
+
+/* ── Colores TP / SL ────────────────────────────────────────── */
+:root[data-pnl="clasico"]   { --green: #34d399; --red: #f87171; --green-bg: rgba(52,211,153,0.14); --red-bg: rgba(248,113,113,0.14); }
+:root[data-pnl="daltonico"] { --green: #60a5fa; --red: #fb923c; --green-bg: rgba(96,165,250,0.14); --red-bg: rgba(251,146,60,0.14); }
+:root[data-pnl="mono"]      { --green: #f4f4f5; --red: #8b8b94; --green-bg: rgba(244,244,245,0.12); --red-bg: rgba(139,139,148,0.16); }
+:root[data-theme="light"][data-pnl="clasico"]   { --green: #059669; --red: #dc2626; --green-bg: rgba(5,150,105,0.12); --red-bg: rgba(220,38,38,0.12); }
+:root[data-theme="light"][data-pnl="daltonico"] { --green: #1d4ed8; --red: #c2410c; --green-bg: rgba(29,78,216,0.12); --red-bg: rgba(194,65,12,0.12); }
+:root[data-theme="light"][data-pnl="mono"]      { --green: #111827; --red: #6b7280; --green-bg: rgba(17,24,39,0.10); --red-bg: rgba(107,114,128,0.14); }
+:root[data-pnl] {
+  --pos: var(--green); --neg: var(--red);
+  --donut-tp-1: var(--green); --donut-tp-2: var(--green);
+  --donut-sl-1: var(--red);   --donut-sl-2: var(--red);
+}
+
+/* ── Tipografía ─────────────────────────────────────────────── */
+:root[data-font="inter"]     { --font-ui: 'Inter', system-ui, -apple-system, sans-serif; }
+:root[data-font="geist"]     { --font-ui: 'Geist', 'Inter', system-ui, sans-serif; }
+:root[data-font="jetbrains"] { --font-ui: 'JetBrains Mono', ui-monospace, monospace; }
+:root[data-font="fraunces"]  { --font-ui: 'Fraunces', Georgia, serif; }
+:root[data-font] { --font: var(--font-ui); --font-display: var(--font-ui); }
+/* Con letra mono elegida, las etiquetas mono usan la misma */
+:root[data-font="jetbrains"] { --mono: 'JetBrains Mono', ui-monospace, monospace; }
+
+/* ── Densidad ───────────────────────────────────────────────── */
+:root[data-density="compact"] { --pad: 14px; --gap: 10px; --kpi-pad: 16px 14px 14px; }
+
+/* ── Estilo de tarjeta (temas NO glass) ─────────────────────── */
+:root[data-cards="degradado"] { --card-bg: linear-gradient(160deg, var(--accent-bg) 0%, var(--card) 45%, var(--card) 100%); }
+:root[data-cards="solido"]    { --card-bg: var(--card); }
+:root[data-cards="cristal"]   { --card-bg: rgba(255,255,255,0.04); }
+:root[data-theme="light"][data-cards="cristal"] { --card-bg: rgba(255,255,255,0.7); }
+
+/* ════════════════════════════════════════════════════════════════
+   Aplicación a los componentes
+   ════════════════════════════════════════════════════════════════ */
+
+/* Fondo: marco del tema. La rejilla futurista anterior se apaga en los
+   temas nuevos (solo queda en el oscuro clásico, sin data-skin). */
+:root[data-skin] body { background: var(--frame); background-attachment: fixed; }
+:root[data-skin] body::before, :root[data-skin] body::after { display: none; }
+
+/* Manchas animadas (solo glass): 3 manchas, solo azul claro, muy sutiles */
+.tvbg { display: none; position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+:root[data-skin="glass"] .tvbg, :root[data-skin="glassLight"] .tvbg { display: block; }
+.tvbg div { position: absolute; border-radius: 50%; filter: blur(40px); animation: tvb1 30s ease-in-out infinite alternate; }
+.tvbg .b1 { left: -12%; top: -14%; width: 50vw; height: 50vw; background: radial-gradient(circle, rgba(125,211,252,0.16) 0%, transparent 70%); animation-name: tvb1; animation-duration: 30s; }
+.tvbg .b2 { left: 58%;  top: 4%;   width: 40vw; height: 40vw; background: radial-gradient(circle, rgba(147,197,253,0.16) 0%, transparent 70%); animation-name: tvb2; animation-duration: 36s; }
+.tvbg .b3 { left: 22%;  top: 55%;  width: 44vw; height: 44vw; background: radial-gradient(circle, rgba(125,211,252,0.16) 0%, transparent 70%); animation-name: tvb3; animation-duration: 40s; }
+:root[data-skin="glassLight"] .tvbg .b1, :root[data-skin="glassLight"] .tvbg .b3 { background: radial-gradient(circle, rgba(125,211,252,0.28) 0%, transparent 70%); }
+:root[data-skin="glassLight"] .tvbg .b2 { background: radial-gradient(circle, rgba(147,197,253,0.28) 0%, transparent 70%); }
+@keyframes tvb1 { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(12vw,8vh) scale(1.2); } }
+@keyframes tvb2 { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(-10vw,10vh) scale(0.9); } }
+@keyframes tvb3 { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(8vw,-10vh) scale(1.15); } }
+@media (prefers-reduced-motion: reduce) { .tvbg div { animation: none !important; } }
+
+/* Tarjetas base (todos los temas nuevos) */
+:root[data-skin] .card, :root[data-skin] .kpi-card, :root[data-skin] .tile {
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+:root[data-skin] .card { padding: var(--pad); }
+:root[data-skin] .kpi-card { padding: var(--kpi-pad); }
+
+/* Tarjeta Liquid Glass */
+:root[data-skin="glass"] .card, :root[data-skin="glass"] .kpi-card, :root[data-skin="glass"] .tile,
+:root[data-skin="glass"] #sidebar, :root[data-skin="glass"] .modal, :root[data-skin="glass"] .appearance-panel {
+  background: linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.05) 35%, rgba(255,255,255,0.025) 65%, rgba(255,255,255,0.09) 100%);
+  backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.40), inset 0 -1px 1px rgba(255,255,255,0.06), inset 0 0 22px rgba(255,255,255,0.03), 0 20px 45px rgba(0,0,0,0.35);
+}
+:root[data-skin="glassLight"] .card, :root[data-skin="glassLight"] .kpi-card, :root[data-skin="glassLight"] .tile,
+:root[data-skin="glassLight"] #sidebar, :root[data-skin="glassLight"] .modal, :root[data-skin="glassLight"] .appearance-panel {
+  background: linear-gradient(135deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.42) 40%, rgba(255,255,255,0.30) 65%, rgba(255,255,255,0.62) 100%);
+  backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.85);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 1px rgba(15,23,42,0.04), 0 18px 40px rgba(30,41,59,0.12);
+}
+/* Chart.js no pinta su <canvas> bajo backdrop-filter en Chromium: sin blur
+   en las tarjetas con gráfico (regla heredada de ui.css, se mantiene). */
+:root[data-skin] .card:has(.chart-wrap), :root[data-skin] .tile:has(.chart-wrap), :root[data-skin] .kpi-card:has(.chart-wrap) {
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+/* Sidebar de cristal: sin radio (es una columna pegada al borde) */
+:root[data-skin="glass"] #sidebar, :root[data-skin="glassLight"] #sidebar { border-radius: 0; border-top: 0; border-bottom: 0; border-left: 0; box-shadow: none; }
+:root[data-skin] #sidebar { background: var(--surface); }
+:root[data-skin="glass"] #sidebar { background: rgba(255,255,255,0.06); }
+:root[data-skin="glassLight"] #sidebar { background: rgba(255,255,255,0.5); }
+
+/* Efecto "líquido": elevación al pasar y brillo que sigue al ratón (glass) */
+:root[data-skin] .kpi-card { transition: transform .45s cubic-bezier(.2,.9,.25,1.2), box-shadow .45s, border-color .2s; }
+:root[data-skin] .kpi-card:hover { transform: translateY(-3px) scale(1.012); border-color: var(--border-strong); }
+:root[data-skin] .kpi-card:active { transform: translateY(0) scale(.975); transition-duration: .12s; }
+:root[data-skin="glass"] .kpi-card::after, :root[data-skin="glassLight"] .kpi-card::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .35s;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 0%), rgba(255,255,255,0.30), rgba(255,255,255,0.07) 40%, transparent 65%);
+}
+:root[data-skin="glass"] .kpi-card:hover::after, :root[data-skin="glassLight"] .kpi-card:hover::after { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { :root[data-skin] .kpi-card { transition: none; } }
+
+/* Tarjeta KPI: barra superior de 4 px con degradado, etiqueta, valor, sub */
+:root[data-skin] .kpi-card::before { height: 4px; opacity: 1; }
+:root[data-skin] .kpi-card.green::before  { background: linear-gradient(90deg, var(--green) 0%, var(--green-bg) 55%, transparent 100%); }
+:root[data-skin] .kpi-card.red::before    { background: linear-gradient(90deg, var(--red) 0%, var(--red-bg) 55%, transparent 100%); }
+:root[data-skin] .kpi-card.orange::before { background: linear-gradient(90deg, var(--orange) 0%, var(--orange-bg) 55%, transparent 100%); }
+:root[data-skin] .kpi-card.blue::before   { background: linear-gradient(90deg, #3b82f6 0%, rgba(59,130,246,0.35) 55%, transparent 100%); }
+:root[data-skin] .kpi-card.purple::before { background: linear-gradient(90deg, #a855f7 0%, rgba(168,85,247,0.35) 55%, transparent 100%); }
+:root[data-skin] .kpi-label { font-family: var(--font); font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 600; }
+:root[data-skin] .kpi-value { font-family: var(--font); font-size: 24px; font-weight: 700; letter-spacing: -0.03em; }
+:root[data-skin] .kpi-value.blue { color: var(--blue-txt); }
+:root[data-skin] .kpi-value.purple { color: var(--purple); }
+:root[data-skin] .kpi-sub { font-family: var(--font); font-size: 11px; color: var(--muted); }
+:root[data-skin] .kpi-icon { display: none; }            /* el diseño nuevo no lleva icono */
+:root[data-skin] .kpi-card .kpi-label { padding-right: 0; }
+:root[data-skin] .kpi-grid { gap: var(--gap); }
+:root[data-skin] .grid-2, :root[data-skin] .grid-3, :root[data-skin] .grid-2-1, :root[data-skin] .grid-1-2, :root[data-skin] .bento { gap: var(--gap); }
+
+/* Etiqueta de sección: barrita 4×14 acento→positivo */
+:root[data-skin] .section-title { font-family: var(--font); font-size: 11px; font-weight: 700; letter-spacing: .16em; color: var(--muted); }
+:root[data-skin] .section-title::before { width: 4px; height: 14px; border-radius: 2px; background: linear-gradient(180deg, var(--accent), var(--pos)); }
+:root[data-skin] .section-title::after { background: transparent; }  /* sin línea hasta el borde */
+:root[data-skin] .card-title { font-size: 15px; font-weight: 600; }
+:root[data-skin] .card-sub { font-family: var(--font); }
+
+/* Tablas: cabecera 10 px mayúsculas, filas 13 px */
+:root[data-skin] .data-table th { font-family: var(--font); font-size: 10px; letter-spacing: .1em; font-weight: 600; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+:root[data-skin] .data-table td { font-size: 13px; padding: 10px 6px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+:root[data-skin] .data-table th:first-child, :root[data-skin] .data-table td:first-child { padding-left: 4px; }
+
+/* Control segmentado: píldora; activo = fondo texto / letra bg */
+:root[data-skin] .segmented { padding: 3px; border-radius: 999px; background: var(--card2); border: 1px solid transparent; gap: 2px; }
+:root[data-skin] .seg-btn { border-radius: 999px; padding: 6px 14px; font-size: 12px; font-weight: 600; color: var(--muted); border: none; }
+:root[data-skin] .seg-btn.active { background: var(--text); color: var(--bg); }
+:root[data-skin="glass"] .seg-btn.active { color: #0b1020; }
+:root[data-skin] .perf-toggle.pill-group { padding: 3px; border-radius: 999px; background: var(--card2); gap: 2px; }
+:root[data-skin] .perf-toggle .pill { border-radius: 999px; border-color: transparent; }
+:root[data-skin] .perf-toggle .pill.active { background: var(--text); color: var(--bg); border-color: transparent; }
+:root[data-skin="glass"] .perf-toggle .pill.active { color: #0b1020; }
+
+/* Botones: primario = píldora fondo texto / letra bg; secundario = borde */
+:root[data-skin] .btn { font-family: var(--font); border-radius: 999px; padding: 8px 16px; font-size: 13px; font-weight: 500; background: transparent; border: 1px solid var(--line); color: var(--text); }
+:root[data-skin] .btn:hover { background: var(--hover); transform: none; }
+:root[data-skin] .btn.primary { background: var(--text); color: var(--bg); border-color: transparent; font-weight: 600; box-shadow: none; }
+:root[data-skin="glass"] .btn.primary { color: #0b1020; }
+:root[data-skin] .btn.primary:hover { filter: brightness(1.08); box-shadow: 0 8px 20px -10px rgba(0,0,0,0.4); }
+:root[data-skin] .btn.danger { color: var(--red); border-color: var(--red-bg); background: transparent; }
+:root[data-skin] .btn.danger:hover { background: var(--red-bg); }
+
+/* Chips de formulario: 40 px de alto, radio 12; seleccionado = acento al 18 % */
+:root[data-skin] .pill { min-height: 40px; border-radius: 12px; font-family: var(--font); font-size: 12px; font-weight: 600; background: var(--card2); border: 1.5px solid var(--line); color: var(--text); }
+:root[data-skin] .pill.active { background: var(--accent-bg); border-color: var(--accent); color: var(--text); }
+:root[data-skin] .pill-group.green .pill.active { background: var(--green-bg); border-color: var(--green); color: var(--text); font-weight: 600; }
+:root[data-skin] .pill-group.red .pill.active   { background: var(--red-bg); border-color: var(--red); color: var(--text); }
+:root[data-skin] .pill-group.zonas .pill.active    { background: var(--zonas-bg); border-color: var(--zonas); color: var(--text); }
+:root[data-skin] .pill-group.liquidez .pill.active { background: var(--liquidez-bg); border-color: var(--liquidez); color: var(--text); }
+:root[data-skin] .pill-group.nasdaq .pill.active   { background: var(--nasdaq-bg); border-color: var(--nasdaq); color: var(--text); }
+
+/* Inputs: radio 14 */
+:root[data-skin] .form-input, :root[data-skin] .form-textarea, :root[data-skin] .select, :root[data-skin] select.select {
+  font-family: var(--font); border-radius: 14px; border: 1px solid var(--line); background: var(--card2); color: var(--text); font-size: 13px;
+}
+:root[data-skin] .select:focus, :root[data-skin] .form-input:focus, :root[data-skin] .form-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+
+/* Modales: radio 28, overlay .45, cierre circular de 36 px */
+:root[data-skin] .modal-overlay { background: rgba(0,0,0,0.45); }
+:root[data-skin] .modal { background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 24px; box-shadow: 0 30px 80px rgba(0,0,0,0.35); }
+:root[data-skin] .modal-close { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--card2); color: var(--text); font-size: 16px; display: flex; align-items: center; justify-content: center; top: 16px; right: 16px; }
+:root[data-skin] .modal-close:hover { color: var(--text-strong); background: var(--hover); }
+:root[data-skin] .modal-title { font-size: 20px; font-weight: 600; }
+
+/* Badges, pills de estrategia y resultado: sin mono */
+:root[data-skin] .badge, :root[data-skin] .strat-pill, :root[data-skin] .res-pill, :root[data-skin] .sens-pill, :root[data-skin] .nt-tag { font-family: var(--font); font-weight: 600; }
+
+/* Page header: título 24 px 700 */
+:root[data-skin] .page-header h1 { font-family: var(--font); font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+:root[data-skin] .page-header h1 span { color: var(--accent); }
+:root[data-skin] .page-header .sub { font-family: var(--font); font-size: 13px; }
+:root[data-skin] .page-header { border-bottom: 0; padding-bottom: 0; }
+
+/* Nav activa de la barra lateral: acento elegido */
+:root[data-skin] .nav-item.active { background: linear-gradient(90deg, var(--accent-bg), transparent 80%); }
+:root[data-skin] .nav-item.active::before { background: var(--accent); box-shadow: none; }
+:root[data-skin] .nav-item.active .nav-icon { background: var(--accent-bg); border-color: transparent; }
+:root[data-skin] .brand-logo { color: var(--accent); filter: none; }
+:root[data-skin] .formacion-cta { background: var(--accent-bg); border-color: transparent; }
+:root[data-skin] .formacion-cta .fc-icon { background: linear-gradient(140deg, var(--accent), var(--pos)); }
+:root[data-skin] .formacion-cta .fc-arrow { color: var(--accent); }
+:root[data-skin] ::selection { background: var(--accent-bg); }
+:root[data-skin] :focus-visible { outline-color: var(--accent); }
+
+/* Toast: píldora centrada abajo, fondo = texto */
+.tv-toast {
+  position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px);
+  z-index: 10001; display: flex; align-items: center; gap: 12px;
+  padding: 10px 10px 10px 18px; border-radius: 999px;
+  background: var(--text); color: var(--bg); font-size: 13px; font-weight: 600;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.35); opacity: 0; pointer-events: none;
+  transition: opacity .25s, transform .25s;
+}
+:root[data-skin="glass"] .tv-toast { color: #0b1020; }
+.tv-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+.tv-toast button { width: 26px; height: 26px; border-radius: 50%; border: none; background: rgba(0,0,0,0.12); color: inherit; font-size: 14px; cursor: pointer; }
+
+/* ════════════════════════════════════════════════════════════════
+   Panel "Apariencia" (cajón lateral derecho de 440 px)
+   ════════════════════════════════════════════════════════════════ */
+.appearance-overlay { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.45); display: flex; justify-content: flex-end; padding: 14px; }
+.appearance-panel {
+  width: 440px; max-width: 100%; max-height: 100%; overflow-y: auto;
+  background: var(--card); color: var(--text); border: 1px solid var(--line);
+  border-radius: 28px; padding: 22px; display: flex; flex-direction: column; gap: 20px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+  animation: apIn .25s var(--ease, ease);
+}
+@keyframes apIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+.ap-head { display: flex; justify-content: space-between; align-items: center; }
+.ap-head h2 { margin: 0; font-size: 20px; font-weight: 600; font-family: var(--font); }
+.ap-head .ap-summary { font-size: 12px; color: var(--muted); }
+.ap-close { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--card2); color: var(--text); font-size: 16px; cursor: pointer; }
+.ap-sec { display: flex; flex-direction: column; gap: 10px; }
+.ap-sec-title { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+.ap-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.ap-grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ap-opt {
+  display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 10px; border-radius: 16px;
+  background: var(--card2); color: var(--text); border: 2px solid transparent; cursor: pointer; font-family: inherit;
+}
+.ap-opt.on { border-color: var(--accent); }
+.ap-opt .ap-name { font-size: 13px; font-weight: 600; }
+.ap-opt .ap-desc { font-size: 11px; color: var(--muted); }
+.ap-thumb { display: flex; height: 44px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
+.ap-thumb .f { width: 30%; }
+.ap-thumb .p { flex: 1; display: flex; align-items: center; justify-content: center; }
+.ap-thumb .c { width: 60%; height: 14px; border-radius: 5px; }
+.ap-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ap-chip {
+  display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 999px; font-size: 12px; cursor: pointer; font-family: inherit;
+  background: var(--card2); color: var(--text); border: 2px solid transparent;
+}
+.ap-chip.on { border-color: var(--ap-c, var(--accent)); }
+.ap-chip .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--ap-c, var(--text)); }
+.ap-swatch { display: flex; gap: 4px; }
+.ap-swatch span { flex: 1; height: 22px; border-radius: 6px; }
+.ap-seg { display: flex; gap: 4px; padding: 3px; border-radius: 999px; background: var(--card2); }
+.ap-seg button { flex: 1; border: none; border-radius: 999px; padding: 6px 14px; font-size: 12px; font-weight: 600; background: transparent; color: var(--muted); cursor: pointer; font-family: inherit; }
+.ap-seg button.on { background: var(--text); color: var(--bg); }
+:root[data-skin="glass"] .ap-seg button.on { color: #0b1020; }
+.ap-font-sample { font-size: 22px; font-weight: 600; }
+.ap-reset { border: 1px solid var(--line); background: transparent; color: var(--text); border-radius: 999px; padding: 10px; font-size: 13px; cursor: pointer; font-family: inherit; }
+.ap-reset:hover { background: var(--hover); }
+@media (max-width: 600px) { .appearance-overlay { padding: 0; } .appearance-panel { border-radius: 0; max-height: 100vh; } }

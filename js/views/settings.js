@@ -1,10 +1,10 @@
 import { state } from '../state.js';
 import { storage } from '../storage.js';
-import { theme } from '../theme.js';
+import { openAppearancePanel } from '../components/appearance-panel.js';
 import { auth, authErrorMsg } from '../auth.js';
 import { sync } from '../sync.js';
 import { downloadFile } from '../utils/csv.js';
-import { openModal, closeModal } from '../components/modal.js';
+import { openModal } from '../components/modal.js';
 import { router } from '../router.js';
 import { stampNow, slug, exportXlsx } from '../utils/sheet-export.js';
 import { TIMEZONES, tzLabel, guessTz } from '../utils/timezone.js';
@@ -86,14 +86,11 @@ export function settingsView(container) {
     <div class="card">
       <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-label">Tema</div>
-          <div class="setting-desc">Modo oscuro o claro. También se cambia con el sol/luna de la barra lateral.</div>
+          <div class="setting-label">Tema, colores y letra</div>
+          <div class="setting-desc">Seis temas (Liquid Glass, Midnight, Light…), color de acento, colores de TP/SL, tipografía y densidad. Se guarda en tu cuenta. También desde la paleta de la barra lateral.</div>
         </div>
-        <div class="setting-control">
-          <div class="segmented" id="themeSeg" role="group" aria-label="Tema">
-            <button type="button" class="seg-btn ${theme.current() === 'dark' ? 'active' : ''}" data-theme="dark"><span class="seg-ic">${icon('luna')}</span>Oscuro</button>
-            <button type="button" class="seg-btn ${theme.current() === 'light' ? 'active' : ''}" data-theme="light"><span class="seg-ic">${icon('sol')}</span>Claro</button>
-          </div>
+        <div class="setting-control" style="display:flex;justify-content:flex-end;">
+          <button class="btn" id="appearanceOpenBtn"><span class="seg-ic">${icon('paleta')}</span> Abrir Apariencia</button>
         </div>
       </div>
       <div class="setting-row">
@@ -261,17 +258,8 @@ export function settingsView(container) {
   const urlInput = container.querySelector('#urlInput');
   if (urlInput) urlInput.addEventListener('change', e => storage.setAppsScriptUrl(e.target.value.trim()));
 
-  const themeSeg = container.querySelector('#themeSeg');
-  if (themeSeg) themeSeg.addEventListener('click', e => {
-    const btn = e.target.closest('.seg-btn');
-    if (!btn) return;
-    theme.apply(btn.dataset.theme);
-    // Re-render de la vista (marca el botón activo) + sidebar vía router.onChange.
-    // También repinta los charts de otras vistas si se vuelve a ellas.
-    // Cerrar cualquier modal abierto antes: quedaría huérfano tras el reload.
-    closeModal();
-    router.reload();
-  });
+  const appearanceOpenBtn = container.querySelector('#appearanceOpenBtn');
+  if (appearanceOpenBtn) appearanceOpenBtn.addEventListener('click', () => openAppearancePanel());
 
   const newsSel = container.querySelector('#newsSel');
   if (newsSel) newsSel.addEventListener('change', e => {

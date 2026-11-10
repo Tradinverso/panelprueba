@@ -3,7 +3,7 @@
 import './firebase.js';                  // init Firebase ANTES que nada
 import { auth } from './auth.js';
 import { state } from './state.js';
-import { theme } from './theme.js';
+import { appearance } from './appearance.js';
 import { router } from './router.js';
 import { renderSidebar } from './components/sidebar.js';
 import { maybeShowMigrationPrompt } from './components/migrate-modal.js';
@@ -31,7 +31,13 @@ import { contabilidadView } from './views/contabilidad.js';
 import { backtestView } from './views/backtest.js';
 import { backtestImportView } from './views/backtest-import.js';
 
-theme.init();
+// Apariencia (tema, acento, letra…): se aplica antes del primer pintado con lo
+// guardado en este navegador; al entrar se sustituye por lo guardado en la nube.
+appearance.init();
+appearance.onChange(p => {
+  // Solo en la cuenta propia: viendo a un alumno, state.config es el SUYO.
+  if (auth.currentUser && !state.viewAsUid && !state.readOnly) state.setConfig({ appearance: p });
+});
 
 const view = document.getElementById('view');
 const sidebar = document.getElementById('sidebar');
@@ -104,6 +110,8 @@ auth.on(async () => {
   if (auth.currentUser.uid !== lastUid) {
     lastUid = auth.currentUser.uid;
     await state.loadFromCloud();
+    // La apariencia guardada en la nube manda sobre la de este navegador.
+    appearance.applyFromCloud(state.config && state.config.appearance);
     // Después de cargar, ofrece migrar localStorage si hay datos
     maybeShowMigrationPrompt();
   }

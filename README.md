@@ -9,7 +9,7 @@ Reemplaza el dashboard estático `v17.html` con una app completa de:
 - Calendario interactivo
 - Diagnóstico técnico y emocional con alertas automáticas
 - Importación masiva tipo spreadsheet con paste-from-Excel
-- Modo oscuro/claro
+- Apariencia: 6 temas (Liquid Glass por defecto), acento, colores TP/SL, letra y densidad
 - Persistencia local en `localStorage`
 
 Sin build step, sin npm, sin servidor. Solo HTML/JS/CSS modular.
@@ -64,7 +64,7 @@ Abre `http://localhost:8000`.
 
 En **Ajustes** puedes:
 - Guardar la URL del Apps Script para reimportar más tarde.
-- Cambiar entre modo oscuro y claro.
+- Abrir el panel **Apariencia** (también desde la paleta de la barra lateral): tema, color de acento, colores de TP/SL, estilo de tarjeta, tipo de letra y densidad. Se guarda en la cuenta del usuario (`config.appearance`) y en el navegador.
 - Exportar todos tus trades a JSON (backup).
 - Borrar trades de una estrategia concreta o borrar todos los datos.
 
@@ -97,7 +97,9 @@ tradinverso/
       import-table.js     tabla editable + paste-from-Excel
       settings.js         ajustes + export/wipe
     components/
-      sidebar.js          nav lateral con tema
+      sidebar.js          nav lateral + botón Apariencia
+      appearance-panel.js panel Apariencia (tema, acento, TP/SL, letra, densidad)
+      toast.js            toast de confirmación
       pills.js            selector de pills
       modal.js            modal genérico
       kpi-card.js         tarjetas KPI
@@ -177,6 +179,6 @@ Cada alumno tiene su propio `localStorage`, así que la app es self-contained. P
 
 - **Nuevas vistas:** Nuevo trade, vistas dedicadas por estrategia, calendario interactivo, diagnóstico estructurado, importación masiva, ajustes.
 - **Persistencia local:** los trades se guardan en `localStorage`, no dependen de Google Sheets para visualizarse.
-- **Modo claro:** soporte completo.
+- **Apariencia:** 6 temas (Midnight, Onyx, Platinum, Light, Liquid Glass y Liquid Glass claro) + acento, TP/SL, letra y densidad. Tokens en `css/themes.css`, temas y componentes en `css/skins.css`, lógica en `js/appearance.js`.
 - **Solo porcentaje:** toda la operativa se mide en %; la gestión de cuentas y conversión a importes monetarios se hará en su propia sección.
 - **Diagnóstico granular:** alertas técnicas y emocionales separadas en bloques con umbrales explícitos.

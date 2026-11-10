@@ -1,4 +1,4 @@
-import { theme } from '../theme.js';
+import { openAppearancePanel } from './appearance-panel.js';
 import { router } from '../router.js';
 import { state } from '../state.js';
 import { auth } from '../auth.js';
@@ -7,7 +7,6 @@ import { storage } from '../storage.js';
 import { tzLabel } from '../utils/timezone.js';
 import { countDangerAlerts } from '../utils/diagnostics.js';
 import { icon } from './icons.js';
-import { closeModal } from './modal.js';
 import { STRATEGY_ROUTES } from './strategy-tabs.js';
 import { PSICO_ROUTES } from './psicotrading-tabs.js';
 import { BACKTEST_ROUTES } from './backtest-tabs.js';
@@ -139,7 +138,7 @@ export function renderSidebar(container) {
     </a>
     <div class="sidebar-tools">
       <button class="sidebar-tool" id="sidebarCollapse" title="${collapsed ? 'Desplegar menú' : 'Plegar menú'}" aria-label="${collapsed ? 'Desplegar menú' : 'Plegar menú'}">${icon('colapsar')}</button>
-      <button class="sidebar-tool" id="themeToggle" title="Cambiar tema (claro/oscuro)" aria-label="Cambiar tema">${theme.current() === 'dark' ? icon('luna') : icon('sol')}</button>
+      <button class="sidebar-tool" id="appearanceBtn" title="Apariencia · tema, colores y letra" aria-label="Apariencia">${icon('paleta')}</button>
     </div>
     ${viewingContext}
     <nav class="nav">
@@ -201,15 +200,7 @@ export function renderSidebar(container) {
     renderSidebar(container);   // re-render: refresca el estado y el tooltip
   });
 
-  container.querySelector('#themeToggle').addEventListener('click', () => {
-    theme.toggle();
-    // Re-render de la vista actual: los charts leen los colores del tema al
-    // crearse, así que sin esto quedarían pintados con el tema anterior.
-    // El propio sidebar se refresca vía router.onChange. Si hay un modal
-    // abierto, se cierra: quedaría huérfano apuntando a la vista vieja.
-    closeModal();
-    router.reload();
-  });
+  container.querySelector('#appearanceBtn').addEventListener('click', () => openAppearancePanel());
   const exitBtn = container.querySelector('#exitViewAsTopBtn');
   if (exitBtn) {
     exitBtn.addEventListener('click', async () => {

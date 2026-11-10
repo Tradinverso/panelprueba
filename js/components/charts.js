@@ -41,10 +41,20 @@ function grad2(canvas, c0, c1) {
   return g;
 }
 
+// Con un tema nuevo (data-skin) las etiquetas van en la letra de la interfaz;
+// en el tema clásico se mantiene DM Mono.
+const hasSkin = () => document.documentElement.hasAttribute('data-skin');
+const uiFont = () => hasSkin() ? (READ('--font') || "'Inter', sans-serif") : "'DM Mono', monospace";
+
+// Radio de barra según el signo: redondeada por el lado que crece desde el 0.
+const BAR_RADIUS = v => v >= 0
+  ? { topLeft: 12, topRight: 12, bottomLeft: 4, bottomRight: 4 }
+  : { topLeft: 4, topRight: 4, bottomLeft: 12, bottomRight: 12 };
+
 function defaults() {
   Chart.defaults.color = READ('--muted');
   Chart.defaults.borderColor = READ('--border');
-  Chart.defaults.font.family = "'DM Mono', monospace";
+  Chart.defaults.font.family = uiFont();
   Chart.defaults.font.size = 11;
   // Tooltips de cristal, legibles (cuerpo en Inter)
   const tt = Chart.defaults.plugins.tooltip;
@@ -80,19 +90,24 @@ export function createEquity(canvas, datasets, opts = {}) {
       datasets: datasets.map(d => {
         const primary = d.key === 'ALL' || d.key === 'PORT';
         const color = palette[d.key] || GREEN;
+        const last = (d.data || []).length - 1;
         return {
           label: d.label,
           data: d.data,
           borderColor: color,
           backgroundColor: primary ? vGrad(canvas, color, 0.30, 0) : 'transparent',
           tension: 0.35,
-          pointRadius: 0,
+          // Punto solo al final de cada línea (relleno tarjeta, borde del color)
+          pointRadius: ctx => ctx.dataIndex === last ? 4 : 0,
+          pointBackgroundColor: READ('--card'),
+          pointBorderColor: color,
+          pointBorderWidth: 2,
           pointHoverRadius: 4,
           pointHoverBackgroundColor: color,
           pointHoverBorderColor: rgba(color, 0.3),
           pointHoverBorderWidth: 6,
-          borderWidth: primary ? 2.5 : 1.5,
-          borderDash: primary ? [] : [4, 3],
+          borderWidth: primary ? 3 : 2,
+          borderDash: primary ? [] : [5, 5],
           fill: primary,
         };
       }),
@@ -145,12 +160,13 @@ export function createBar(canvas, labels, data, opts = {}) {
   defaults();
   Chart.getChart(canvas)?.destroy();
   const GREEN = READ('--green'), RED = READ('--red');
-  const colors = data.map(v => v >= 0 ? vGrad(canvas, GREEN, 0.95, 0.35) : vGrad(canvas, RED, 0.95, 0.35));
+  // Degradado vertical color → color al 25 %; radio grande por el lado que crece.
+  const colors = data.map(v => v >= 0 ? vGrad(canvas, GREEN, 1, 0.25) : vGrad(canvas, RED, 0.25, 1));
   const fmt = typeof opts.formatter === 'function' ? opts.formatter : (v => v + '%');
   const { formatter, ...restOpts } = opts;
   return new Chart(canvas, {
     type: 'bar',
-    data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: 8, borderSkipped: false, categoryPercentage: 0.7, barPercentage: 0.82 }] },
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: ctx => BAR_RADIUS(ctx.raw), borderSkipped: false, categoryPercentage: 0.7, barPercentage: 0.82 }] },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
@@ -166,7 +182,7 @@ export function createBar(canvas, labels, data, opts = {}) {
 export function createHourBar(canvas, hourData) {
   defaults();
   Chart.getChart(canvas)?.destroy();
-  const GREEN = READ('--green'), RED = READ('--red'), ORANGE = READ('--orange'), BLUE = READ('--cyan');
+  const GREEN = READ('--green'), RED = READ('--red'), BLUE = READ('--cyan');
   return new Chart(canvas, {
     type: 'bar',
     data: {
@@ -175,8 +191,9 @@ export function createHourBar(canvas, hourData) {
         {
           label: 'WR %',
           data: hourData.map(h => +h.wr.toFixed(1)),
-          backgroundColor: hourData.map(h => vGrad(canvas, h.wr >= 55 ? GREEN : h.wr < 42 ? RED : ORANGE, 0.95, 0.3)),
-          borderRadius: 8, borderSkipped: false, yAxisID: 'y', categoryPercentage: 0.7, barPercentage: 0.82,
+          // Verde si WR ≥ 50 %, rojo si no; gris si no hay trades en esa franja.
+          backgroundColor: hourData.map(h => h.n === 0 ? rgba(READ('--dim'), 0.35) : vGrad(canvas, h.wr >= 50 ? GREEN : RED, 1, 0.25)),
+          borderRadius: { topLeft: 12, topRight: 12, bottomLeft: 4, bottomRight: 4 }, borderSkipped: false, yAxisID: 'y', categoryPercentage: 0.7, barPercentage: 0.82,
         },
         {
           label: 'N°',
@@ -207,7 +224,7 @@ export function createHourBar(canvas, hourData) {
 export function createDayBar(canvas, dayData) {
   defaults();
   Chart.getChart(canvas)?.destroy();
-  const GREEN = READ('--green'), RED = READ('--red'), ORANGE = READ('--orange'), BLUE = READ('--cyan');
+  const GREEN = READ('--green'), RED = READ('--red'), BLUE = READ('--cyan');
   return new Chart(canvas, {
     type: 'bar',
     data: {
@@ -216,8 +233,8 @@ export function createDayBar(canvas, dayData) {
         {
           label: 'WR %',
           data: dayData.map(d => +d.wr.toFixed(1)),
-          backgroundColor: dayData.map(d => vGrad(canvas, d.wr >= 55 ? GREEN : d.wr < 48 ? RED : ORANGE, 0.95, 0.3)),
-          borderRadius: 8, borderSkipped: false, yAxisID: 'y', categoryPercentage: 0.7, barPercentage: 0.82,
+          backgroundColor: dayData.map(d => d.n === 0 ? rgba(READ('--dim'), 0.35) : vGrad(canvas, d.wr >= 50 ? GREEN : RED, 1, 0.25)),
+          borderRadius: { topLeft: 12, topRight: 12, bottomLeft: 4, bottomRight: 4 }, borderSkipped: false, yAxisID: 'y', categoryPercentage: 0.7, barPercentage: 0.82,
         },
         {
           label: 'N°',
@@ -252,13 +269,13 @@ export function createLongShort(canvas, lsData) {
     data: {
       labels: lsData.map(d => d.label),
       datasets: [
-        { label: 'Long', data: lsData.map(d => +d.long.wr.toFixed(1)), backgroundColor: vGrad(canvas, GREEN, 0.95, 0.3), borderRadius: 6, borderSkipped: false, categoryPercentage: 0.7, barPercentage: 0.85 },
-        { label: 'Short', data: lsData.map(d => +d.short.wr.toFixed(1)), backgroundColor: vGrad(canvas, RED, 0.95, 0.3), borderRadius: 6, borderSkipped: false, categoryPercentage: 0.7, barPercentage: 0.85 },
+        { label: 'Long', data: lsData.map(d => +d.long.wr.toFixed(1)), backgroundColor: vGrad(canvas, GREEN, 1, 0.25), borderRadius: { topLeft: 10, topRight: 10, bottomLeft: 4, bottomRight: 4 }, borderSkipped: false, categoryPercentage: 0.7, barPercentage: 0.85 },
+        { label: 'Short', data: lsData.map(d => +d.short.wr.toFixed(1)), backgroundColor: vGrad(canvas, RED, 1, 0.25), borderRadius: { topLeft: 10, topRight: 10, bottomLeft: 4, bottomRight: 4 }, borderSkipped: false, categoryPercentage: 0.7, barPercentage: 0.85 },
       ],
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 10, boxHeight: 10, padding: 16, usePointStyle: true, font: { family: "'Inter', sans-serif", size: 11 } } } },
+      plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 10, boxHeight: 10, padding: 16, usePointStyle: true, font: { family: uiFont(), size: 11 } } } },
       scales: {
         x: { grid: { display: false }, border: { display: false } },
         y: { ticks: { callback: v => v + '%' }, grid: { color: READ('--border') }, border: { display: false }, min: 0, max: 100 },
