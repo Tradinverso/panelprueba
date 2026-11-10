@@ -285,6 +285,10 @@ select option { background: var(--surface); color: var(--text); }
 :root[data-skin] .modal-close:hover { color: var(--text-strong); background: var(--hover); }
 :root[data-skin] .modal-title { font-size: 20px; font-weight: 600; }
 
+/* Leyenda pulsable de la curva de equity */
+.eq-legend .strat-pill { cursor: pointer; font-family: inherit; transition: opacity .2s; }
+.eq-legend .strat-pill.off { opacity: .35; background: transparent; }
+
 /* Badges, pills de estrategia y resultado: sin mono */
 :root[data-skin] .badge, :root[data-skin] .strat-pill, :root[data-skin] .res-pill, :root[data-skin] .sens-pill, :root[data-skin] .nt-tag { font-family: var(--font); font-weight: 600; }
 

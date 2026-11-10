@@ -70,10 +70,38 @@ function defaults() {
   tt.usePointStyle = true;
 }
 
+// Fechas 'YYYY-MM-DD' → 'dd/mm' en el eje X (las etiquetas largas no caben).
+const shortDate = v => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) ? `${v.slice(8, 10)}/${v.slice(5, 7)}` : v;
+
+// Valor encima (o debajo) de cada barra: 10 px, negrita, del color de la barra.
+const BAR_VALUES = {
+  id: 'tvBarValues',
+  afterDatasetsDraw(chart, _args, opts) {
+    const fmt = opts && opts.fmt ? opts.fmt : (v => v);
+    const { ctx } = chart;
+    const GREEN = READ('--green'), RED = READ('--red');
+    ctx.save();
+    ctx.font = `700 10px ${uiFont()}`;
+    ctx.textAlign = 'center';
+    chart.data.datasets.forEach((ds, di) => {
+      if (!chart.isDatasetVisible(di)) return;
+      const meta = chart.getDatasetMeta(di);
+      meta.data.forEach((bar, i) => {
+        const v = ds.data[i];
+        if (v == null || isNaN(v)) return;
+        ctx.fillStyle = v >= 0 ? GREEN : RED;
+        ctx.textBaseline = v >= 0 ? 'bottom' : 'top';
+        ctx.fillText(fmt(v), bar.x, v >= 0 ? bar.y - 4 : bar.y + 4);
+      });
+    });
+    ctx.restore();
+  },
+};
+
 // Eje X tenue (sin líneas verticales), eje Y con rejilla suave.
 function softScales(yFmt) {
   return {
-    x: { grid: { display: false }, ticks: { maxTicksLimit: 8, autoSkip: true }, border: { display: false } },
+    x: { grid: { display: false }, ticks: { maxTicksLimit: 8, autoSkip: true, callback(v) { return shortDate(this.getLabelForValue(v)); } }, border: { display: false } },
     y: { ticks: yFmt ? { callback: yFmt } : {}, grid: { color: READ('--border') }, border: { display: false } },
   };
 }
@@ -169,13 +197,16 @@ export function createBar(canvas, labels, data, opts = {}) {
     data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: ctx => BAR_RADIUS(ctx.raw), borderSkipped: false, categoryPercentage: 0.7, barPercentage: 0.82 }] },
     options: {
       responsive: true, maintainAspectRatio: false,
+      layout: { padding: { top: 16, bottom: 4 } },
       plugins: {
         legend: { display: false },
         tooltip: { callbacks: { label: ctx => ` ${fmt(ctx.parsed.y)}` } },
+        tvBarValues: { fmt: v => (v > 0 ? '+' : '') + fmt(v) },
       },
       scales: softScales(fmt),
       ...restOpts,
     },
+    plugins: [BAR_VALUES],
   });
 }
 

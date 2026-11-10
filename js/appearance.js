@@ -54,7 +54,10 @@ export const NAV_STYLES = [['pill', 'Píldora'], ['flat', 'Plano']];
 export const DEFAULTS = Object.freeze({
   theme: 'glass', accent: 'azul', pnl: 'clasico', cards: 'degradado', font: 'inter', density: 'comfy',
   nav: 'pill',      // barra superior: píldora o plana
-  mesa: true,       // columna "Mesa" abierta (false = recogida en barrita)
+  // Columna "Mesa" (cuentas, regla del día): recogida por defecto en una
+  // barrita de 58 px — muchos alumnos no usan cuentas y abierta quitaba
+  // demasiado ancho al contenido (David, 2026-11-10). Se abre con un clic.
+  mesa: false,
   hidePnl: false,   // enmascarar importes y porcentajes de P&L
 });
 

@@ -41,7 +41,7 @@ body.mesa-closed #mesa { flex: 0 0 58px; min-width: 58px; }
 :root[data-skin="glassLight"] .tb-nav { background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.85); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 10px 30px rgba(0,0,0,0.08); }
 .tb-item {
   display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
-  padding: 7px 11px; border-radius: 999px; font-size: 13px; font-weight: 500;
+  padding: 7px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 500;
   color: var(--muted); text-decoration: none; transition: background var(--dur), color var(--dur);
 }
 .tb-item:hover { color: var(--text); background: var(--hover); }
@@ -179,9 +179,10 @@ body[data-auth="false"] #topbar, body[data-auth="false"] #mesa, body[data-auth="
 body[data-auth="false"] #view { border: 0; background: transparent; padding: 0; }
 
 /* ── Pantallas estrechas ────────────────────────────────────── */
-/* Hasta ~1540 px no caben logo + 11 apartados + reloj en una fila: la
-   navegación pasa a una segunda fila, centrada; logo y herramientas arriba. */
-@media (max-width: 1540px) {
+/* Hasta ~1750 px no caben logo + 12 apartados + reloj + "Viendo a" en una
+   fila: la navegación pasa a una segunda fila, centrada; logo y herramientas
+   arriba. (Sin esto la fila se partía por donde pillaba.) */
+@media (max-width: 1999px) {
   .tb-nav { order: 3; margin: 0 auto; }
   .tb-brand { margin-right: auto; }
 }

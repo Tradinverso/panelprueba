@@ -218,6 +218,7 @@ function renderShell(allTrades, filtered) {
         ${periodHtml(months, dashPeriod, { idFrom: 'dashFrom', idTo: 'dashTo' })}
         ${checklistChip()}
         ${semaforoPill(allTrades)}
+        <a class="btn primary" href="#/nuevo">+ Nuevo trade</a>
       </div>
     </div>
 
@@ -233,11 +234,11 @@ function renderShell(allTrades, filtered) {
             <div class="card-title">Curva de equity (P&L acumulado)</div>
             <div class="card-sub">Por estrategia · ${perfMode === 'real' ? 'P&L real (riesgo aplicado)' : 'Sistema 1R normalizado'}</div>
           </div>
-          <div style="display:flex;gap:6px;">
-            <span class="strat-pill global">Global</span>
-            <span class="strat-pill zonas">Zonas</span>
-            <span class="strat-pill liquidez">Liquidez</span>
-            <span class="strat-pill nasdaq">Nasdaq</span>
+          <div class="eq-legend" style="display:flex;gap:6px;" title="Pulsa una estrategia para mostrar u ocultar su línea">
+            <button type="button" class="strat-pill global" data-eq="0">● Global</button>
+            <button type="button" class="strat-pill zonas" data-eq="1">● Zonas</button>
+            <button type="button" class="strat-pill liquidez" data-eq="2">● Liquidez</button>
+            <button type="button" class="strat-pill nasdaq" data-eq="3">● Nasdaq</button>
           </div>
         </div>
         <div class="chart-wrap" style="height:300px;"><canvas id="equityChart"></canvas></div>
@@ -386,7 +387,17 @@ function paintEquity(container, trades) {
     { key: 'LIQUIDEZ', label: 'Liquidez', data: curve(trades.filter(t => t.sheet === 'LIQUIDEZ')) },
     { key: 'NASDAQ', label: 'Nasdaq', data: curve(trades.filter(t => t.sheet === 'NASDAQ')) },
   ];
-  createEquity(container.querySelector('#equityChart'), datasets);
+  const chart = createEquity(container.querySelector('#equityChart'), datasets);
+  // Leyenda pulsable: muestra u oculta la línea de esa estrategia.
+  container.querySelectorAll('.eq-legend [data-eq]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const i = +btn.dataset.eq;
+      const visible = chart.isDatasetVisible(i);
+      chart.setDatasetVisibility(i, !visible);
+      chart.update();
+      btn.classList.toggle('off', visible);
+    });
+  });
 }
 
 // Semáforo del día: ¿puede operar hoy? SOLO reglas de trading (SL, límites,
@@ -409,8 +420,8 @@ function semaforoPill(allTrades) {
 
 // Botón del checklist: "☐ Checklist n/5" en ámbar mientras esté incompleto,
 // "✓ Checklist completo" en verde al terminarlo. Abre el pop-up (checklist-modal.js).
+// También en "Ver como": el checklist es del navegador de quien mira, no del alumno.
 function checklistChip() {
-  if (state.viewAsUid) return '';
   const p = checklistProgress();
   const hecho = p.done === p.total;
   return `<button class="chk-chip ${hecho ? 'done' : 'pending'}" id="semaforoChk"

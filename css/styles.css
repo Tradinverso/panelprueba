@@ -20,7 +20,7 @@ body::after {
 
 /* ── Layout shell ────────────────────────────────────────── */
 /* La estructura (barra superior, Mesa, #view y pie) vive en css/shell.css. */
-#view { max-width: 1280px; width: 100%; margin: 0 auto; min-width: 0; }
+#view { width: 100%; min-width: 0; }
 
 /* ── Responsive ──────────────────────────────────────────── */
 /* Rejillas multi-columna → 1 columna en pantallas estrechas */
