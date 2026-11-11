@@ -24,7 +24,7 @@ import { getHoyData, onHoyData, noticiasDeHoy, noticiasDeLaSemana, proximosDirec
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
 // Canal de la comunidad en Discord (dirección directa, NO una invitación:
 // solo abre a quien ya es miembro del servidor).
-const DISCORD_URL = 'https://discord.com/channels/1306561566958817280/1306561566958817285';
+const DISCORD_URL = 'https://discord.com/channels/1306561566958817280/1426808153839767553';
 
 const SHEET_SHORT = { ZONAS: 'Zonas', LIQUIDEZ: 'Liquidez', NASDAQ: 'Nasdaq' };
 
