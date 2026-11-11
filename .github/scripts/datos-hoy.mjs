@@ -10,6 +10,8 @@
 // de origen no, por eso no se pueden leer desde el navegador).
 //
 // Si una fuente falla, se conserva lo último publicado de esa parte.
+// Para relanzarlo sin esperar al cron: pestaña Actions → "Datos de Hoy" → Run
+// workflow (o cualquier cambio en este archivo, que también lo dispara).
 
 import fs from 'node:fs';
 
