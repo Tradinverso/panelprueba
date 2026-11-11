@@ -1,3 +1,4 @@
+import { ic } from './icons.js';
 // Barra de pestañas de la sección Backtesting: las 3 estrategias, cada una con
 // su histórico de backtests. Mismo patrón que strategy-tabs (enlaces de
 // navegación, la activa con el color de su estrategia).
@@ -20,7 +21,7 @@ export function backtestTabs(active) {
   return `
     <div class="rg-tabs gestion-tabs strat-tabs">
       ${Object.keys(BACKTEST_ROUTES).map(k => {
-        const EXTRA = { IMPORTAR: '⬆ Importar', NO_TOMADOS: '✗ No tomados' };
+        const EXTRA = { IMPORTAR: ic('subir') + ' Importar', NO_TOMADOS: '✗ No tomados' };
         const meta = STRATEGIES[k] || { label: EXTRA[k] || k };
         const on = active === k;
         return `<a class="rg-tab ${on ? 'active' : ''}" href="${BACKTEST_ROUTES[k]}"

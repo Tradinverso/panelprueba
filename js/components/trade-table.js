@@ -1,3 +1,4 @@
+import { ic } from './icons.js';
 import { formatDateShort } from '../utils/date-helpers.js';
 import { fmtPct } from '../utils/number-format-es.js';
 import { sortChrono, tradeRealPnl } from '../utils/calculations.js';
@@ -350,7 +351,7 @@ function row(t, canDelete, isBacktest = false, markedId = '', conModelos = false
   const pctReal = t.result === 'BE'
     ? '<span style="color:var(--orange)">0.00%</span>'
     : `<span style="color:${realPnl >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(realPnl)}</span>`;
-  const viewBtn = `<button class="view-btn" data-id="${t.id}" title="Ver trade completo">👁️</button>`;
+  const viewBtn = `<button class="view-btn" data-id="${t.id}" title="Ver trade completo">${ic('ojo')}</button>`;
   const delTd = canDelete
     ? `<td><button class="btn ghost danger del-btn" data-id="${t.id}" style="padding:4px 8px;font-size:11px;">×</button></td>`
     : '';

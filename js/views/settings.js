@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 import { state } from '../state.js';
 import { storage } from '../storage.js';
 import { openAppearancePanel } from '../components/appearance-panel.js';
@@ -134,7 +135,7 @@ export function settingsView(container) {
 
   const adminBanner = inViewAs && viewedProfile ? `
     <div class="imp-banner" style="margin-bottom:20px;">
-      <div class="imp-banner-icon">📝</div>
+      <div class="imp-banner-icon">${ic('nota')}</div>
       <div class="imp-banner-text">
         Acciones sobre <strong>${escapeHtml(viewedProfile.nombre || viewedProfile.email)}</strong>
         <span class="meta">cualquier borrado afecta a SU cuenta, no a la tuya</span>
@@ -165,7 +166,7 @@ export function settingsView(container) {
           </div>
         </div>
         <div class="setting-control" style="display:flex;justify-content:flex-end;">
-          <button class="btn primary" id="exportXlsxBtn" ${tradeCount === 0 ? 'disabled' : ''}>📊 Descargar Excel (${tradeCount})</button>
+          <button class="btn primary" id="exportXlsxBtn" ${tradeCount === 0 ? 'disabled' : ''}>${ic('tabla')} Descargar Excel (${tradeCount})</button>
         </div>
       </div>
 
@@ -178,7 +179,7 @@ export function settingsView(container) {
           </div>
         </div>
         <div class="setting-control" style="display:flex;justify-content:flex-end;">
-          <button class="btn" id="exportBtn">📥 Descargar backup</button>
+          <button class="btn" id="exportBtn">${ic('descargar')} Descargar backup</button>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 // Vista lista de cuentas. Muestra cards de cada cuenta con resumen rápido
 // y permite filtrar por estado y fase, y crear/editar/borrar cuentas.
 
@@ -22,7 +23,7 @@ let filterTipo = 'all';   // 'all' | 'CFD' | 'Futuros'
 
 const FASE_LABEL = { challenge_1: 'Challenge 1ª', challenge_2: 'Challenge 2ª', fondeada: 'Fondeada', propia: 'Capital propio' };
 const STATUS_LABEL = { activa: 'Activa', pausada: 'Pausada', pasada: 'Pasada', perdida: 'Perdida' };
-const STATUS_DOT = { activa: '🟢', pausada: '⏸', pasada: '✓', perdida: '✗' };
+const STATUS_DOT = { activa: '<span class="sdot ok"></span>', pausada: ic('pausa'), pasada: '✓', perdida: '✗' };
 const FASE_CLASS = { challenge_1: 'fase-c1', challenge_2: 'fase-c2', fondeada: 'fase-fond', propia: 'fase-prop' };
 const STATUS_CLASS = { activa: 'st-activa', pausada: 'st-pausada', pasada: 'st-pasada', perdida: 'st-perdida' };
 
@@ -109,7 +110,7 @@ function render(container) {
             </select>
           </div>
         </div>
-        <div class="cuentas-hint">💡 Para registrar retiros de propfirms anteriores: créalas como cuenta con estado <b>Pasada</b> o <b>Perdida</b> y añade los retiros desde su detalle.</div>
+        <div class="cuentas-hint">${ic('reflexiones')} Para registrar retiros de propfirms anteriores: créalas como cuenta con estado <b>Pasada</b> o <b>Perdida</b> y añade los retiros desde su detalle.</div>
 
         ${sortedFiltered.length
           ? renderGroupedCards(sortedFiltered)
@@ -249,7 +250,7 @@ function paintPortfolioKpis(container, cuentas) {
 function emptyState() {
   return `
     <div class="empty">
-      <div class="big">🏦</div>
+      <div class="big">${ic('banco')}</div>
       <div>Aún no tienes cuentas configuradas.</div>
       <div style="margin-top:8px;font-size:11px;color:var(--muted);">Crea tu primera cuenta para empezar a asignar trades y ver el equity en $.</div>
       <button class="btn primary" onclick="document.getElementById('newCuentaBtn')?.click()" style="margin-top:20px;">+ Crear primera cuenta</button>
@@ -290,8 +291,8 @@ function card(c) {
   const adv = advanceInfo(c);
   const equityColor = s.equityPct >= 0 ? 'var(--green)' : 'var(--red)';
   const wr = s.tp + s.sl > 0 ? s.wr.toFixed(0) + '%' : '–';
-  const racha = s.currentSlStreak >= 3 ? `🔴 ${s.currentSlStreak} SL`
-              : s.currentSlStreak === 2 ? `🟡 2 SL` : '';
+  const racha = s.currentSlStreak >= 3 ? `<span class="sdot bad"></span> ${s.currentSlStreak} SL`
+              : s.currentSlStreak === 2 ? `<span class="sdot mid"></span> 2 SL` : '';
 
   const stat = (label, value, extra = '') =>
     `<div class="cuenta-stat"><span class="cuenta-stat-l">${label}</span><span class="cuenta-stat-v"${extra}>${value}</span></div>`;
@@ -309,7 +310,7 @@ function card(c) {
           <div class="cuenta-card-sub">${c.numero ? '#' + esc(c.numero) + ' · ' : ''}${esc(c.tipo)} · <span class="badge st-${c.status}">${STATUS_DOT[c.status]} ${STATUS_LABEL[c.status]}</span></div>
         </div>
         <div class="cuenta-card-actions" data-stop>
-          <button class="btn ghost" data-edit-cuenta="${c.id}" title="Editar" data-stop>✏️</button>
+          <button class="btn ghost" data-edit-cuenta="${c.id}" title="Editar" data-stop>${ic('lapiz')}</button>
           <button class="btn ghost danger" data-delete-cuenta="${c.id}" title="Borrar" data-stop>×</button>
         </div>
       </div>

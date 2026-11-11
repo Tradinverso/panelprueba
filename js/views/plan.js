@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 // Vista "Plan de trading" — dos recuadros iguales, lado a lado, cada uno con su
 // propio scroll (la página no crece):
 //   · Izquierda: el DOCUMENTO del plan (enlace de Google Drive/Docs embebido).
@@ -47,7 +48,7 @@ function render(container) {
       ? `<iframe class="plan-frame" src="${esc(embed)}" loading="lazy" allowfullscreen title="Documento del plan"></iframe>
          <div class="plan-note">¿No se ve? El documento debe estar compartido como <strong>“Cualquiera con el enlace”</strong> en Drive.</div>`
       : `<div class="plan-empty">
-           <div class="plan-empty-ic">📄</div>
+           <div class="plan-empty-ic">${ic('documento')}</div>
            <div><strong>Documento en un enlace externo</strong></div>
            <div class="plan-empty-sub">Este enlace no se puede mostrar aquí dentro (solo los de Google Drive/Docs).</div>
            <a class="btn primary" href="${esc(plan.docUrl)}" target="_blank" rel="noopener noreferrer">Abrir documento ↗</a>
@@ -55,7 +56,7 @@ function render(container) {
   } else {
     left = `
       <div class="plan-empty">
-        <div class="plan-empty-ic">📄</div>
+        <div class="plan-empty-ic">${ic('documento')}</div>
         <div><strong>Inserta el documento de tu trading plan</strong></div>
         <div class="plan-empty-sub">Pega el enlace de tu PDF o documento en Google Drive/Docs, compartido como <strong>“Cualquiera con el enlace”</strong>. Se verá aquí dentro, página a página.</div>
         <div class="plan-url-form">
@@ -199,7 +200,7 @@ export function docBlock(url, noun = 'plan') {
     return `
       <div class="card" style="padding:0;overflow:hidden;">
         <div class="card-head" style="padding:14px 16px;">
-          <div class="card-title">📄 Documento (${noun})</div>
+          <div class="card-title">${ic('documento')} Documento (${noun})</div>
           <a class="btn" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Abrir en Drive ↗</a>
         </div>
         <iframe class="plan-embed" src="${esc(embed)}" loading="lazy" allowfullscreen></iframe>
@@ -208,7 +209,7 @@ export function docBlock(url, noun = 'plan') {
   }
   return `
     <a class="card plan-doc-cta" href="${esc(url)}" target="_blank" rel="noopener noreferrer">
-      <span class="pd-icon">📄</span>
+      <span class="pd-icon">${ic('documento')}</span>
       <span class="pd-text"><strong>Abrir documento</strong><small>Está en un enlace externo · se abre en una pestaña nueva</small></span>
       <span class="pd-arrow">↗</span>
     </a>`;

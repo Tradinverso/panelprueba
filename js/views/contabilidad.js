@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 // Vista "Contabilidad" — el negocio prop: dinero invertido (compras / reintentos)
 // vs retorno (payouts). KPIs (ROI, funding ratio, contadores), gráfico mensual,
 // calendario de eventos, y pestañas Resumen / Calendario / Retiros / Compras.
@@ -136,16 +137,16 @@ function renderResumen() {
   const periodNote = currentRange() ? ' · periodo seleccionado' : '';
   return `
     <div class="kpi-grid">
-      ${kpiCard({ label: 'Gastos totales', value: '-' + fmtUsd(s.gastosTotales), sub: 'compras' + periodNote, tone: 'red', icon: '🏦' })}
-      ${kpiCard({ label: 'Ganancias (payouts)', value: fmtUsd(s.gananciasBrutas), sub: s.comisiones > 0 ? fmtUsd(s.comisiones) + ' en comisiones' : 'retiros brutos', tone: 'green', icon: '💵' })}
-      ${kpiCard({ label: 'Beneficio neto', value: fmtUsd(s.beneficioNeto, true), sub: 'payouts netos − gastos', tone: s.beneficioNeto >= 0 ? 'green' : 'red', icon: '📈' })}
-      ${kpiCard({ label: 'ROI', value: fmtRoi(s.roi), sub: 'beneficio ÷ gastos', tone: s.roi >= 0 ? 'green' : 'red', icon: '🎯' })}
-      ${kpiCard({ label: 'Funding ratio', value: s.fundingRatio.toFixed(1) + '%', sub: `${s.fondeadas} fondeada${s.fondeadas !== 1 ? 's' : ''} de ${s.evaluaciones}`, tone: 'blue', icon: '⚡' })}
-      ${kpiCard({ label: 'Coste medio / cuenta', value: s.evaluaciones > 0 ? fmtUsd(s.gastosTotales / s.evaluaciones) : '–', sub: `gastos ÷ ${s.evaluaciones} evaluacion${s.evaluaciones !== 1 ? 'es' : ''}`, tone: 'orange', icon: '🧾' })}
-      ${kpiCard({ label: 'Payout medio / cuenta', value: s.evaluaciones > 0 ? fmtUsd(s.gananciasNetas / s.evaluaciones) : '–', sub: `payouts netos ÷ ${s.evaluaciones} evaluacion${s.evaluaciones !== 1 ? 'es' : ''}`, tone: 'green', icon: '💸' })}
-      ${kpiCard({ label: 'Payout medio / fondeada', value: s.fondeadas > 0 ? fmtUsd(s.gananciasNetas / s.fondeadas) : '–', sub: s.nRetiros > 0 ? `${s.nRetiros} retiro${s.nRetiros !== 1 ? 's' : ''} · media ${fmtUsd(s.gananciasBrutas / s.nRetiros)}/retiro` : 'sin retiros aún', tone: 'green', icon: '💰' })}
-      ${kpiCard({ label: 'Coste por fondeada', value: s.fondeadas > 0 ? fmtUsd(s.gastosTotales / s.fondeadas) : '–', sub: 'conseguir 1 fondeada (incluye las falladas)', tone: 'blue', icon: '⭐' })}
-      ${kpiCard({ label: 'Capital gestionado', value: s.live > 0 ? fmtUsd(s.capitalLive) : '–', sub: `${s.live} fondeada${s.live !== 1 ? 's' : ''} activa${s.live !== 1 ? 's' : ''} · capital nominal`, tone: 'purple', icon: '🏛️' })}
+      ${kpiCard({ label: 'Gastos totales', value: '-' + fmtUsd(s.gastosTotales), sub: 'compras' + periodNote, tone: 'red', icon: '' })}
+      ${kpiCard({ label: 'Ganancias (payouts)', value: fmtUsd(s.gananciasBrutas), sub: s.comisiones > 0 ? fmtUsd(s.comisiones) + ' en comisiones' : 'retiros brutos', tone: 'green', icon: '' })}
+      ${kpiCard({ label: 'Beneficio neto', value: fmtUsd(s.beneficioNeto, true), sub: 'payouts netos − gastos', tone: s.beneficioNeto >= 0 ? 'green' : 'red', icon: '' })}
+      ${kpiCard({ label: 'ROI', value: fmtRoi(s.roi), sub: 'beneficio ÷ gastos', tone: s.roi >= 0 ? 'green' : 'red', icon: '' })}
+      ${kpiCard({ label: 'Funding ratio', value: s.fundingRatio.toFixed(1) + '%', sub: `${s.fondeadas} fondeada${s.fondeadas !== 1 ? 's' : ''} de ${s.evaluaciones}`, tone: 'blue', icon: '' })}
+      ${kpiCard({ label: 'Coste medio / cuenta', value: s.evaluaciones > 0 ? fmtUsd(s.gastosTotales / s.evaluaciones) : '–', sub: `gastos ÷ ${s.evaluaciones} evaluacion${s.evaluaciones !== 1 ? 'es' : ''}`, tone: 'orange', icon: '' })}
+      ${kpiCard({ label: 'Payout medio / cuenta', value: s.evaluaciones > 0 ? fmtUsd(s.gananciasNetas / s.evaluaciones) : '–', sub: `payouts netos ÷ ${s.evaluaciones} evaluacion${s.evaluaciones !== 1 ? 'es' : ''}`, tone: 'green', icon: '' })}
+      ${kpiCard({ label: 'Payout medio / fondeada', value: s.fondeadas > 0 ? fmtUsd(s.gananciasNetas / s.fondeadas) : '–', sub: s.nRetiros > 0 ? `${s.nRetiros} retiro${s.nRetiros !== 1 ? 's' : ''} · media ${fmtUsd(s.gananciasBrutas / s.nRetiros)}/retiro` : 'sin retiros aún', tone: 'green', icon: '' })}
+      ${kpiCard({ label: 'Coste por fondeada', value: s.fondeadas > 0 ? fmtUsd(s.gastosTotales / s.fondeadas) : '–', sub: 'conseguir 1 fondeada (incluye las falladas)', tone: 'blue', icon: '' })}
+      ${kpiCard({ label: 'Capital gestionado', value: s.live > 0 ? fmtUsd(s.capitalLive) : '–', sub: `${s.live} fondeada${s.live !== 1 ? 's' : ''} activa${s.live !== 1 ? 's' : ''} · capital nominal`, tone: 'purple', icon: '' })}
     </div>
 
     <div class="bento">
@@ -211,11 +212,11 @@ function accountRows(cuentas) {
         <td style="text-align:right;white-space:nowrap;">
           ${(adv && c.status !== 'perdida') ? `<button class="btn ghost" data-cont-advance="${c.id}" title="${adv.label}" style="padding:4px 7px;font-size:11px;">${adv.toFondeada ? '★' : '✓'}</button>` : ''}
           ${(adv && !adv.toFondeada && c.status !== 'perdida') ? `<button class="btn ghost" data-cont-fondeada="${c.id}" title="Pasar a Fondeada directamente (saltando 2ª fase)" style="padding:4px 7px;font-size:11px;">★</button>` : ''}
-          ${(c.fase === 'fondeada' && c.status !== 'perdida') ? `<button class="btn ghost" data-cont-retiro="${c.id}" title="Registrar retiro" style="padding:4px 7px;font-size:11px;">💵</button>` : ''}
+          ${(c.fase === 'fondeada' && c.status !== 'perdida') ? `<button class="btn ghost" data-cont-retiro="${c.id}" title="Registrar retiro" style="padding:4px 7px;font-size:11px;">${ic('dinero')}</button>` : ''}
           <button class="btn ghost" data-cont-reset="${c.id}" title="Reset: volver a empezar desde el capital (y registrar lo que costó)" style="padding:4px 7px;font-size:11px;">↺</button>
           ${c.status !== 'perdida' ? `<button class="btn ghost danger" data-cont-quemada="${c.id}" title="Marcar quemada" style="padding:4px 7px;font-size:11px;">✗</button>` : ''}
-          <button class="btn ghost" data-cont-edit="${c.id}" title="Editar cuenta" style="padding:4px 7px;font-size:11px;">✏️</button>
-          <button class="btn ghost danger" data-cont-delete="${c.id}" title="Borrar cuenta" style="padding:4px 7px;font-size:11px;">🗑</button>
+          <button class="btn ghost" data-cont-edit="${c.id}" title="Editar cuenta" style="padding:4px 7px;font-size:11px;">${ic('lapiz')}</button>
+          <button class="btn ghost danger" data-cont-delete="${c.id}" title="Borrar cuenta" style="padding:4px 7px;font-size:11px;">${ic('papelera')}</button>
         </td>
       </tr>`;
   }).join('');
@@ -328,7 +329,7 @@ function renderLista(kind) {
             <td><span class="badge">${CONCEPT_LABEL[p.concept] || p.concept || '–'}</span></td>
             <td class="mono" style="color:var(--red);">${fmtUsd(p.amount)}</td>
             <td style="text-align:right;white-space:nowrap;">
-              <button class="btn ghost" data-edit-p="${p.id}" data-cid="${p.cuentaId}" title="Editar compra" style="padding:4px 8px;font-size:11px;">✏️</button>
+              <button class="btn ghost" data-edit-p="${p.id}" data-cid="${p.cuentaId}" title="Editar compra" style="padding:4px 8px;font-size:11px;">${ic('lapiz')}</button>
               ${legacy ? '' : `<button class="btn ghost danger" data-del-p="${p.id}" data-cid="${p.cuentaId}" title="Borrar compra" style="padding:4px 8px;font-size:11px;">×</button>`}</td>
           </tr>`;
         }).join('')}</tbody>
@@ -380,7 +381,7 @@ function renderEmpresas() {
   if (!empresaSel) {
     return selector + `
       <div class="card emp-empty">
-        <div style="font-size:34px;margin-bottom:10px;">🏢</div>
+        <div style="font-size:34px;margin-bottom:10px;">${ic('edificio')}</div>
         <div style="font-weight:600;color:var(--text);">Elige una empresa para ver su actividad</div>
         <div style="font-size:12px;font-family:var(--mono);color:var(--muted);margin-top:6px;">Al seleccionar una prop verás sus retiros y compras filtrados.</div>
       </div>`;
@@ -425,7 +426,7 @@ function renderEmpresas() {
             <td><span class="badge">${CONCEPT_LABEL[p.concept] || p.concept || '–'}</span></td>
             <td class="mono" style="color:var(--red);">${fmtUsd(p.amount)}</td>
             <td style="text-align:right;white-space:nowrap;">
-              <button class="btn ghost" data-edit-p="${p.id}" data-cid="${p.cuentaId}" title="Editar compra" style="padding:4px 8px;font-size:11px;">✏️</button>
+              <button class="btn ghost" data-edit-p="${p.id}" data-cid="${p.cuentaId}" title="Editar compra" style="padding:4px 8px;font-size:11px;">${ic('lapiz')}</button>
               ${legacy ? '' : `<button class="btn ghost danger" data-del-p="${p.id}" data-cid="${p.cuentaId}" title="Borrar compra" style="padding:4px 8px;font-size:11px;">×</button>`}</td>
           </tr>`;
         }).join('')}</tbody>
@@ -626,7 +627,7 @@ function wireCalendario(container) {
 function emptyState() {
   return `
     <div class="empty">
-      <div class="big">🧮</div>
+      <div class="big">${ic('contabilidad')}</div>
       <div>Aún no hay cuentas que analizar.</div>
       <div style="margin-top:8px;font-size:11px;color:var(--muted);">Pulsa <strong>+ Nueva cuenta</strong> y registra lo que pagaste para ver tu ROI y el calendario.</div>
     </div>`;

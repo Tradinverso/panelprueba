@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 // Vista "Alumnos" del GESTOR de alumnos: un alumno al que el admin ha dado
 // permiso (profile.gestor) para dar de alta alumnos. Ve el listado (nombre,
 // email y fecha de alta), puede crear nuevos, corregir el NOMBRE de un alumno y
@@ -71,7 +72,7 @@ function paint(container, students) {
   const content = container.querySelector('#studentsContent');
   content.innerHTML = `
     <div class="admin-search">
-      <input type="search" id="alumnosSearch" class="form-input" placeholder="🔍 Buscar alumno por nombre o email…" value="${esc(searchQuery)}" autocomplete="off">
+      <input type="search" id="alumnosSearch" class="form-input" placeholder="Buscar alumno por nombre o email…" value="${esc(searchQuery)}" autocomplete="off">
     </div>
     ${filtered.length === 0
       ? `<div class="empty">${q ? `Ningún alumno coincide con "${esc(searchQuery)}".` : 'Aún no hay alumnos.'}</div>`
@@ -84,8 +85,8 @@ function paint(container, students) {
                 <td style="font-family:var(--mono);font-size:11px;color:var(--muted);">${esc(s.profile.email)}</td>
                 <td style="font-family:var(--mono);font-size:11px;color:var(--muted);">${fecha(s.profile.createdAt)}</td>
                 <td style="text-align:right;white-space:nowrap;">
-                  <button class="btn ghost" data-edit-uid="${esc(s.uid)}" title="Editar nombre" style="padding:4px 9px;font-size:12px;">✏️</button>
-                  ${pausable(s) ? `<button class="btn ghost" data-pause-uid="${esc(s.uid)}" title="Pausar acceso (no borra nada)" style="padding:4px 9px;font-size:12px;color:var(--orange);">⏸</button>` : ''}
+                  <button class="btn ghost" data-edit-uid="${esc(s.uid)}" title="Editar nombre" style="padding:4px 9px;font-size:12px;">${ic('lapiz')}</button>
+                  ${pausable(s) ? `<button class="btn ghost" data-pause-uid="${esc(s.uid)}" title="Pausar acceso (no borra nada)" style="padding:4px 9px;font-size:12px;color:var(--orange);">${ic('pausa')}</button>` : ''}
                 </td>
               </tr>`).join('')}
           </tbody>
@@ -127,7 +128,7 @@ function paintPaused(container, paused) {
   const sorted = [...paused].sort((a, b) =>
     (a.profile.nombre || a.profile.email || '').localeCompare(b.profile.nombre || b.profile.email || '', 'es'));
   el.innerHTML = `
-    <div class="section-title" style="margin-top:24px;">⏸ Pausados (${paused.length})</div>
+    <div class="section-title" style="margin-top:24px;">${ic('pausa')} Pausados (${paused.length})</div>
     <div class="card table-card">
       <div class="card-sub" style="margin-bottom:10px;">No pueden entrar en la app. Sus datos se conservan: al reactivarlos lo encuentran todo como lo dejaron.</div>
       <table class="data-table">
@@ -155,7 +156,7 @@ function paintPaused(container, paused) {
 function confirmarPausa(stu, pausar, onDone) {
   const quien = `<strong>${esc(stu.profile.nombre || stu.profile.email)}</strong>`;
   openModal({
-    title: pausar ? '⏸ Pausar acceso' : '▶ Reactivar acceso',
+    title: pausar ? ic('pausa') + ' Pausar acceso' : ic('play') + ' Reactivar acceso',
     body: `<div style="white-space:normal;font-size:13px;line-height:1.55;">${pausar
       ? `${quien} no podrá entrar en la app hasta que se reactive. <span style="color:var(--muted);">No se borra nada: sus datos se quedan tal cual.</span>`
       : `${quien} podrá volver a entrar con su misma contraseña y verá todos sus datos como los dejó.`}
@@ -163,7 +164,7 @@ function confirmarPausa(stu, pausar, onDone) {
     actions: [
       { label: 'Cancelar', onClick: c => c() },
       {
-        label: pausar ? '⏸ Pausar' : '▶ Reactivar',
+        label: pausar ? ic('pausa') + ' Pausar' : ic('play') + ' Reactivar',
         variant: pausar ? 'danger' : 'primary',
         onClick: async c => {
           try {

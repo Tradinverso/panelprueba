@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 // Vista "Meditaciones" — reproductor de audios locales (assets/audio/) para la
 // parte de psicología. 3ª pieza de Psicotrading. Usa <audio> nativo: robusto,
 // accesible y sin librerías. Los MP3 y la lista se gestionan en
@@ -19,7 +20,7 @@ export function meditacionesView(container) {
     ? `<div class="medita-list">${items.map(m => `
         <div class="medita-card">
           <div class="medita-head">
-            <div class="medita-icon">🎧</div>
+            <div class="medita-icon">${ic('auriculares')}</div>
             <div class="medita-meta">
               <div class="medita-title">${esc(m.titulo)}</div>
               ${m.autor ? `<div class="medita-author">${esc(m.autor)}</div>` : ''}
@@ -29,7 +30,7 @@ export function meditacionesView(container) {
           <audio class="medita-audio" controls preload="none" src="${esc(m.src)}"></audio>
         </div>`).join('')}</div>`
     : `<div class="empty">
-         <div class="big">🎧</div>
+         <div class="big">${ic('auriculares')}</div>
          <div>Aún no hay meditaciones disponibles.</div>
          <div style="margin-top:8px;font-size:11px;color:var(--muted);">Pronto encontrarás aquí audios guiados para preparar tu mente antes de operar.</div>
        </div>`;

@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 // Dictado por voz para textareas — Web Speech API (integrada en Chrome/Edge,
 // sin servidor ni librerías). En navegadores sin soporte (Firefox) el botón
 // simplemente no aparece: la función es opcional y no rompe nada.
@@ -26,7 +27,7 @@ export function attachDictation(textarea) {
   btn.type = 'button';
   btn.className = 'dictate-btn';
   btn.title = 'Dictar por voz';
-  btn.textContent = '🎤';
+  btn.innerHTML = ic('microfono');
   host.appendChild(btn);
 
   let rec = null;

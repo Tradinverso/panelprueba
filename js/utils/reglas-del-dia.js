@@ -107,9 +107,18 @@ export const REGLAS = [
   ['Mañana es otro día.', 'Cierra el de hoy en paz.'],
 ];
 
-// { num: 1..100, main, sub } para hoy.
+// { main, sub } para hoy. Una regla por dia, pero sin orden aparente: el dia
+// se pasa por una permutacion fija (multiplicador coprimo con el total), asi
+// salen todas antes de repetirse y no se ve la secuencia 1, 2, 3...
+function coprimo(n) {
+  const mcd = (a, b) => (b ? mcd(b, a % b) : a);
+  for (let k = 37; k < n + 37; k++) if (mcd(k, n) === 1) return k;
+  return 1;
+}
+
 export function reglaDelDia(now = new Date()) {
+  const n = REGLAS.length;
   const dias = Math.floor(now.getTime() / 86400000);
-  const i = ((dias % REGLAS.length) + REGLAS.length) % REGLAS.length;
-  return { num: i + 1, total: REGLAS.length, main: REGLAS[i][0], sub: REGLAS[i][1] };
+  const i = (((dias * coprimo(n) + 11) % n) + n) % n;
+  return { main: REGLAS[i][0], sub: REGLAS[i][1] };
 }

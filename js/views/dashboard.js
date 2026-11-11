@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 import { state } from '../state.js';
 import { auth } from '../auth.js';
 import { router } from '../router.js';
@@ -104,7 +105,7 @@ function impersonationBanner() {
   const n = state.trades.length;
   return `
     <div class="imp-banner">
-      <div class="imp-banner-icon">📝</div>
+      <div class="imp-banner-icon">${ic('nota')}</div>
       <div class="imp-banner-text">
         Editando como <strong>${escapeHtml(p.nombre || p.email)}</strong>
         <span class="meta">${n} trades · cualquier cambio se guarda en SU cuenta</span>
@@ -170,7 +171,7 @@ function emptyState() {
       </div>
     </div>
     <div class="empty">
-      <div class="big">📈</div>
+      <div class="big">${ic('nasdaq')}</div>
       <div>Aún no hay trades${state.readOnly ? '' : '. Importa tu histórico desde Google Sheets o crea un trade nuevo'}.</div>
       ${writableActions}
     </div>
@@ -425,9 +426,9 @@ function paintEquity(container, trades) {
 // distintas y antes "Precaución" tapaba el "Checklist pendiente".
 // Siempre evalúa HOY sobre todos los trades (el filtro mes/año no le afecta).
 const SEMAFORO = {
-  ok:   { dot: '🟢', label: 'Vía libre' },
-  warn: { dot: '🟠', label: 'Precaución' },
-  stop: { dot: '🔴', label: 'Hoy no se opera' },
+  ok:   { dot: '<span class="sdot ok"></span>', label: 'Vía libre' },
+  warn: { dot: '<span class="sdot warn"></span>', label: 'Precaución' },
+  stop: { dot: '<span class="sdot bad"></span>', label: 'Hoy no se opera' },
 };
 function semaforoPill(allTrades) {
   const s = todayStatus(allTrades);

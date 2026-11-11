@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 // Riesgo / Rotación — sección FUTUROS.
 //
 // Distinta de la de CFD (riesgo.js): aquí no hay niveles ni multiplicadores.
@@ -99,7 +100,7 @@ function rotacionHtml() {
         </div>
       </div>
       <div class="rg-advisor">
-        💡 Próximo trade en <b>${esc(unidadNombre(act))}</b> — riesgo por cuenta:
+        ${ic('reflexiones')} Próximo trade en <b>${esc(unidadNombre(act))}</b> — riesgo por cuenta:
         <ul class="fut-risk-list">
           ${act.cuentas.map(c => {
             const { gestion, pendiente } = gestionEfectiva(c, custom());
@@ -303,7 +304,7 @@ function gestionesHtml() {
             <td class="mono">${esc(g.consistencia || '—')}</td>
             <td style="font-size:11px;color:var(--muted);">${esc(g.nota || '')}</td>
             <td style="white-space:nowrap;">${g.custom ? `
-              <button class="btn ghost" data-fut-edit="${esc(g.id)}" title="Editar">✏️</button>
+              <button class="btn ghost" data-fut-edit="${esc(g.id)}" title="Editar">${ic('lapiz')}</button>
               <button class="btn ghost danger" data-fut-del="${esc(g.id)}" title="Borrar">×</button>` : ''}</td>
           </tr>`).join('')}
         </tbody>

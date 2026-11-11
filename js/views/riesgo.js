@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 // Vista "Riesgo / Rotación" — asesor de gestión de riesgo por niveles + rotación
 // de cuentas. SOLO LECTURA respecto a los trades: el balance y el drawdown se
 // derivan del equity de cada cuenta (accountStats), no se introducen a mano.
@@ -182,7 +183,7 @@ function renderCuentasTab() {
         </div>
       </div>
       <div class="rg-advisor">
-        💡 Próximo trade en <b>${esc(activa.empresa)}</b>: arriésga <b>${(r.proxNivel.pct * 100).toFixed(2)}%</b> ≈ <b>${fmtUsd(r.proxNivel.importe)}</b>.
+        ${ic('reflexiones')} Próximo trade en <b>${esc(activa.empresa)}</b>: arriésga <b>${(r.proxNivel.pct * 100).toFixed(2)}%</b> ≈ <b>${fmtUsd(r.proxNivel.importe)}</b>.
         Regístralo en <a href="#/nuevo">Nuevo trade</a>; con SL la rotación pasa a la siguiente cuenta.
       </div>
     `;
@@ -310,25 +311,25 @@ function buildAlertas() {
     const r = riskOf(c);
     const p = r.pctCuenta;
     const nom = esc(c.empresa);
-    if (p <= -0.05)      out.push({ t: 'critical', i: '🔴', ti: `${nom} — Límite crítico`, d: `Pérdida del ${(Math.abs(p) * 100).toFixed(2)}%. Considera pausar.` });
-    else if (p <= -0.03) out.push({ t: 'danger',   i: '🟠', ti: `${nom} — Alto riesgo`,   d: `Pérdida del ${(Math.abs(p) * 100).toFixed(2)}%. Nivel ${r.nivelActual} activo.` });
-    else if (p <= -0.015) out.push({ t: 'warn',    i: '🟡', ti: `${nom} — Atención`,      d: `Pérdida del ${(Math.abs(p) * 100).toFixed(2)}%. Monitorizar.` });
-    if (r.nivelActual >= 6) out.push({ t: 'danger', i: '⚡', ti: `${nom} — Nivel ${r.nivelActual}`, d: `Riesgo elevado. Próximo: ${(r.proxNivel.pct * 100).toFixed(2)}%.` });
+    if (p <= -0.05)      out.push({ t: 'critical', i: '<span class="sdot bad"></span>', ti: `${nom} — Límite crítico`, d: `Pérdida del ${(Math.abs(p) * 100).toFixed(2)}%. Considera pausar.` });
+    else if (p <= -0.03) out.push({ t: 'danger',   i: '<span class="sdot warn"></span>', ti: `${nom} — Alto riesgo`,   d: `Pérdida del ${(Math.abs(p) * 100).toFixed(2)}%. Nivel ${r.nivelActual} activo.` });
+    else if (p <= -0.015) out.push({ t: 'warn',    i: '<span class="sdot mid"></span>', ti: `${nom} — Atención`,      d: `Pérdida del ${(Math.abs(p) * 100).toFixed(2)}%. Monitorizar.` });
+    if (r.nivelActual >= 6) out.push({ t: 'danger', i: ic('rayo'), ti: `${nom} — Nivel ${r.nivelActual}`, d: `Riesgo elevado. Próximo: ${(r.proxNivel.pct * 100).toFixed(2)}%.` });
 
     // Objetivo de ganancia (targetUsd) y límite de pérdida (maxDdUsd)
     const ben = r.equity - c.capital;
     if (c.targetUsd > 0) {
       const prog = ben / c.targetUsd;
-      if (prog >= 1)       out.push({ t: 'ok', i: '🎯', ti: `${nom} — ¡Objetivo alcanzado!`, d: `Ganancia ${fmtUsd(ben)} de ${fmtUsd(c.targetUsd)}.` });
-      else if (prog >= 0.8) out.push({ t: 'ok', i: '📈', ti: `${nom} — Cerca del objetivo`,  d: `${Math.round(prog * 100)}% completado (${fmtUsd(ben)} de ${fmtUsd(c.targetUsd)}).` });
+      if (prog >= 1)       out.push({ t: 'ok', i: ic('zonas'), ti: `${nom} — ¡Objetivo alcanzado!`, d: `Ganancia ${fmtUsd(ben)} de ${fmtUsd(c.targetUsd)}.` });
+      else if (prog >= 0.8) out.push({ t: 'ok', i: ic('nasdaq'), ti: `${nom} — Cerca del objetivo`,  d: `${Math.round(prog * 100)}% completado (${fmtUsd(ben)} de ${fmtUsd(c.targetUsd)}).` });
     }
     if (c.maxDdUsd > 0 && ben < 0) {
       const prog = Math.abs(ben) / c.maxDdUsd;
-      if (prog >= 1)        out.push({ t: 'critical', i: '⛔', ti: `${nom} — Límite de pérdida alcanzado`, d: `Drawdown máximo de ${fmtUsd(c.maxDdUsd)} alcanzado.` });
-      else if (prog >= 0.8) out.push({ t: 'danger',   i: '⚠️', ti: `${nom} — Cerca del límite`,          d: `${Math.round(prog * 100)}% del límite (${fmtUsd(Math.abs(ben))} / ${fmtUsd(c.maxDdUsd)}).` });
+      if (prog >= 1)        out.push({ t: 'critical', i: ic('stop'), ti: `${nom} — Límite de pérdida alcanzado`, d: `Drawdown máximo de ${fmtUsd(c.maxDdUsd)} alcanzado.` });
+      else if (prog >= 0.8) out.push({ t: 'danger',   i: ic('aviso'), ti: `${nom} — Cerca del límite`,          d: `${Math.round(prog * 100)}% del límite (${fmtUsd(Math.abs(ben))} / ${fmtUsd(c.maxDdUsd)}).` });
     }
   }
-  if (!out.length) out.push({ t: 'ok', i: '✅', ti: 'Todo en orden', d: 'Sin alertas activas.' });
+  if (!out.length) out.push({ t: 'ok', i: ic('ok'), ti: 'Todo en orden', d: 'Sin alertas activas.' });
   return out;
 }
 
@@ -635,7 +636,7 @@ function openPerfilModal(perfil, container) {
 function emptyState() {
   return `
     <div class="empty">
-      <div class="big">🎯</div>
+      <div class="big">${ic('zonas')}</div>
       <div>No tienes cuentas activas.</div>
       <div style="margin-top:8px;font-size:11px;color:var(--muted);">Solo las cuentas con estado <b>Activa</b> aparecen aquí. Crea o reactiva cuentas en <a href="#/cuentas">Cuentas</a> para ver su nivel de riesgo y la rotación.</div>
     </div>`;

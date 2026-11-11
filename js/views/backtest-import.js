@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 // Backtesting · IMPORTAR — vuelca las plantillas de Sheets de la academia (o
 // cualquier tabla) a la rejilla editable, y de ahí al histórico de backtests.
 //
@@ -177,7 +178,7 @@ function paint(container) {
       <div class="card-title">3 · Importar</div>
       <div class="card-sub">Se importan las filas válidas (✓) de las tres estrategias. Reimportar lo mismo no duplica.</div>
       <div style="display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap;">
-        <button class="btn primary" id="btiImport" ${totalValid ? '' : 'disabled'}>⬆ Importar ${totalValid} backtest${totalValid !== 1 ? 's' : ''}</button>
+        <button class="btn primary" id="btiImport" ${totalValid ? '' : 'disabled'}>${ic('subir')} Importar ${totalValid} backtest${totalValid !== 1 ? 's' : ''}</button>
         <span class="filter-count">${SHEETS.map(k => `${STRATEGIES[k].label}: ${validCount(k)}`).join(' · ')}</span>
       </div>
     </div>
@@ -194,7 +195,7 @@ function paint(container) {
           </div>
         </div>
         <div class="setting-control" style="display:flex;justify-content:flex-end;">
-          <button class="btn primary" id="btiExport" ${stored.total ? '' : 'disabled'}>📊 Descargar Excel (${stored.total})</button>
+          <button class="btn primary" id="btiExport" ${stored.total ? '' : 'disabled'}>${ic('tabla')} Descargar Excel (${stored.total})</button>
         </div>
       </div>
     </div>

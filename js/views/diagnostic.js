@@ -23,29 +23,13 @@ function render(container) {
       </div>
     </div>
 
-    <div class="grid-2">
-      <div>
-        <div style="font-size:15px;font-weight:600;margin-bottom:14px;letter-spacing:-0.2px;">Técnico</div>
-        <div class="card" style="margin-bottom:14px;">
-          <div class="card-title" style="margin-bottom:14px;">Alertas</div>
-          <div id="tecAlertas">${renderList(a.tecAlertas, 'Sin alertas técnicas activas ✓')}</div>
-        </div>
-        <div class="card">
-          <div class="card-title" style="margin-bottom:14px;">Insights</div>
-          <div id="tecInsights">${renderList(a.tecInsights, '–')}</div>
-        </div>
-      </div>
-      <div>
-        <div style="font-size:15px;font-weight:600;margin-bottom:14px;letter-spacing:-0.2px;">Emocional</div>
-        <div class="card" style="margin-bottom:14px;">
-          <div class="card-title" style="margin-bottom:14px;">Alertas</div>
-          <div id="emoAlertas">${renderList(a.emoAlertas, 'Sin alertas emocionales activas ✓')}</div>
-        </div>
-        <div class="card">
-          <div class="card-title" style="margin-bottom:14px;">Insights</div>
-          <div id="emoInsights">${renderList(a.emoInsights, '–')}</div>
-        </div>
-      </div>
+    <div class="diag-grid">
+      <div class="diag-col-title">Técnico</div>
+      ${box('Alertas', a.tecAlertas, 'Sin alertas técnicas activas', 'tecAlertas', 'activas')}
+      ${box('Insights', a.tecInsights, 'Aún no hay datos suficientes', 'tecInsights')}
+      <div class="diag-col-title">Emocional</div>
+      ${box('Alertas', a.emoAlertas, 'Sin alertas emocionales activas', 'emoAlertas', 'activas')}
+      ${box('Insights', a.emoInsights, 'Aún no hay datos suficientes', 'emoInsights')}
     </div>
 
     <div class="section-title">Sensaciones — distribución y rendimiento</div>
@@ -62,16 +46,10 @@ function render(container) {
       </div>
     </div>
 
-    <div class="section-title">📋 Trading Plan — Disciplina de ejecución</div>
-    <div class="grid-2" style="margin-bottom:14px;">
-      <div class="card">
-        <div class="card-title" style="margin-bottom:14px;">Alertas (fuera del plan)</div>
-        <div id="planAlertas">${renderList(a.planAlertas, 'Sin alertas — disciplina al día ✓')}</div>
-      </div>
-      <div class="card">
-        <div class="card-title" style="margin-bottom:14px;">Indicadores positivos</div>
-        <div id="planInsights">${renderList(a.planInsights, 'Marca el campo "plan seguido" en tus trades para activar indicadores.')}</div>
-      </div>
+    <div class="section-title">Trading Plan — Disciplina de ejecución</div>
+    <div class="diag-grid diag-grid-1">
+      ${box('Alertas (fuera del plan)', a.planAlertas, 'Sin alertas: disciplina al día', 'planAlertas', 'activas')}
+      ${box('Indicadores positivos', a.planInsights, 'Marca el campo "plan seguido" en tus trades para activar indicadores.', 'planInsights')}
     </div>
 
     <div class="card" style="margin-bottom:24px;">
@@ -120,14 +98,30 @@ function paintPlanCompare(container, trades) {
   `;
 }
 
+// Caja de alertas o insights. Las cuatro (Técnico/Emocional × Alertas/Insights)
+// van en una rejilla que iguala alturas por fila: quedan cuadros iguales.
+function box(title, items, emptyText, id, unidad) {
+  const n = items.length;
+  return `
+    <div class="card diag-box">
+      <div class="diag-box-head">
+        <div class="card-title">${title}</div>
+        ${n ? `<span class="diag-count">${n}${unidad ? ' ' + unidad : ''}</span>` : ''}
+      </div>
+      <div class="diag-list" id="${id}">${renderList(items, emptyText)}</div>
+    </div>`;
+}
+
+// Cada alerta o insight: punto de color (rojo alerta, ámbar aviso, verde
+// insight), título y sub-texto. Sin emojis: el color ya dice qué es.
 function renderList(items, emptyText) {
-  if (!items.length) return `<div style="color:var(--muted);font-family:var(--mono);font-size:11px;padding:8px 0;">${emptyText}</div>`;
+  if (!items.length) return `<div class="diag-row diag-empty"><span class="diag-dot success"></span><div><small>${emptyText}</small></div></div>`;
   return items.map(a => `
-    <div class="alert ${a.type}">
-      <div class="alert-icon">${a.icon}</div>
+    <div class="diag-row">
+      <span class="diag-dot ${a.type}"></span>
       <div>
-        <div class="alert-title">${a.title}</div>
-        <div class="alert-body">${a.body}</div>
+        <b>${a.title}</b>
+        <small>${a.body}</small>
       </div>
     </div>
   `).join('');

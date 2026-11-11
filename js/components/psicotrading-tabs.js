@@ -1,3 +1,4 @@
+import { ic } from './icons.js';
 // Barra de pestañas que unifica la sección Psicotrading:
 // Reflexiones ↔ Meditaciones ↔ Protocolos. Son enlaces de navegación (cada uno
 // es su propia ruta/vista), marcando la activa. Mismo patrón que ajustes-tabs.
@@ -14,8 +15,8 @@ export function psicotradingTabs(active) {
   // strat-tabs: mismas pestañas grandes y centradas que en Estrategias.
   return `
     <div class="rg-tabs gestion-tabs strat-tabs">
-      ${tab('reflexiones', '🧘 Reflexiones')}
-      ${tab('meditaciones', '🎧 Meditaciones')}
-      ${tab('protocolos', '📋 Protocolos')}
+      ${tab('reflexiones', ic('reflexiones') + ' Reflexiones')}
+      ${tab('meditaciones', ic('auriculares') + ' Meditaciones')}
+      ${tab('protocolos', ic('plan') + ' Protocolos')}
     </div>`;
 }

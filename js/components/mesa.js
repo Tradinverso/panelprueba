@@ -217,7 +217,7 @@ export function renderMesa(container) {
         : `<div class="mesa-empty">Sin cuentas activas. <a href="#/cuentas">Añade una →</a></div>`}
       </section>
       <section class="card mesa-box">
-        <div class="mesa-block-head"><div class="mesa-label">Regla del día</div><span class="mesa-muted">${regla.num}/${regla.total}</span></div>
+        <div class="mesa-block-head"><div class="mesa-label">Regla del día</div></div>
         <div class="mesa-rule">${escapeHtml(regla.main)}</div>
         <div class="mesa-rule-sub">${escapeHtml(regla.sub)}</div>
       </section>

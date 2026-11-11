@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 import { state } from '../state.js';
 import {
   winrate, pnlPct, pnlPctReal, profitFactor, maxDrawdown, maxStreak, bestTpStreakPnl,
@@ -128,7 +129,7 @@ function render(container, sheet) {
         ${headerActions(sheet)}
       </div>
       <div class="empty">
-        <div class="big">📊</div>
+        <div class="big">${ic('grupo')}</div>
         <div>Aún no hay trades de ${meta.label}.</div>
       </div>
     `;
@@ -148,7 +149,7 @@ function render(container, sheet) {
         ${filtrosHtml(allSheet)}
       </div>
       <div class="empty">
-        <div class="big">🔍</div>
+        <div class="big">${ic('buscar')}</div>
         <div>Ningún trade de ${meta.label} pasa esos filtros. Ajústalos arriba o límpialos.</div>
       </div>`;
     wireFiltros(container, sheet);

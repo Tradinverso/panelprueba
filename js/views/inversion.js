@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 // Vista "Inversión" — el negocio prop: dinero invertido (compras / reintentos)
 // vs retorno (payouts). KPIs (ROI, funding ratio, contadores), gráfico mensual,
 // y pestañas Resumen / Retiros / Compras con filtro por periodo y por cuenta.
@@ -281,7 +282,7 @@ function paintChart(container) {
 function emptyState() {
   return `
     <div class="empty">
-      <div class="big">💰</div>
+      <div class="big">${ic('dinero')}</div>
       <div>Aún no hay cuentas que analizar.</div>
       <div style="margin-top:8px;font-size:11px;color:var(--muted);">Crea cuentas en <a href="#/cuentas">Cuentas</a> con su coste para ver tu ROI.</div>
     </div>`;

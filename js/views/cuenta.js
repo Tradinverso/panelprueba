@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 // Detalle de una cuenta concreta. KPIs en $, equity curve, retiros (si fondeada),
 // tabla de trades asignados con su $ P&L individual.
 
@@ -19,7 +20,7 @@ import { todayLocal } from '../utils/timezone.js';
 
 const FASE_LABEL = { challenge_1: 'Challenge 1ª', challenge_2: 'Challenge 2ª', fondeada: 'Fondeada', propia: 'Capital propio' };
 const STATUS_LABEL = { activa: 'Activa', pausada: 'Pausada', pasada: 'Pasada', perdida: 'Perdida' };
-const STATUS_DOT = { activa: '🟢', pausada: '⏸', pasada: '✓', perdida: '✗' };
+const STATUS_DOT = { activa: '<span class="sdot ok"></span>', pausada: ic('pausa'), pasada: '✓', perdida: '✗' };
 
 // Registro de hitos de la cuenta (fases superadas / quemada). Se conserva aunque
 // el profit/WR de esas fases ya no se muestre (se reinician al superar fase).
@@ -94,15 +95,15 @@ function render(container, cuentaId) {
         <a class="btn" href="#/cuentas">← Cuentas</a>
         ${adv ? `<button class="btn" id="advanceFaseBtn">${adv.toFondeada ? '★' : '✓'} ${adv.label}</button>` : ''}
         ${(adv && !adv.toFondeada) ? `<button class="btn" id="fondeadaBtn" title="Pasar a Fondeada directamente (saltando la 2ª fase)">★ A Fondeada</button>` : ''}
-        ${cuenta.status !== 'perdida' ? `<button class="btn" id="ajusteEquityBtn" title="Corregir el equity actual (trade sin asignar, varianza de cuenta antigua…)">⚖ Ajustar equity</button>` : ''}
+        ${cuenta.status !== 'perdida' ? `<button class="btn" id="ajusteEquityBtn" title="Corregir el equity actual (trade sin asignar, varianza de cuenta antigua…)">${ic('balanza')} Ajustar equity</button>` : ''}
         ${!isPropia ? `<button class="btn" id="resetCuentaBtn" title="Volver a empezar la cuenta desde el capital (reset de la prop firm)">↺ Reset</button>` : ''}
         ${cuenta.status !== 'perdida' ? `<button class="btn danger" id="quemadaBtn">✗ Quemada</button>` : ''}
-        <button class="btn" id="editCuentaBtn">✏️ Editar</button>
+        <button class="btn" id="editCuentaBtn">${ic('lapiz')} Editar</button>
         <button class="btn danger" id="deleteCuentaBtn">× Borrar</button>
       </div>
     </div>
 
-    ${cuenta.notes ? `<div class="card" style="margin-bottom:20px;"><div class="card-sub" style="margin-bottom:0;">📝 ${esc(cuenta.notes)}</div></div>` : ''}
+    ${cuenta.notes ? `<div class="card" style="margin-bottom:20px;"><div class="card-sub" style="margin-bottom:0;">${ic('nota')} ${esc(cuenta.notes)}</div></div>` : ''}
 
     ${renderPhaseHistory(cuenta)}
 
@@ -399,7 +400,7 @@ function renderAccountTradesTable(items, cuenta) {
               <td style="color:${pctColor};">${t.pnl_pct >= 0 ? '+' : ''}${t.pnl_pct.toFixed(2)}%</td>
               <td style="color:${usdColor};font-weight:500;">${fmtUsd(usdPnl, true)}</td>
               <td><span class="res-pill res-${t.result.toLowerCase()}">${t.result}</span></td>
-              <td><button class="view-btn" data-id="${t.id}" title="Ver trade completo">👁️</button></td>
+              <td><button class="view-btn" data-id="${t.id}" title="Ver trade completo">${ic('ojo')}</button></td>
             </tr>`;
           }).join('')}
         </tbody>
@@ -446,7 +447,7 @@ function paintEquityChart(container, curve) {
           callbacks: {
             label: ctx => {
               const p = curve[ctx.dataIndex];
-              const t = p.type === 'withdrawal' ? '🔻 Retiro' : p.type === 'start' ? 'Capital inicial' : 'Trade';
+              const t = p.type === 'withdrawal' ? 'Retiro' : p.type === 'start' ? 'Capital inicial' : 'Trade';
               return `${t}: $${ctx.raw.toLocaleString('en-US')}`;
             },
           },
@@ -500,7 +501,7 @@ function renderProgressBars(s) {
     bars.push(`
       <div class="prog-row">
         <div class="prog-head">
-          <span><strong>🎯 Target</strong> · ${fmtUsd(s.profitTotalUsd, true)} de ${fmtUsd(s.targetUsd)}</span>
+          <span><strong>${ic('zonas')} Target</strong> · ${fmtUsd(s.profitTotalUsd, true)} de ${fmtUsd(s.targetUsd)}</span>
           <span style="color:${color};font-weight:600;">${s.targetProgressPct.toFixed(0)}%</span>
         </div>
         <div class="prog-track"><div class="prog-fill" style="width:${pct}%;background:${color};"></div></div>
@@ -515,7 +516,7 @@ function renderProgressBars(s) {
     bars.push(`
       <div class="prog-row">
         <div class="prog-head">
-          <span><strong>🛑 DD consumido</strong> · ${fmtUsd(s.ddConsumedUsd)} de ${fmtUsd(s.ddLimitUsd)}</span>
+          <span><strong>${ic('stop')} DD consumido</strong> · ${fmtUsd(s.ddConsumedUsd)} de ${fmtUsd(s.ddLimitUsd)}</span>
           <span style="color:${color};font-weight:600;">${s.ddConsumedPct.toFixed(0)}%</span>
         </div>
         <div class="prog-track"><div class="prog-fill" style="width:${pct}%;background:${color};"></div></div>

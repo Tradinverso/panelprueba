@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 import { state } from '../state.js';
 import { MONTHS_ES } from '../utils/date-helpers.js';
 import { fmtPct } from '../utils/number-format-es.js';
@@ -180,7 +181,7 @@ function paintCalendar(container, dayIndex) {
 
       const hasReflex = inMonth && reflexDates.has(ds);
       const reflexBtn = hasReflex
-        ? `<button class="cal-reflex-btn" data-reflex="${ds}" title="Ver reflexión del día">📝</button>`
+        ? `<button class="cal-reflex-btn" data-reflex="${ds}" title="Ver reflexión del día">${ic('nota')}</button>`
         : '';
 
       if (inMonth && data) {

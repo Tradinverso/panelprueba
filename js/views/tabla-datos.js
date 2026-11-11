@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 // Vista "Tabla de datos": editor tipo Excel para corregir trades en masa
 // sin tener que abrir el modal de cada uno.
 //
@@ -76,11 +77,11 @@ function render(container) {
         <option value="SL" ${filterResult === 'SL' ? 'selected' : ''}>Solo SL</option>
         <option value="BE" ${filterResult === 'BE' ? 'selected' : ''}>Solo BE</option>
       </select>
-      <input type="search" id="td-search" class="form-input" placeholder="🔍 Buscar (par, zona, entrada, reflexión, sensación)…" value="${escAttr(searchQuery)}" autocomplete="off">
+      <input type="search" id="td-search" class="form-input" placeholder="Buscar (par, zona, entrada, reflexión, sensación)…" value="${escAttr(searchQuery)}" autocomplete="off">
     </div>
 
     ${all.length === 0
-      ? '<div class="empty"><div class="big">📋</div><div>Aún no hay trades. Impórtalos o créalos primero.</div></div>'
+      ? '<div class="empty"><div class="big">' + ic('plan') + '</div><div>Aún no hay trades. Impórtalos o créalos primero.</div></div>'
       : filtered.length === 0
       ? '<div class="empty">Ningún trade coincide con los filtros.</div>'
       : `<div class="td-table-wrap">
@@ -156,8 +157,8 @@ function renderRow(t) {
   const numAccs = Array.isArray(t.accounts) ? t.accounts.length : 0;
   return `
     <tr data-trade-id="${id}">
-      <td><button class="td-action view" data-action="view" data-id="${id}" title="Ver trade completo">👁️</button></td>
-      <td><button class="td-action del" data-action="del" data-id="${id}" title="Eliminar trade">🗑</button></td>
+      <td><button class="td-action view" data-action="view" data-id="${id}" title="Ver trade completo">${ic('ojo')}</button></td>
+      <td><button class="td-action del" data-action="del" data-id="${id}" title="Eliminar trade">${ic('papelera')}</button></td>
       <td><input type="date" data-field="date" value="${escAttr(t.date)}"></td>
       <td><input type="time" data-field="open_str" value="${escAttr(t.open_str || '')}"></td>
       <td><input type="time" data-field="close_str" value="${escAttr(t.close_str || '')}"></td>

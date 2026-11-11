@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 // Panel admin "Mis Alumnos". Lista alumnos con métricas, permite crear nuevos
 // y entrar al dashboard de cada uno en modo solo-lectura.
 
@@ -41,7 +42,7 @@ async function render(container) {
   const viewingNow = state.viewAsUid && state.viewAsProfile;
   const viewingBanner = viewingNow ? `
     <div class="imp-banner" style="margin-bottom:20px;">
-      <div class="imp-banner-icon">📍</div>
+      <div class="imp-banner-icon">${ic('pin')}</div>
       <div class="imp-banner-text">
         Actualmente estás viendo a <strong>${escapeHtml(state.viewAsProfile.nombre || state.viewAsProfile.email)}</strong>
         <span class="meta">cualquier cambio que hagas afecta a su cuenta</span>
@@ -62,8 +63,8 @@ async function render(container) {
         <div class="sub" id="adminSub">Cargando alumnos…</div>
       </div>
       <div class="page-actions">
-        <button class="btn" id="backupBtn" title="${backupTooltip}">📥 Backup</button>
-        <button class="btn" id="restoreBtn" title="Restaurar desde un archivo de backup">📂 Restaurar</button>
+        <button class="btn" id="backupBtn" title="${backupTooltip}">${ic('descargar')} Backup</button>
+        <button class="btn" id="restoreBtn" title="Restaurar desde un archivo de backup">${ic('carpeta')} Restaurar</button>
         <button class="btn" id="refreshBtn">↻ Refrescar</button>
         <button class="btn primary" id="newStudentBtn">+ Crear nuevo alumno</button>
       </div>
@@ -102,8 +103,8 @@ async function render(container) {
     const btnHeader = container.querySelector('#backupBtn');
     const btnInline = container.querySelector('#backupBtnInline');
     const setBtnText = (txt) => {
-      if (btnHeader) btnHeader.textContent = txt;
-      if (btnInline) btnInline.textContent = txt;
+      if (btnHeader) btnHeader.innerHTML = txt;
+      if (btnInline) btnInline.innerHTML = txt;
     };
     const setBtnDisabled = (b) => {
       if (btnHeader) btnHeader.disabled = b;
@@ -125,7 +126,7 @@ async function render(container) {
       console.error('Backup error:', e);
       alert('Error generando backup: ' + (e.message || String(e)));
       setBtnDisabled(false);
-      setBtnText('📥 Backup');
+      setBtnText(ic('descargar') + ' Backup');
     }
   }
   container.querySelector('#backupBtn').addEventListener('click', runBackup);
@@ -177,7 +178,7 @@ function paintStudents(container, students) {
   if (!students.length) {
     content.innerHTML = `
       <div class="empty">
-        <div class="big">👥</div>
+        <div class="big">${ic('alumnos')}</div>
         <div>Aún no has dado de alta a ningún alumno.</div>
         <div style="margin-top:8px;font-size:11px;color:var(--muted);">Pulsa "Crear nuevo alumno" arriba para empezar.</div>
       </div>
@@ -187,7 +188,7 @@ function paintStudents(container, students) {
 
   content.innerHTML = `
     <div class="admin-search">
-      <input type="search" id="adminSearch" class="form-input" placeholder="🔍 Buscar alumno por nombre o email…" value="${escAttr(searchQuery)}" autocomplete="off">
+      <input type="search" id="adminSearch" class="form-input" placeholder="Buscar alumno por nombre o email…" value="${escAttr(searchQuery)}" autocomplete="off">
       ${q ? `<button class="btn ghost" id="adminSearchClear" title="Limpiar">×</button>` : ''}
     </div>
     ${filtered.length === 0
@@ -356,7 +357,7 @@ function row(s) {
   const isViewing = state.viewAsUid === s.uid;
   const trClass = isViewing ? ' style="background:var(--orange-bg);outline:2px solid var(--orange);outline-offset:-2px;"' : '';
   const nameCell = isViewing
-    ? `<strong>${escapeHtml(s.profile.nombre || '–')}</strong> <span style="color:var(--orange);font-family:var(--mono);font-size:10px;">📍 viendo</span>`
+    ? `<strong>${escapeHtml(s.profile.nombre || '–')}</strong> <span style="color:var(--orange);font-family:var(--mono);font-size:10px;">${ic('pin')} viendo</span>`
     : `<strong>${escapeHtml(s.profile.nombre || '–')}</strong>`;
 
   const level = s.profile?.level || '';
@@ -388,15 +389,15 @@ function row(s) {
       <td style="color:${slColor};font-family:var(--mono);font-weight:500;">${streak > 0 ? streak + ' SL' : '–'}</td>
       <td>
         ${nAlerts > 0
-          ? `<button class="alert-count-badge" data-diag-uid="${s.uid}" title="${nAlerts} alerta${nAlerts > 1 ? 's' : ''} crítica${nAlerts > 1 ? 's' : ''} — ver diagnóstico de ${escAttr(s.profile.nombre || s.profile.email)}">🛑 ${nAlerts}</button>`
+          ? `<button class="alert-count-badge" data-diag-uid="${s.uid}" title="${nAlerts} alerta${nAlerts > 1 ? 's' : ''} crítica${nAlerts > 1 ? 's' : ''} — ver diagnóstico de ${escAttr(s.profile.nombre || s.profile.email)}">${ic('aviso')} ${nAlerts}</button>`
           : `<span style="color:var(--dim);">–</span>`}
       </td>
       <td style="text-align:right;white-space:nowrap;">
         ${isViewing
-          ? '<span class="badge st-activa">👁 viendo ahora</span>'
+          ? '<span class="badge st-activa">' + ic('ojo') + ' viendo ahora</span>'
           : `<button class="btn primary" data-view-uid="${s.uid}" style="padding:6px 12px;font-size:11px;">Ver dashboard →</button>`
         }
-        <button class="btn" data-pause-uid="${s.uid}" title="Pausar acceso (no borra nada; se reactiva en Pausados)" style="padding:6px 9px;font-size:13px;margin-left:6px;color:var(--orange);">⏸</button>
+        <button class="btn" data-pause-uid="${s.uid}" title="Pausar acceso (no borra nada; se reactiva en Pausados)" style="padding:6px 9px;font-size:13px;margin-left:6px;color:var(--orange);">${ic('pausa')}</button>
       </td>
     </tr>
   `;
@@ -496,7 +497,7 @@ function openPauseStudentModal(adminContainer, stu) {
   const email = stu.profile?.email || '';
   const tradeCount = stu.trades?.length || 0;
   openModal({
-    title: '⏸ Pausar acceso',
+    title: ic('pausa') + ' Pausar acceso',
     body: `
       <div style="display:flex;flex-direction:column;gap:12px;white-space:normal;">
         <div style="font-size:13px;line-height:1.55;">
@@ -512,7 +513,7 @@ function openPauseStudentModal(adminContainer, stu) {
     actions: [
       { label: 'Cancelar', onClick: close => close() },
       {
-        label: '⏸ Pausar',
+        label: ic('pausa') + ' Pausar',
         variant: 'danger',
         onClick: async close => {
           const errEl = document.getElementById('modal-root').querySelector('#pauseErr');
@@ -541,7 +542,7 @@ function openDeleteForeverModal(adminContainer, stu) {
   const email = stu.profile?.email || '';
   const nTrades = (stu.trades || []).length;
   openModal({
-    title: '🗑 Eliminar definitivamente',
+    title: ic('papelera') + ' Eliminar definitivamente',
     body: `
       <div style="display:flex;flex-direction:column;gap:12px;white-space:normal;">
         <div style="padding:12px 14px;background:var(--red-bg);border:1px solid rgba(255,71,87,0.4);border-radius:8px;font-size:13px;line-height:1.55;">
@@ -551,7 +552,7 @@ function openDeleteForeverModal(adminContainer, stu) {
           <strong>No se puede deshacer.</strong>
         </div>
         <div style="font-size:12px;color:var(--muted);font-family:var(--mono);line-height:1.6;">
-          Si quieres guardar una copia, cancela y haz antes un <strong>📥 Backup</strong> (incluye a los pausados).
+          Si quieres guardar una copia, cancela y haz antes un <strong>Backup</strong> (incluye a los pausados).
         </div>
         <div class="form-field">
           <label class="form-label">Escribe su email para confirmar</label>
@@ -562,7 +563,7 @@ function openDeleteForeverModal(adminContainer, stu) {
     actions: [
       { label: 'Cancelar', onClick: close => close() },
       {
-        label: '🗑 Eliminar para siempre',
+        label: ic('papelera') + ' Eliminar para siempre',
         variant: 'danger',
         onClick: async close => {
           const root = document.getElementById('modal-root');
@@ -620,7 +621,7 @@ function paintPaused(container, paused) {
   const sorted = [...paused].sort((a, b) =>
     (a.profile?.nombre || a.profile?.email || '').localeCompare(b.profile?.nombre || b.profile?.email || '', 'es'));
   el.innerHTML = `
-    <div class="section-title" style="margin-top:24px;">⏸ Pausados (${paused.length})</div>
+    <div class="section-title" style="margin-top:24px;">${ic('pausa')} Pausados (${paused.length})</div>
     <div class="card table-card">
       <div class="card-sub" style="margin-bottom:10px;">No pueden entrar en la app. Sus datos se conservan: al reactivarlos lo encuentran todo como lo dejaron.</div>
       <table class="data-table">
@@ -634,7 +635,7 @@ function paintPaused(container, paused) {
               <td>${(s.trades || []).length}</td>
               <td style="text-align:right;white-space:nowrap;">
                 <button class="btn primary" data-reactivar-uid="${s.uid}" style="padding:6px 12px;font-size:11px;">▶ Reactivar</button>
-                <button class="btn" data-eliminar-uid="${s.uid}" title="Eliminar definitivamente (borra todos sus datos)" style="padding:6px 9px;font-size:12px;margin-left:6px;color:var(--red);">🗑</button>
+                <button class="btn" data-eliminar-uid="${s.uid}" title="Eliminar definitivamente (borra todos sus datos)" style="padding:6px 9px;font-size:12px;margin-left:6px;color:var(--red);">${ic('papelera')}</button>
               </td>
             </tr>`).join('')}
         </tbody>
@@ -680,7 +681,7 @@ function openRestoreModal(adminContainer) {
 
   openModal({
     title: 'Restaurar desde backup',
-    meta: 'Sube un archivo JSON generado por "📥 Backup"',
+    meta: 'Sube un archivo JSON generado por "Backup"',
     size: 'lg',
     body: `
       <div style="display:flex;flex-direction:column;gap:14px;">

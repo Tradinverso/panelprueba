@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 // Sección BACKTESTING — histórico de operaciones backtesteadas por estrategia,
 // SEPARADO del journal real (state.backtests / users/{uid}/backtests).
 // Un ítem en el menú, las 3 estrategias como pestañas; cada una con sus KPIs,
@@ -152,7 +153,7 @@ function render(container, sheet) {
         <div class="page-actions">${botonNuevo}</div>
       </div>
       <div class="empty">
-        <div class="big">${esNoTomados ? '👀' : '🧪'}</div>
+        <div class="big">${esNoTomados ? ic('ojo') : ic('backtest')}</div>
         <div>${esNoTomados
           ? 'Aún no has registrado ningún trade <b>no tomado</b>.<br>Cuando una señal aparezca y no entres, dale a <b>+ Nuevo no tomado</b>:<br>eliges la estrategia dentro y queda aquí, sin ensuciar sus estadísticas.'
           : `Aún no hay backtests de ${meta.label}. Registra aquí tus operaciones backtesteadas<br>para validar la operativa con datos — sin mezclarlas con tu cuenta real.<br><br>¿Los tienes en tu plantilla de Sheets? <a href="#/bt-importar">Impórtalos de golpe →</a>`}</div>
@@ -174,7 +175,7 @@ function render(container, sheet) {
         ${filtrosHtml(allSheet, meta, esNoTomados)}
       </div>
       <div class="empty">
-        <div class="big">🔍</div>
+        <div class="big">${ic('buscar')}</div>
         <div>Ninguno pasa esos filtros. Ajústalos arriba o límpialos.</div>
       </div>`;
     wire(container, sheet);

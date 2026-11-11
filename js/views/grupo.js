@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 // Vista "Stats grupales" (solo admin). Agrega los trades de los alumnos
 // seleccionados por grupo (GENERAL / Avanzados / Intermedios / Principiantes
 // / Sin nivel) y muestra KPIs + gráficos + ranking. No usa USD ni cuentas —
@@ -120,7 +121,7 @@ function paint(container) {
     </div>
 
     ${filtered.length === 0
-      ? `<div class="empty"><div class="big">📊</div><div>Sin trades en el período / grupos seleccionados.</div></div>`
+      ? `<div class="empty"><div class="big">${ic('grupo')}</div><div>Sin trades en el período / grupos seleccionados.</div></div>`
       : `
         <div class="kpi-grid" id="grupoKpis"></div>
 

@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 // Vista "Psicología": reflexiones del trader a tres niveles (diaria, semanal,
 // mensual). Cada reflexión va acompañada de los stats del período (TP/SL/BE,
 // P&L sistema, P&L real, USD de cuentas fondeadas) para correlacionar emoción
@@ -154,7 +155,7 @@ function paintDailyGrid(body) {
       <div class="${cls}" data-day="${ds}">
         <div class="psico-day-head">
           <span class="cal-num">${d}</span>
-          ${hasReflex ? '<span class="psico-reflex-dot" title="Reflexión guardada">📝</span>' : ''}
+          ${hasReflex ? '<span class="psico-reflex-dot" title="Reflexión guardada">' + ic('nota') + '</span>' : ''}
         </div>
         ${stats.count ? `
           <div class="psico-day-body">
@@ -264,7 +265,7 @@ function renderReflectionModal(type, period, content, mode) {
       },
     });
     actions.push({
-      label: '✏️ Editar',
+      label: ic('lapiz') + ' Editar',
       variant: 'primary',
       onClick: () => renderReflectionModal(type, period, content, 'edit'),
     });
@@ -374,7 +375,7 @@ function renderWeekRow(monday) {
         <div>
           <span class="psico-row-title">Sem. ${weekNum}</span>
           <span class="psico-row-sub">${fmtWeekRange(monday)}</span>
-          ${existing ? '<span class="psico-reflex-dot" title="Reflexión guardada">📝</span>' : ''}
+          ${existing ? '<span class="psico-reflex-dot" title="Reflexión guardada">' + ic('nota') + '</span>' : ''}
         </div>
         <div class="psico-stats-inline">${renderStatsInline(stats)}</div>
       </div>
@@ -416,7 +417,7 @@ function renderMonthRow(year, monthIdx) {
       <div class="psico-row-head">
         <div>
           <span class="psico-row-title">${MONTHS_ES[monthIdx]} ${year}</span>
-          ${existing ? '<span class="psico-reflex-dot" title="Reflexión guardada">📝</span>' : ''}
+          ${existing ? '<span class="psico-reflex-dot" title="Reflexión guardada">' + ic('nota') + '</span>' : ''}
         </div>
         <div class="psico-stats-inline">${renderStatsInline(stats)}</div>
       </div>

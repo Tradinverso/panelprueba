@@ -1,3 +1,4 @@
+import { ic } from '../components/icons.js';
 // Vista "Protocolos" (3ª pestaña de Psicotrading). Dos bloques:
 //   1) Protocolos FIJOS de Tradinverso (iguales para todos, por enlace) —
 //      js/utils/protocolos-fijos.js, solo lectura.
@@ -25,7 +26,7 @@ function fijoCard(p) {
   const canEmbed = embedUrl(p.url);
   return `
     <a class="card plan-doc-cta" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">
-      <span class="pd-icon">📄</span>
+      <span class="pd-icon">${ic('documento')}</span>
       <span class="pd-text">
         <strong>${esc(p.titulo || 'Protocolo')}</strong>
         <small>${esc(p.desc || (canEmbed ? 'Documento de Tradinverso' : 'Enlace externo'))} · se abre en una pestaña nueva</small>
@@ -42,8 +43,8 @@ function propioCard(p) {
       <div class="card-head">
         <div class="card-title">${esc(p.titulo || 'Protocolo sin título')}</div>
         <div style="display:flex;gap:6px;">
-          <button class="btn ghost" data-edit="${p.id}" title="Editar" style="padding:5px 9px;">✏️</button>
-          <button class="btn ghost danger" data-del="${p.id}" title="Borrar" style="padding:5px 9px;">🗑</button>
+          <button class="btn ghost" data-edit="${p.id}" title="Editar" style="padding:5px 9px;">${ic('lapiz')}</button>
+          <button class="btn ghost danger" data-del="${p.id}" title="Borrar" style="padding:5px 9px;">${ic('papelera')}</button>
         </div>
       </div>
       ${hasContent ? `<div class="md-content" style="margin-top:12px;">${renderMarkdown(p.content)}</div>` : ''}
@@ -67,7 +68,7 @@ function render(container) {
     ${propios.length
       ? propios.map(propioCard).join('')
       : `<div class="empty" style="padding:32px 20px;">
-           <div class="big">📋</div>
+           <div class="big">${ic('plan')}</div>
            <div>Aún no has añadido protocolos propios.</div>
            <div style="margin-top:8px;font-size:11px;color:var(--muted);">Tus reglas: antes de operar, tras un SL, gestión del tilt… Escríbelas o pega un enlace de tu Drive.</div>
          </div>`}

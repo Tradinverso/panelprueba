@@ -514,3 +514,147 @@ div.mesa-source:hover { color: var(--muted); }
 .nov-dot { flex: 0 0 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-top: 7px; box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent); }
 .nov-item b { display: block; font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.35; }
 .nov-item p { margin: 2px 0 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+
+/* ════════════════════════════════════════════════════════════════
+   Columna Hoy: al ser un contenedor con scroll (overflow), recortaba en seco
+   la sombra y el halo de sus cajas y se veia un rectangulo alrededor. Se le
+   da aire por dentro (padding) y se compensa por fuera (margen negativo): las
+   cajas quedan en el mismo sitio y la sombra se difumina como en el resto.
+   La barra de scroll se oculta (la rueda y el tactil siguen funcionando).
+   ════════════════════════════════════════════════════════════════ */
+#mesa { flex-basis: 300px; min-width: 280px; padding: 0 20px 30px; margin: 0 -20px -30px; scrollbar-width: none; }
+#mesa::-webkit-scrollbar { display: none; }
+body.mesa-closed #mesa { flex: 0 0 98px; min-width: 98px; }
+@media (max-width: 1100px) {
+  #mesa, body.mesa-closed #mesa { padding: 0; margin: 0; flex: none; min-width: 0; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   KPIs superiores: filas siempre completas. La rejilla base ponia 5 columnas
+   fijas, asi que con 6 KPIs (Estrategias) quedaba uno suelto debajo y con 8
+   (Backtesting) una fila de 5 y otra de 3. Aqui las columnas salen del numero
+   de tarjetas: 6 en una fila, 8 en 4+4, 10 en 5+5, 12 en 6+6.
+   ════════════════════════════════════════════════════════════════ */
+@media (min-width: 700px) {
+  .kpi-grid:has(> :nth-child(3):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .kpi-grid:has(> :nth-child(4):last-child) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .kpi-grid:has(> :nth-child(6):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .kpi-grid:has(> :nth-child(8):last-child) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .kpi-grid:has(> :nth-child(9):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .kpi-grid:has(> :nth-child(10):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi-grid:has(> :nth-child(12):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 900px) {
+  .kpi-grid:has(> :nth-child(10):last-child) { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .kpi-grid:has(> :nth-child(12):last-child) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (min-width: 1100px) {
+  .kpi-grid:has(> :nth-child(6):last-child) { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .kpi-grid:has(> :nth-child(12):last-child) { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  /* Seis en una fila: tarjeta algo mas compacta para que quepan sin apretar */
+  :root[data-skin] .kpi-grid:has(> :nth-child(6):last-child) .kpi-card { padding: 16px 16px 14px; }
+  :root[data-skin] .kpi-grid:has(> :nth-child(6):last-child) .kpi-value { font-size: 22px; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Diagnóstico: cuatro cuadros iguales (Técnico/Emocional × Alertas/Insights).
+   La rejilla va por columnas con tres filas (título, alertas, insights), así
+   cada fila tiene la misma altura en las dos columnas. En estrecho pasa a una
+   columna en el orden natural.
+   ════════════════════════════════════════════════════════════════ */
+.diag-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto auto auto; grid-auto-flow: column; gap: var(--gap, 14px); margin-bottom: 24px; }
+.diag-grid.diag-grid-1 { grid-template-rows: auto; grid-auto-flow: row; margin-bottom: 14px; }
+.diag-col-title { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; padding: 0 4px; }
+.diag-box { display: flex; flex-direction: column; gap: 6px; margin: 0 !important; }
+.diag-box-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.diag-box-head .card-title { margin: 0; }
+.diag-count { font-size: 11px; color: var(--muted); font-weight: 500; }
+.diag-list { display: flex; flex-direction: column; }
+.diag-list .diag-row { padding: 11px 0; border-top: 1px solid var(--line); font-size: 13px; }
+.diag-list .diag-row:first-child { border-top: 0; padding-top: 4px; }
+.diag-list .diag-row:last-child { padding-bottom: 2px; }
+.diag-list .diag-row small { font-size: 11.5px; line-height: 1.45; }
+.diag-row.diag-empty small { margin-top: 0; font-size: 12px; }
+.diag-dot { box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 0%, transparent); }
+.diag-list .diag-dot { width: 9px; height: 9px; margin-top: 5px; }
+.diag-list .diag-dot.danger { box-shadow: 0 0 0 4px color-mix(in srgb, var(--red) 16%, transparent); }
+.diag-list .diag-dot.warning { box-shadow: 0 0 0 4px color-mix(in srgb, var(--warn, var(--orange)) 16%, transparent); }
+.diag-list .diag-dot.success { box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 16%, transparent); }
+@media (max-width: 880px) {
+  .diag-grid, .diag-grid.diag-grid-1 { grid-template-columns: 1fr; grid-template-rows: none; grid-auto-flow: row; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Calendario (Operativa y Psicotrading) con el lenguaje del resto: tarjeta de
+   cristal y, dentro, celdas sueltas y redondeadas en vez de una tabla con
+   lineas. Dia en positivo o negativo con degradado suave, hoy con borde de
+   acento, dias de otro mes y fines de semana vacios atenuados.
+   ════════════════════════════════════════════════════════════════ */
+:root[data-skin] .cal-wrap, :root[data-skin] .psico-cal-wrap { background: var(--card-bg); border: 1px solid var(--line); border-radius: 24px; padding: 12px; box-shadow: var(--card-shadow); overflow: visible; }
+:root[data-skin="glass"] .cal-wrap, :root[data-skin="glass"] .psico-cal-wrap, :root[data-skin="glass"] .psico-row { background: linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.05) 35%, rgba(255,255,255,0.025) 65%, rgba(255,255,255,0.09) 100%); border-color: rgba(255,255,255,0.16); }
+:root[data-skin="glassLight"] .cal-wrap, :root[data-skin="glassLight"] .psico-cal-wrap, :root[data-skin="glassLight"] .psico-row { background: linear-gradient(135deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.42) 40%, rgba(255,255,255,0.30) 65%, rgba(255,255,255,0.62) 100%); border-color: rgba(255,255,255,0.85); }
+:root[data-skin] .cal-dow-row { border-bottom: 0; gap: 8px; padding: 2px 0 8px; }
+:root[data-skin] .cal-dow { border-right: 0; padding: 6px 4px; font-weight: 600; letter-spacing: .12em; }
+:root[data-skin] .cal-dow-sem { background: transparent; color: var(--muted); }
+:root[data-skin] .cal-grid { gap: 8px; }
+:root[data-skin] .cal-cell, :root[data-skin] .cal-wrap .cal-cell:nth-child(7n) { border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--text) 3%, transparent); min-height: 88px; transition: background .15s, border-color .15s; }
+:root[data-skin] .psico-day { min-height: 112px; }
+:root[data-skin] .cal-cell:hover:not(.other) { background: color-mix(in srgb, var(--text) 8%, transparent); border-color: var(--border-strong); }
+:root[data-skin] .cal-cell.other { opacity: .4; }
+:root[data-skin] .cal-cell.in-week:not(.selected):not(.cal-today):not(.has-data) { background: color-mix(in srgb, var(--text) 8%, transparent); }
+:root[data-skin] .cal-cell.has-data.profit { background: linear-gradient(160deg, color-mix(in srgb, var(--green) 24%, transparent), color-mix(in srgb, var(--green) 8%, transparent)); border-color: color-mix(in srgb, var(--green) 36%, transparent); outline: 0; }
+:root[data-skin] .cal-cell.has-data.loss { background: linear-gradient(160deg, color-mix(in srgb, var(--red) 24%, transparent), color-mix(in srgb, var(--red) 8%, transparent)); border-color: color-mix(in srgb, var(--red) 36%, transparent); outline: 0; }
+:root[data-skin] .cal-cell.has-data.be { background: linear-gradient(160deg, color-mix(in srgb, var(--orange) 18%, transparent), color-mix(in srgb, var(--orange) 6%, transparent)); border-color: color-mix(in srgb, var(--orange) 30%, transparent); outline: 0; }
+:root[data-skin] .cal-cell.cal-today { outline: 0 !important; border: 2px solid var(--accent); }
+:root[data-skin] .cal-today .cal-num, :root[data-skin] .psico-day.cal-today .cal-num { color: var(--accent); }
+:root[data-skin] .cal-cell.selected { outline: 2px solid var(--accent) !important; outline-offset: 2px; }
+:root[data-skin] .psico-day.has-reflex { outline: 0; }
+/* Fines de semana sin operativa: atenuados (8 columnas en Operativa, 7 en Psicotrading) */
+:root[data-skin] .cal-wrap .cal-cell:is(:nth-child(8n-1), :nth-child(8n-2)):not(.has-data):not(.other):not(.cal-today),
+:root[data-skin] .psico-cal-wrap .cal-cell:is(:nth-child(7n), :nth-child(7n-1)):not(.has-data):not(.other):not(.cal-today) { opacity: .6; }
+:root[data-skin] .cal-week-summary { border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--text) 6%, transparent); min-height: 88px; }
+:root[data-skin] .cal-week-summary:hover { background: color-mix(in srgb, var(--text) 10%, transparent); }
+:root[data-skin] .cal-week-summary.empty, :root[data-skin] .cal-week-summary.empty:hover { background: color-mix(in srgb, var(--text) 3%, transparent); }
+:root[data-skin] .cal-week-summary.selected { outline-offset: 2px; }
+:root[data-skin] .cal-cell .cal-reflex-btn { border-radius: 8px; background: color-mix(in srgb, var(--accent) 16%, transparent); border-color: color-mix(in srgb, var(--accent) 40%, transparent); color: var(--accent); }
+:root[data-skin] .cal-warn { box-shadow: 0 0 0 3px color-mix(in srgb, var(--orange) 22%, transparent); }
+:root[data-skin] .cl-dot { border-radius: 50%; }
+:root[data-skin] .cal-legend { padding: 0 6px; }
+
+/* Psicotrading: tarjetas semanales y mensuales como el resto de tarjetas */
+:root[data-skin] .psico-row { background: var(--card-bg); border: 1px solid var(--line); border-radius: 20px; padding: 16px 20px; box-shadow: var(--card-shadow); }
+:root[data-skin] .psico-row.clickable:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+:root[data-skin] .psico-row-preview { border-radius: 12px; background: color-mix(in srgb, var(--text) 5%, transparent); }
+:root[data-skin] .psico-chip { border-radius: 999px; }
+:root[data-skin] .psico-row-title { font-family: var(--font); font-weight: 700; }
+:root[data-skin] .psico-reflex-dot { color: var(--accent); }
+:root[data-skin] .psico-day .psico-reflex-dot { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 8px; font-size: 13px; background: color-mix(in srgb, var(--accent) 16%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+:root[data-skin] .psico-stats-panel { border-radius: 16px; }
+@media (max-width: 700px) {
+  :root[data-skin] .cal-wrap, :root[data-skin] .psico-cal-wrap { padding: 8px; border-radius: 18px; }
+  :root[data-skin] .cal-grid, :root[data-skin] .cal-dow-row { gap: 4px; }
+  :root[data-skin] .cal-cell, :root[data-skin] .cal-wrap .cal-cell:nth-child(7n), :root[data-skin] .cal-week-summary { border-radius: 10px; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Iconos de línea en lugar de emojis (components/icons.js → ic()): mismo
+   trazo en toda la app, heredan el color del texto y se ven igual en
+   Windows, Mac y móvil. .sdot = punto de estado (verde / ámbar / rojo).
+   ════════════════════════════════════════════════════════════════ */
+.ic { display: inline-flex; width: 1em; height: 1em; vertical-align: -0.14em; flex: none; }
+.ic svg { width: 100%; height: 100%; display: block; }
+.btn .ic, .rg-tab .ic, .section-title .ic, .card-title .ic, .badge .ic { margin-right: 2px; }
+.rg-tab .ic { font-size: 1.1em; margin-right: 6px; opacity: .85; }
+.empty .big .ic { font-size: 34px; color: var(--muted); opacity: .7; }
+.plan-empty-ic .ic, .medita-icon .ic { color: var(--accent); }
+.imp-banner-icon .ic { font-size: 18px; color: var(--accent); }
+.rg-alerta-icon .ic { font-size: 18px; }
+.rg-alerta-icon .sdot { width: 10px; height: 10px; margin: 5px 4px 0; }
+.view-btn .ic, .td-action .ic, .cal-reflex-btn .ic { font-size: 14px; }
+.dictate-btn .ic { font-size: 15px; }
+.cuentas-hint .ic { color: var(--accent); margin-right: 4px; }
+.sdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); vertical-align: 0.06em; margin-right: 3px; flex: none; }
+.sdot.ok { background: var(--green); }
+.sdot.mid { background: #eab308; }
+.sdot.warn { background: var(--orange); }
+.sdot.bad { background: var(--alerta, var(--red)); }
