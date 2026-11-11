@@ -14,6 +14,11 @@ import { checklistProgress } from '../utils/checklist-items.js';
 import { todayLocal } from '../utils/timezone.js';
 import { openChecklistModal } from './checklist-modal.js';
 import { clockParts } from './topbar.js';
+import { NEWS_URLS } from './footer.js';
+import { storage } from '../storage.js';
+import { icon } from './icons.js';
+
+const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
 
 const SHEET_SHORT = { ZONAS: 'Zonas', LIQUIDEZ: 'Liquidez', NASDAQ: 'Nasdaq' };
 
@@ -99,6 +104,13 @@ export function renderMesa(container) {
       </div>
       <section class="card mesa-card">
         <div class="mesa-block">
+          <button type="button" class="mesa-chk" id="mesaChecklist" title="Abrir el checklist pre-sesión">
+            <span class="mesa-chk-head"><b>Checklist pre-sesión</b><span class="${chk.done === chk.total ? 'ok' : ''}">${chk.done === chk.total ? '✓ completo' : `${chk.done}/${chk.total}`}</span></span>
+            <span class="mesa-bar"><span style="width:${chk.total ? chk.done / chk.total * 100 : 0}%" class="${chk.done === chk.total ? 'ok' : ''}"></span></span>
+          </button>
+        </div>
+        <div class="mesa-sep"></div>
+        <div class="mesa-block">
           <div class="mesa-block-head"><h2>Cuentas</h2><a href="#/cuentas" class="mesa-link">${accs.length} activa${accs.length === 1 ? '' : 's'} →</a></div>
           ${accs.length ? accs.map(a => `
             <div class="mesa-acc" title="${escapeHtml(a.name)} · ${fmtPct(a.pct)} · SL hoy ${a.sl}/1">
@@ -118,6 +130,16 @@ export function renderMesa(container) {
           <div class="mesa-rule-sub">${escapeHtml(regla.sub)}</div>
         </div>
       </section>
+      <a class="card mesa-cta" href="${FORMACION_URL}" target="_blank" rel="noopener noreferrer" title="Cursos y directos de Tradinverso">
+        <span class="mesa-cta-ic">${icon('formacion')}</span>
+        <span class="mesa-cta-text"><b>Formación</b><small>Cursos · directos</small></span>
+        <span class="mesa-cta-arrow">↗</span>
+      </a>
+      <a class="card mesa-cta" href="${NEWS_URLS[storage.getNewsSource()]}" target="_blank" rel="noopener noreferrer" title="Calendario económico · la fuente se cambia en Ajustes">
+        <span class="mesa-cta-ic alt">${icon('noticias')}</span>
+        <span class="mesa-cta-text"><b>Noticias</b><small>Calendario económico</small></span>
+        <span class="mesa-cta-arrow">↗</span>
+      </a>
     `;
   } else {
     const deg = chk.total ? chk.done / chk.total * 360 : 0;
@@ -133,11 +155,15 @@ export function renderMesa(container) {
           </div>`).join('')}
         <span class="mesa-sep"></span>
         <button type="button" class="mesa-ring" id="mesaChecklist" title="Checklist pre-sesión · ${chk.done}/${chk.total}" style="background:conic-gradient(${chk.done === chk.total ? 'var(--green)' : 'var(--accent)'} ${deg}deg, var(--line) ${deg}deg 360deg)"><span>${chk.done}/${chk.total}</span></button>
+        <span class="mesa-sep"></span>
+        <a class="mesa-rail-link" href="${FORMACION_URL}" target="_blank" rel="noopener noreferrer" title="Formación · cursos y directos" aria-label="Formación">${icon('formacion')}</a>
+        <a class="mesa-rail-link" href="${NEWS_URLS[storage.getNewsSource()]}" target="_blank" rel="noopener noreferrer" title="Noticias · calendario económico" aria-label="Noticias">${icon('noticias')}</a>
       </div>
     `;
-    const ring = container.querySelector('#mesaChecklist');
-    if (ring) ring.addEventListener('click', () => openChecklistModal(() => renderMesa(container)));
   }
+  // Checklist: anillo (Mesa recogida) o fila con barra (Mesa abierta)
+  const chkBtn = container.querySelector('#mesaChecklist');
+  if (chkBtn) chkBtn.addEventListener('click', () => openChecklistModal(() => renderMesa(container)));
 
   container.querySelector('#mesaToggle').addEventListener('click', () => {
     appearance.set({ mesa: !open });

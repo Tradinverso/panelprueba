@@ -333,3 +333,26 @@ body[data-auth="false"] #view { border: 0; background: transparent; padding: 0; 
   .plan-two { flex-direction: column; }
   .plan-box { height: 70vh; min-height: 420px; flex: none; }
 }
+
+/* ── Mesa: checklist y accesos (Formación, Noticias) ────────── */
+.mesa-chk { display: flex; flex-direction: column; gap: 8px; width: 100%; padding: 0; border: 0; background: transparent; color: var(--text); cursor: pointer; font-family: inherit; text-align: left; }
+.mesa-chk-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; }
+.mesa-chk-head b { font-weight: 600; }
+.mesa-chk-head span { font-size: 11px; color: var(--warn, var(--orange)); font-weight: 600; }
+.mesa-chk-head span.ok { color: var(--green); }
+.mesa-chk .mesa-bar { display: block; height: 4px; }
+.mesa-chk .mesa-bar span { display: block; height: 4px; border-radius: 99px; background: var(--accent); transition: width .25s; }
+.mesa-chk .mesa-bar span.ok { background: var(--green); }
+.mesa-chk:hover b { text-decoration: underline; text-underline-offset: 3px; }
+.mesa-cta { display: flex; align-items: center; gap: 12px; padding: 12px 14px !important; text-decoration: none; color: var(--text); transition: transform .3s cubic-bezier(.2,.9,.25,1.2), border-color .2s; }
+.mesa-cta:hover { transform: translateY(-2px); border-color: var(--border-strong); }
+.mesa-cta-ic { width: 34px; height: 34px; border-radius: 11px; flex: none; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, var(--accent), var(--pos)); color: #fff; }
+.mesa-cta-ic.alt { background: var(--card2); color: var(--accent); border: 1px solid var(--line); }
+.mesa-cta-ic svg { width: 17px; height: 17px; }
+.mesa-cta-text { display: flex; flex-direction: column; line-height: 1.25; flex: 1; min-width: 0; }
+.mesa-cta-text b { font-size: 13.5px; font-weight: 600; }
+.mesa-cta-text small { font-size: 11px; color: var(--muted); }
+.mesa-cta-arrow { color: var(--muted); font-size: 14px; }
+.mesa-rail-link { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--card2); color: var(--accent); border: 1px solid var(--line); }
+.mesa-rail-link:hover { border-color: var(--border-strong); }
+.mesa-rail-link svg { width: 17px; height: 17px; }
