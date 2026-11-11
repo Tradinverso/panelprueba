@@ -1,7 +1,8 @@
-// "Mesa": columna izquierda sticky (260 px) con lo que hay que tener a mano
-// mientras se opera: fecha/hora en el huso del alumno, cuentas activas con su
-// progreso y la regla del día. Se recoge en una barrita de 58 px con
-// indicadores (mini-pastilla por cuenta, anillo del checklist).
+// Columna "Hoy" (antes "Mesa"; el código conserva ese nombre): columna
+// izquierda sticky (260 px) con lo que hay que tener a mano mientras se opera:
+// checklist, noticias de alto impacto de hoy, cuentas activas, próximos
+// directos y regla del día. Se recoge en una barrita de 58 px con indicadores
+// (mini-pastilla por cuenta, anillo del checklist, hora de la próxima noticia).
 // El estado abierto/recogido se guarda en las preferencias (appearance.mesa).
 // Sustituye a la barra lateral de navegación: la navegación va arriba (topbar.js).
 
@@ -17,6 +18,7 @@ import { clockParts } from './topbar.js';
 import { NEWS_URLS } from './footer.js';
 import { storage } from '../storage.js';
 import { icon } from './icons.js';
+import { getHoyData, onHoyData, noticiasDeHoy, proximosDirectos, horaEn, diaCortoEn } from '../utils/hoy-data.js';
 
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
 
@@ -24,6 +26,7 @@ const SHEET_SHORT = { ZONAS: 'Zonas', LIQUIDEZ: 'Liquidez', NASDAQ: 'Nasdaq' };
 
 let unsubAuth = null;
 let unsubState = null;
+let unsubHoy = null;
 
 // "Lucid 25K", "E2T 50K"
 function shortName(c) {
@@ -84,6 +87,7 @@ export function renderMesa(container) {
   if (!container) return;
   if (!unsubAuth)  unsubAuth  = auth.on(() => renderMesa(container));
   if (!unsubState) unsubState = state.on(() => renderMesa(container));
+  if (!unsubHoy)   unsubHoy   = onHoyData(() => renderMesa(container));
 
   const open = appearance.get().mesa;
   document.body.classList.toggle('mesa-closed', !open);
@@ -96,11 +100,46 @@ export function renderMesa(container) {
   const clock = clockParts();
   const colorOf = v => v > 0 ? 'var(--green)' : (v < 0 ? 'var(--red)' : 'var(--muted)');
 
+  // Noticias de alto impacto y próximos directos (datos públicos, ver hoy-data.js)
+  const tz = auth.timezone();
+  const hoyData = getHoyData();
+  const { hoy: noticias, proxima } = noticiasDeHoy(hoyData, tz);
+  const directos = proximosDirectos(hoyData, 3);
+  const newsUrl = NEWS_URLS[storage.getNewsSource()];
+  const ahora = Date.now();
+  const sigHoy = noticias.find(n => Date.parse(n.t) > ahora) || null;   // próxima de hoy aún por salir
+  const newsRow = n => `
+    <div class="mesa-news ${Date.parse(n.t) <= ahora ? 'past' : ''}" title="${escapeHtml(n.cur + ' · ' + n.title)}${n.forecast ? ' · previsión ' + escapeHtml(n.forecast) : ''}${n.previous ? ' · anterior ' + escapeHtml(n.previous) : ''}">
+      <span class="mesa-news-time">${horaEn(n.t, tz)}</span>
+      <span class="mesa-news-dot"></span>
+      <span class="mesa-news-txt"><b>${escapeHtml(n.cur)}</b> ${escapeHtml(n.title)}${n.forecast || n.previous ? `<small>${n.forecast ? 'prev. ' + escapeHtml(n.forecast) : ''}${n.forecast && n.previous ? ' · ' : ''}${n.previous ? 'ant. ' + escapeHtml(n.previous) : ''}</small>` : ''}</span>
+    </div>`;
+  const newsBlock = !hoyData ? '' : `
+        <div class="mesa-sep"></div>
+        <div class="mesa-block">
+          <div class="mesa-block-head"><h2>Alto impacto hoy</h2><a class="mesa-link" href="${newsUrl}" target="_blank" rel="noopener noreferrer" title="Fuente: Forex Factory · solo alto impacto · USD, EUR y GBP · en tu hora">Calendario ↗</a></div>
+          ${noticias.length
+            ? noticias.map(newsRow).join('') + `<div class="mesa-news-warn">Evita operar en la noticia</div>`
+            : `<div class="mesa-empty">Hoy no hay noticias de alto impacto.${proxima ? ` Próxima: <b>${diaCortoEn(proxima.t, tz)} · ${horaEn(proxima.t, tz)}</b> ${escapeHtml(proxima.cur)} ${escapeHtml(proxima.title)}.` : ''}</div>`}
+        </div>`;
+  const directosBlock = !directos.length ? '' : `
+        <div class="mesa-sep"></div>
+        <div class="mesa-block">
+          <div class="mesa-block-head"><h2>Próximos directos</h2><a class="mesa-link" href="${FORMACION_URL}" target="_blank" rel="noopener noreferrer">Formación ↗</a></div>
+          ${directos.map(d => {
+            const enCurso = Date.parse(d.t) <= ahora;
+            return `<div class="mesa-live ${enCurso ? 'now' : ''}">
+              <span class="mesa-live-when">${enCurso ? 'Ahora' : `${diaCortoEn(d.t, tz)} · ${horaEn(d.t, tz)}`}</span>
+              <span class="mesa-live-title">${escapeHtml(d.title)}</span>
+            </div>`;
+          }).join('')}
+        </div>`;
+
   if (open) {
     container.innerHTML = `
       <div class="mesa-head">
-        <span class="mesa-title">Mesa · ${clock.ddmm}</span>
-        <button type="button" class="mesa-toggle" id="mesaToggle" aria-label="Recoger Mesa">‹ Recoger</button>
+        <span class="mesa-title">Hoy · ${clock.ddmm}</span>
+        <button type="button" class="mesa-toggle" id="mesaToggle" aria-label="Recoger la columna Hoy">‹ Recoger</button>
       </div>
       <section class="card mesa-card">
         <div class="mesa-block">
@@ -108,7 +147,7 @@ export function renderMesa(container) {
             <span class="mesa-chk-head"><b>Checklist pre-sesión</b><span class="${chk.done === chk.total ? 'ok' : ''}">${chk.done === chk.total ? '✓ completo' : `${chk.done}/${chk.total}`}</span></span>
             <span class="mesa-bar"><span style="width:${chk.total ? chk.done / chk.total * 100 : 0}%" class="${chk.done === chk.total ? 'ok' : ''}"></span></span>
           </button>
-        </div>
+        </div>${newsBlock}
         <div class="mesa-sep"></div>
         <div class="mesa-block">
           <div class="mesa-block-head"><h2>Cuentas</h2><a href="#/cuentas" class="mesa-link">${accs.length} activa${accs.length === 1 ? '' : 's'} →</a></div>
@@ -122,7 +161,7 @@ export function renderMesa(container) {
               <div class="mesa-acc-row sub"><span>${escapeHtml(a.strats)}</span><span class="pnl-value">${fmtUsd(a.balance)}</span></div>
             </div>`).join('')
           : `<div class="mesa-empty">Sin cuentas activas. <a href="#/cuentas">Añade una →</a></div>`}
-        </div>
+        </div>${directosBlock}
         <div class="mesa-sep"></div>
         <div class="mesa-block">
           <div class="mesa-block-head"><div class="mesa-label">Regla del día</div><span class="mesa-muted">${regla.num}/${regla.total}</span></div>
@@ -135,18 +174,18 @@ export function renderMesa(container) {
         <span class="mesa-cta-text"><b>Formación</b><small>Cursos · directos</small></span>
         <span class="mesa-cta-arrow">↗</span>
       </a>
-      <a class="card mesa-cta" href="${NEWS_URLS[storage.getNewsSource()]}" target="_blank" rel="noopener noreferrer" title="Calendario económico · la fuente se cambia en Ajustes">
+      ${hoyData ? '' : `<a class="card mesa-cta" href="${newsUrl}" target="_blank" rel="noopener noreferrer" title="Calendario económico · la fuente se cambia en Ajustes">
         <span class="mesa-cta-ic alt">${icon('noticias')}</span>
         <span class="mesa-cta-text"><b>Noticias</b><small>Calendario económico</small></span>
         <span class="mesa-cta-arrow">↗</span>
-      </a>
+      </a>`}
     `;
   } else {
     const deg = chk.total ? chk.done / chk.total * 360 : 0;
     container.innerHTML = `
-      <div class="card mesa-rail" aria-label="Mesa recogida">
-        <button type="button" class="mesa-rail-open" id="mesaToggle" aria-label="Abrir Mesa">›</button>
-        <span class="mesa-rail-title">Mesa</span>
+      <div class="card mesa-rail" aria-label="Columna Hoy recogida">
+        <button type="button" class="mesa-rail-open" id="mesaToggle" aria-label="Abrir la columna Hoy" title="Abrir: checklist, noticias, cuentas y directos">›</button>
+        <span class="mesa-rail-title">Hoy</span>
         ${accs.map(a => `
           <div class="mesa-pill" title="${escapeHtml(a.name)} · ${fmtPct(a.pct)} · SL hoy ${a.sl}/1">
             <span class="mesa-pill-abbr">${escapeHtml(a.abbr)}</span>
@@ -157,11 +196,13 @@ export function renderMesa(container) {
         <button type="button" class="mesa-ring" id="mesaChecklist" title="Checklist pre-sesión · ${chk.done}/${chk.total}" style="background:conic-gradient(${chk.done === chk.total ? 'var(--green)' : 'var(--accent)'} ${deg}deg, var(--line) ${deg}deg 360deg)"><span>${chk.done}/${chk.total}</span></button>
         <span class="mesa-sep"></span>
         <a class="mesa-rail-link" href="${FORMACION_URL}" target="_blank" rel="noopener noreferrer" title="Formación · cursos y directos" aria-label="Formación">${icon('formacion')}</a>
-        <a class="mesa-rail-link" href="${NEWS_URLS[storage.getNewsSource()]}" target="_blank" rel="noopener noreferrer" title="Noticias · calendario económico" aria-label="Noticias">${icon('noticias')}</a>
+        ${sigHoy
+          ? `<a class="mesa-rail-news" href="${newsUrl}" target="_blank" rel="noopener noreferrer" title="Noticia de alto impacto hoy a las ${horaEn(sigHoy.t, tz)}: ${escapeHtml(sigHoy.cur + ' ' + sigHoy.title)}">${horaEn(sigHoy.t, tz)}</a>`
+          : `<a class="mesa-rail-link" href="${newsUrl}" target="_blank" rel="noopener noreferrer" title="${hoyData ? (noticias.length ? 'Las noticias de alto impacto de hoy ya han salido' : 'Hoy no hay noticias de alto impacto') : 'Noticias · calendario económico'}" aria-label="Noticias">${icon('noticias')}</a>`}
       </div>
     `;
   }
-  // Checklist: anillo (Mesa recogida) o fila con barra (Mesa abierta)
+  // Checklist: anillo (columna recogida) o fila con barra (abierta)
   const chkBtn = container.querySelector('#mesaChecklist');
   if (chkBtn) chkBtn.addEventListener('click', () => openChecklistModal(() => renderMesa(container)));
 

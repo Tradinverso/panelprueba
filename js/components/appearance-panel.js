@@ -139,7 +139,7 @@ function render() {
 
         <div class="ap-sec">
           <div class="ap-sec-title">Paneles</div>
-          ${toggle('mesa', 'Mesa (columna izquierda) abierta', p.mesa)}
+          ${toggle('mesa', 'Columna «Hoy» abierta', p.mesa)}
           ${toggle('hidePnl', 'Ocultar importes de P&L', p.hidePnl)}
         </div>
 

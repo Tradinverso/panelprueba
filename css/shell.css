@@ -356,3 +356,20 @@ body[data-auth="false"] #view { border: 0; background: transparent; padding: 0; 
 .mesa-rail-link { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--card2); color: var(--accent); border: 1px solid var(--line); }
 .mesa-rail-link:hover { border-color: var(--border-strong); }
 .mesa-rail-link svg { width: 17px; height: 17px; }
+
+/* ── Columna "Hoy": noticias de alto impacto y próximos directos ── */
+.mesa-news { display: flex; gap: 9px; align-items: flex-start; font-size: 12px; padding: 3px 0; }
+.mesa-news.past { opacity: .5; }
+.mesa-news-time { flex: 0 0 38px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.mesa-news-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); flex: none; margin-top: 5px; }
+.mesa-news-txt { flex: 1; min-width: 0; line-height: 1.35; }
+.mesa-news-txt b { font-weight: 700; }
+.mesa-news-txt small { display: block; font-size: 10.5px; color: var(--muted); }
+.mesa-news-warn { font-size: 11px; color: var(--red); margin-top: 2px; }
+.mesa-empty b { color: var(--text); font-weight: 600; }
+.mesa-live { display: flex; flex-direction: column; gap: 1px; padding: 3px 0 3px 10px; border-left: 2px solid var(--accent); }
+.mesa-live.now { border-left-color: var(--green); }
+.mesa-live-when { font-size: 11px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.mesa-live.now .mesa-live-when { color: var(--green); }
+.mesa-live-title { font-size: 12.5px; font-weight: 600; line-height: 1.3; }
+.mesa-rail-news { width: 42px; padding: 6px 0; border-radius: 10px; text-align: center; text-decoration: none; font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }

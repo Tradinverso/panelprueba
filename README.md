@@ -99,7 +99,7 @@ tradinverso/
       settings.js         ajustes + export/wipe
     components/
       topbar.js           barra superior: navegación en píldora, reloj, Apariencia, avatar
-      mesa.js             columna "Mesa": cuentas activas, regla del día; recogible a barrita
+      mesa.js             columna "Hoy": checklist, noticias de alto impacto, cuentas, próximos directos, regla del día; recogible a barrita
       footer.js           pie: Formación, Calendario económico, Ajustes
       checklist-modal.js  pop-up del checklist pre-sesión
       appearance-panel.js panel Apariencia (tema, acento, TP/SL, letra, densidad)
@@ -186,3 +186,18 @@ Cada alumno tiene su propio `localStorage`, así que la app es self-contained. P
 - **Apariencia:** 6 temas (Midnight, Onyx, Platinum, Light, Liquid Glass y Liquid Glass claro) + acento, TP/SL, letra y densidad. Tokens en `css/themes.css`, temas y componentes en `css/skins.css`, lógica en `js/appearance.js`.
 - **Solo porcentaje:** toda la operativa se mide en %; la gestión de cuentas y conversión a importes monetarios se hará en su propia sección.
 - **Diagnóstico granular:** alertas técnicas y emocionales separadas en bloques con umbrales explícitos.
+
+---
+
+## Datos de la columna "Hoy" (noticias y directos)
+
+La app es estática, así que no puede leer Forex Factory ni Google Calendar desde el navegador (CORS).
+Lo hace una tarea de GitHub Actions del repo de pruebas:
+
+- `.github/workflows/datos-hoy.yml` se ejecuta cada 6 horas (y a mano desde la pestaña Actions).
+- `.github/scripts/datos-hoy.mjs` descarga el export semanal de Forex Factory (solo alto impacto, USD/EUR/GBP)
+  y, si existe el secreto `CLASES_ICS_URL`, las próximas clases del calendario "Tradinverso Clases"
+  (solo título y hora; nunca enlaces).
+- El resultado (`hoy.json`) se publica en la rama `data` (un único commit que se sobrescribe).
+- La app lo lee en `js/utils/hoy-data.js` desde `raw.githubusercontent.com`, con caché de 30 min.
+  Producción lee el mismo archivo: `.github/` no se promociona.
