@@ -400,3 +400,19 @@ a.mesa-live:hover { background: var(--hover); }
 .mesa-rail-live { width: 42px; padding: 6px 0; border-radius: 10px; text-align: center; text-decoration: none; font-size: 10px; font-weight: 800; letter-spacing: .06em; background: var(--red); color: #fff; animation: mesaLive 1.4s ease-in-out infinite; }
 .mesa-source { font-size: 10.5px; color: var(--muted); text-decoration: none; margin-top: -5px; }
 .mesa-source:hover { color: var(--text); }
+
+/* Rojo de AVISO fijo (noticias de carpeta roja, "En directo"): no depende de
+   los colores TP/SL elegidos en Apariencia — con "Daltónico" el --red es
+   naranja y una noticia roja parecía de impacto medio. */
+:root { --alerta: #ef4444; --alerta-bg: rgba(239,68,68,0.14); }
+:root[data-theme="light"] { --alerta: #dc2626; --alerta-bg: rgba(220,38,38,0.10); }
+.mesa-news-dot { background: var(--alerta); }
+.mesa-news-warn { color: var(--alerta); }
+.mesa-rail-news { background: var(--alerta-bg); color: var(--alerta); border-color: var(--alerta); }
+.mesa-box.has-live { border-color: var(--alerta) !important; }
+.mesa-live.live { border-left-color: var(--alerta); background: var(--alerta-bg); }
+.mesa-live-badge { color: var(--alerta); }
+.mesa-rail-live { background: var(--alerta); }
+.mesa-source { display: flex; align-items: center; gap: 6px; }
+.mesa-source .mesa-news-dot { margin-top: 0; }
+div.mesa-source:hover { color: var(--muted); }
