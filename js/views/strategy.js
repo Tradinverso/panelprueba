@@ -17,6 +17,7 @@ import {
 } from '../components/period-filter.js';
 
 import { STRATEGIES as STRAT_META, modelLabel } from '../utils/strategy-config.js';
+import { showToast } from '../components/toast.js';
 
 let perfMode = 'sistema'; // 'sistema' | 'real'
 
@@ -103,6 +104,34 @@ function wireFiltros(container, sheet) {
   });
 }
 
+// ── Pausar / reactivar la estrategia ─────────────────────────
+// En pausa: no se puede elegir en Nuevo trade, pero sus trades siguen contando.
+function headerActions(sheet) {
+  const paused = state.isPaused(sheet);
+  return `
+    <div class="page-actions">
+      ${paused
+        ? `<button class="btn strat-resume" id="stPauseBtn" type="button">▶ Reactivar</button>`
+        : `<button class="btn" id="stPauseBtn" type="button">⏸ Pausar estrategia</button>
+           <a class="btn primary" href="#/nuevo?s=${sheet}">+ Nuevo trade</a>`}
+    </div>`;
+}
+function pausedNote(sheet) {
+  if (!state.isPaused(sheet)) return '';
+  return `<div class="strat-paused-note">⏸ Estrategia en pausa: no se puede elegir en Nuevo trade, pero sus trades siguen contando en el histórico y en las estadísticas.</div>`;
+}
+function wirePause(container, sheet) {
+  const btn = container.querySelector('#stPauseBtn');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    const label = STRAT_META[sheet].label;
+    const nowPaused = !state.isPaused(sheet);
+    state.setPaused(sheet, nowPaused);   // emite → la vista se repinta sola
+    showToast(nowPaused ? `${label} en pausa · ya no se puede elegir en Nuevo trade` : `${label} reactivada`);
+  });
+}
+const pausedSuffix = sheet => state.isPaused(sheet) ? ' · <b style="color:var(--orange)">EN PAUSA</b>' : '';
+
 function render(container, sheet) {
   const meta = STRAT_META[sheet];
   if (!meta.models) fModel = 'all';
@@ -115,15 +144,17 @@ function render(container, sheet) {
       <div class="page-header">
         <div>
           <h1>${meta.label} <span style="color:${meta.color}">·</span> Análisis</h1>
-          <div class="sub">${meta.desc}</div>
+          <div class="sub">${meta.desc}${pausedSuffix(sheet)}</div>
         </div>
+        ${headerActions(sheet)}
       </div>
+      ${pausedNote(sheet)}
       <div class="empty">
         <div class="big">📊</div>
         <div>Aún no hay trades de ${meta.label}.</div>
-        <a class="btn primary" href="#/nuevo" style="margin-top:20px;display:inline-flex;">Añadir trade</a>
       </div>
     `;
+    wirePause(container, sheet);
     return;
   }
 
@@ -134,18 +165,18 @@ function render(container, sheet) {
       <div class="page-header">
         <div>
           <h1>${meta.label} <span style="color:${meta.color}">·</span> Análisis</h1>
-          <div class="sub">0 de ${allSheet.length} trades con esos filtros</div>
+          <div class="sub">0 de ${allSheet.length} trades con esos filtros${pausedSuffix(sheet)}</div>
         </div>
-        <div class="page-actions">
-          <a class="btn primary" href="#/nuevo">+ Nuevo trade</a>
-        </div>
+        ${headerActions(sheet)}
         ${filtrosHtml(allSheet)}
       </div>
+      ${pausedNote(sheet)}
       <div class="empty">
         <div class="big">🔍</div>
         <div>Ningún trade de ${meta.label} pasa esos filtros. Ajústalos arriba o límpialos.</div>
       </div>`;
     wireFiltros(container, sheet);
+    wirePause(container, sheet);
     return;
   }
 
@@ -163,13 +194,12 @@ function render(container, sheet) {
     <div class="page-header">
       <div>
         <h1>${meta.label} <span style="color:${meta.color}">·</span> Análisis</h1>
-        <div class="sub">${meta.desc} · ${all.length}${all.length !== allSheet.length ? ` de ${allSheet.length}` : ''} trades</div>
+        <div class="sub">${meta.desc} · ${all.length}${all.length !== allSheet.length ? ` de ${allSheet.length}` : ''} trades${pausedSuffix(sheet)}</div>
       </div>
-      <div class="page-actions">
-        <a class="btn primary" href="#/nuevo">+ Nuevo trade</a>
-      </div>
+      ${headerActions(sheet)}
       ${filtrosHtml(allSheet)}
     </div>
+    ${pausedNote(sheet)}
 
     <div class="kpi-grid">
       ${kpiCard({ label: 'Trades', value: c.total, sub: `${c.tp} TP · ${c.sl} SL · ${c.be} BE`, tone: 'blue' })}
@@ -293,6 +323,7 @@ function render(container, sheet) {
   `;
 
   wireFiltros(container, sheet);
+  wirePause(container, sheet);
 
   // Toggle Sistema/Real
   const perfToggleEl = container.querySelector('#perfToggle');

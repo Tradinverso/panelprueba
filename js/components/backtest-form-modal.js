@@ -14,6 +14,7 @@ import { attachDictation } from '../utils/dictation.js';
 import { todayLocal } from '../utils/timezone.js';
 import { formatDateEs, durationMinutes } from '../utils/date-helpers.js';
 import { fmtPct } from '../utils/number-format-es.js';
+import { showToast } from './toast.js';
 
 // `existing` = backtest a editar (null → nuevo). `onSaved` se llama tras guardar.
 // `draft` = estado del formulario a restaurar. Lo usa el paso de confirmación:
@@ -333,6 +334,7 @@ function openConfirm(sheet, meta, payload, data, onSaved, opts = {}) {
         onClick: close => {
           state.addBacktest(payload);
           close();
+          showToast(payload.not_taken ? 'No tomado guardado · no cuenta en las estadísticas' : `Backtest guardado · KPIs de ${meta.label} actualizados`);
           if (onSaved) onSaved();
         },
       },

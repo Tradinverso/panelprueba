@@ -3,6 +3,7 @@
 // pero compacto en un modal. Al guardar, llama a state.update(id, patch).
 
 import { state } from '../state.js';
+import { showToast } from './toast.js';
 import { renderPills } from './pills.js';
 import { openModal, closeModal } from './modal.js';
 import { renderCuentaAssign } from './cuenta-assign.js';
@@ -343,6 +344,7 @@ function doSave(trade, data, close) {
 
   state.update(trade.id, patch);
   close();
+  showToast('Trade actualizado');
 }
 
 function escapeHtml(s) {

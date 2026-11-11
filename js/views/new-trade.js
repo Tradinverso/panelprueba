@@ -1,9 +1,9 @@
 import { state } from '../state.js';
 import { renderPills } from '../components/pills.js';
-import { openModal, closeModal } from '../components/modal.js';
+import { openModal } from '../components/modal.js';
 import { renderCuentaAssign } from '../components/cuenta-assign.js';
 import { router } from '../router.js';
-import { TODAS as SENS_OPTIONS } from '../utils/sensaciones.js';
+import { TODAS as SENS_OPTIONS, NEGATIVAS as SENS_NEGATIVAS } from '../utils/sensaciones.js';
 import { parseTime, durationMinutes, formatDateEs } from '../utils/date-helpers.js';
 import { auth } from '../auth.js';
 import { todayLocal } from '../utils/timezone.js';
@@ -12,39 +12,61 @@ import { fmtUsd } from '../utils/account-stats.js';
 import { STRATEGIES as STRAT_META, modelLabel, errorModeloEntrada } from '../utils/strategy-config.js';
 import { aplicarReglasModelo } from '../components/model-rules.js';
 import { attachDictation } from '../utils/dictation.js';
+import { showToast } from '../components/toast.js';
+
+const SHEETS = ['ZONAS', 'LIQUIDEZ', 'NASDAQ'];
+// R objetivo de cada estrategia: lo que rellena el atajo "TP" del resultado.
+const TP_R = { ZONAS: 2, LIQUIDEZ: 3, NASDAQ: 1.5 };
+
+// Estrategia pedida en la URL (#/nuevo?s=NASDAQ, desde "+ Nuevo trade" de Estrategias).
+function sheetFromUrl() {
+  const q = (window.location.hash.split('?')[1] || '');
+  const s = new URLSearchParams(q).get('s');
+  return SHEETS.includes(s) ? s : null;
+}
 
 export function newTradeView(container) {
-  let sheet = 'ZONAS';
-  let formData = init(sheet);
+  const activas = SHEETS.filter(k => !state.isPaused(k));
+  const pedida = sheetFromUrl();
+  let sheet = (pedida && !state.isPaused(pedida)) ? pedida : (activas[0] || null);
+  let formData = sheet ? init(sheet) : null;
 
   container.innerHTML = `
     <div class="page-header">
       <div>
         <h1>Nuevo trade</h1>
-        <div class="sub">Selecciona la estrategia y rellena el formulario</div>
+        <div class="sub">Elige la estrategia y rellena el formulario</div>
       </div>
     </div>
     <div id="stratChooser"></div>
-    <div class="card" id="formWrap"></div>
+    <div class="nt-layout">
+      <div class="nt-main" id="formWrap"></div>
+      <aside class="nt-side" id="sideWrap"></aside>
+    </div>
   `;
-
-  // Selector de estrategia: mismas pestañas grandes/centradas que la sección
-  // Estrategias, con el color de cada una en la activa. Son botones (cambian
-  // el formulario), no enlaces de navegación.
   const stratC = container.querySelector('#stratChooser');
+  const formWrap = container.querySelector('#formWrap');
+  const sideWrap = container.querySelector('#sideWrap');
+
+  // Selector de estrategia: pestañas grandes con el color de cada una. Las que
+  // están en pausa salen atenuadas y no se pueden elegir.
   function paintChooser() {
     stratC.innerHTML = `
       <div class="rg-tabs gestion-tabs strat-tabs">
-        ${['ZONAS', 'LIQUIDEZ', 'NASDAQ'].map(k => {
+        ${SHEETS.map(k => {
           const meta = STRAT_META[k] || { label: k };
           const on = sheet === k;
-          return `<button type="button" class="rg-tab ${on ? 'active' : ''}" data-sheet="${k}"
-                    ${on && meta.color ? `style="--tab-accent:${meta.color};"` : ''}>${meta.label}</button>`;
+          const paused = state.isPaused(k);
+          return `<button type="button" class="rg-tab ${on ? 'active' : ''} ${paused ? 'paused' : ''}" data-sheet="${k}"
+                    ${paused ? 'aria-disabled="true" title="En pausa · reactívala en Estrategias"' : ''}
+                    ${on && meta.color ? `style="--tab-accent:${meta.color};"` : ''}>${meta.label}${paused ? ' · en pausa' : ''}</button>`;
         }).join('')}
       </div>`;
     stratC.querySelectorAll('[data-sheet]').forEach(b => b.addEventListener('click', () => {
-      if (b.dataset.sheet === sheet) return;
-      sheet = b.dataset.sheet;
+      const k = b.dataset.sheet;
+      if (state.isPaused(k)) { showToast(`${STRAT_META[k].label} está en pausa · reactívala en Estrategias`); return; }
+      if (k === sheet) return;
+      sheet = k;
       // Conservar lo que no depende de la estrategia (fechas, P&L, riesgo,
       // sensación, plan, links, reflexión, cuentas). Antes se borraba TODO el
       // formulario al cambiar de pestaña — pérdida de datos real.
@@ -64,8 +86,18 @@ export function newTradeView(container) {
   }
   paintChooser();
 
-  const formWrap = container.querySelector('#formWrap');
-  function rerender() { renderForm(formWrap, sheet, formData, () => formData); }
+  if (!sheet) {
+    formWrap.innerHTML = `<div class="empty"><div class="big">⏸</div><div>Todas las estrategias están en pausa. Reactiva una en <a href="#/zonas">Estrategias</a> para registrar trades.</div></div>`;
+    return;
+  }
+
+  // Tras guardar: formulario limpio, misma estrategia (para meter el siguiente).
+  function onSaved() {
+    formData = init(sheet);
+    rerender();
+    window.scrollTo(0, 0);
+  }
+  function rerender() { renderForm(formWrap, sideWrap, sheet, formData, onSaved); }
   rerender();
 }
 
@@ -98,147 +130,147 @@ function init(sheet) {
   };
 }
 
-function renderForm(wrap, sheet, data, getter) {
+// Fila del formulario: etiqueta a la izquierda (170 px) y campo a la derecha.
+function row(label, field, { required = false, hint = '' } = {}) {
+  return `
+    <div class="nt-row">
+      <div class="nt-label">${label}${required ? ' <span class="required">*</span>' : ''}${hint ? `<small>${hint}</small>` : ''}</div>
+      <div class="nt-field">${field}</div>
+    </div>`;
+}
+
+function renderForm(wrap, side, sheet, data, onSaved) {
   const meta = STRAT_META[sheet];
+  const tpR = TP_R[sheet] || 2;
   wrap.innerHTML = `
     <div class="form nt-form">
-      <div class="nt-section">
+      <div class="card nt-section">
         <div class="nt-section-title">Operativa</div>
-        ${!meta.pairFixed && meta.models ? `<div class="form-row">
-          <div class="form-field" style="grid-column:1/-1;">
-            <label class="form-label">Modelo de entrada <span class="required">*</span></label>
-            <div data-field="model"></div>
-          </div>
-        </div>` : ''}
-        <div class="form-row">
-          ${!meta.pairFixed ? `<div class="form-field">
-            <label class="form-label">Par <span class="required">*</span></label>
-            <div data-field="pair"></div>
-          </div>` : (meta.models ? `<div class="form-field">
-          <label class="form-label">Modelo de entrada <span class="required">*</span></label>
-          <div data-field="model"></div>
-        </div>` : '')}
-          <div class="form-field">
-            <label class="form-label">Setup <span class="required">*</span></label>
-            <div data-field="setup"></div>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-field">
-            <label class="form-label">Zona <span class="required">*</span></label>
-            <div data-field="zone"></div>
-          </div>
-          ${meta.showEntry ? `<div class="form-field">
-            <label class="form-label">Tipo de entrada <span class="required">*</span></label>
-            <div data-field="entry"></div>
-          </div>` : ''}
-        </div>
+        ${meta.models ? row('Modelo de entrada', '<div data-field="model"></div>', { required: true }) : ''}
+        ${!meta.pairFixed ? row('Par', '<div data-field="pair"></div>', { required: true }) : ''}
+        ${row('Setup', '<div data-field="setup"></div>', { required: true })}
+        ${row('Zona', '<div data-field="zone"></div>', { required: true, hint: meta.zonesMulti ? 'puedes marcar varias' : '' })}
+        ${meta.showEntry ? row('Tipo de entrada', '<div data-field="entry"></div>', { required: true, hint: meta.entriesMulti ? 'puedes marcar varias' : '' }) : ''}
       </div>
 
-      <div class="nt-section">
-        <div class="nt-section-title">Tiempos</div>
-        <div class="form-row cols-3">
-          <div class="form-field">
-            <label class="form-label">Fecha <span class="required">*</span></label>
-            <input class="form-input" type="date" data-input="date" value="${data.date}">
-          </div>
-          <div class="form-field">
-            <label class="form-label">Hora apertura <span class="required">*</span></label>
-            <input class="form-input" type="time" data-input="open_str" value="${data.open_str}">
-          </div>
-          <div class="form-field">
-            <label class="form-label">Hora cierre</label>
-            <input class="form-input" type="time" data-input="close_str" value="${data.close_str}">
-          </div>
-        </div>
+      <div class="card nt-section">
+        <div class="nt-section-title">Resultado y cuenta</div>
+        ${row('Resultado', `<div class="pill-group nt-result" id="resultChips">
+            <button type="button" class="pill" data-res="TP" data-pnl="${tpR}">TP +${tpR}%</button>
+            <button type="button" class="pill" data-res="SL" data-pnl="-1">SL −1%</button>
+            <button type="button" class="pill" data-res="BE" data-pnl="0">BE 0%</button>
+          </div>`, { hint: 'atajo: rellena el % P&L' })}
+        ${row('% P&L sistema', `<div class="nt-inline">
+            <input class="form-input" type="number" step="0.01" data-input="pnl_pct" value="${data.pnl_pct}" placeholder="${tpR}.00 = TP / -1.00 = SL">
+            <label class="nt-inline-label">Riesgo real (%)
+              <input class="form-input" type="number" step="0.01" min="0" data-input="risk_real_pct" value="${data.risk_real_pct}" placeholder="1.00"></label>
+            ${meta.showRR ? `<label class="nt-inline-label">RR
+              <input class="form-input" type="number" step="0.1" data-input="rr" value="${data.rr}" placeholder="2"></label>` : ''}
+            ${meta.showPip ? `<label class="nt-inline-label">${sheet === 'ZONAS' ? 'Pips SL' : 'Pip SL'}
+              <input class="form-input" type="number" step="0.1" data-input="pips" value="${data.pips}" placeholder="5.0"></label>` : ''}
+          </div>`, { required: true })}
+        ${row('Cuentas', '<div id="cuentaAssignBox"></div>', { hint: 'opcional' })}
       </div>
 
-      <div class="nt-section">
-        <div class="nt-section-title">Resultado y riesgo</div>
-        <div class="form-row cols-3">
-          <div class="form-field">
-            <label class="form-label">% P&L sistema <span class="required">*</span></label>
-            <input class="form-input" type="number" step="0.01" data-input="pnl_pct" value="${data.pnl_pct}" placeholder="2.00 = TP / -1.00 = SL">
-          </div>
-          <div class="form-field">
-            <label class="form-label">Riesgo real (%)</label>
-            <input class="form-input" type="number" step="0.01" min="0" data-input="risk_real_pct" value="${data.risk_real_pct}" placeholder="1.00">
-          </div>
-          ${meta.showRR ? `<div class="form-field">
-            <label class="form-label">RR</label>
-            <input class="form-input" type="number" step="0.1" data-input="rr" value="${data.rr}" placeholder="2">
-          </div>` : ''}
-          ${meta.showPip ? `<div class="form-field">
-            <label class="form-label">${sheet === 'ZONAS' ? 'Pips SL' : 'Pip SL'}</label>
-            <input class="form-input" type="number" step="0.1" data-input="pips" value="${data.pips}" placeholder="5.0">
-          </div>` : ''}
-        </div>
+      <div class="card nt-section">
+        <div class="nt-section-title">Ejecución y psicología</div>
+        ${row('¿Has seguido el plan?', '<div data-field="plan_followed"></div>', { required: true })}
+        ${row('Sensación al ejecutar', '<div data-field="sensacion"></div>', { required: true })}
       </div>
 
-      <div class="nt-section">
-        <div class="nt-section-title">Ejecución</div>
-        <div class="form-field">
-          <label class="form-label">¿Has seguido el plan? <span class="required">*</span></label>
-          <div data-field="plan_followed"></div>
-        </div>
-        <div class="form-field">
-          <label class="form-label">Sensación al ejecutar <span class="required">*</span></label>
-          <div data-field="sensacion"></div>
-        </div>
-      </div>
-
-      <div class="nt-section">
-        <div class="nt-section-title">Notas y enlaces</div>
-        ${meta.links.map(l => `
-          <div class="form-field">
-            <label class="form-label">${l.label}</label>
-            <input class="form-input" type="url" data-input="${l.key}" value="${data[l.key] || ''}" placeholder="https://www.tradingview.com/x/...">
-          </div>
-        `).join('')}
-        <div class="form-field">
-          <label class="form-label">Reflexión</label>
-          <div><textarea class="form-textarea" data-input="reflexion" placeholder="Notas sobre el trade, lo que hiciste bien o mal, qué aprender...">${data.reflexion}</textarea></div>
-        </div>
-      </div>
-
-      <div class="nt-section">
-        <div class="nt-section-title">Cuentas (opcional)</div>
-        <div class="form-field" style="margin:0;">
-          <div id="cuentaAssignBox"></div>
-        </div>
-      </div>
-
-      <div class="form-actions">
-        <button class="btn" type="button" id="cancelBtn">Cancelar</button>
-        <button class="btn primary" type="button" id="saveBtn">Guardar trade</button>
+      <div class="card nt-section">
+        <div class="nt-section-title">Tiempos y notas</div>
+        ${row('Fecha y hora', `<div class="nt-inline">
+            <label class="nt-inline-label"><span>Fecha <span class="required">*</span></span>
+              <input class="form-input" type="date" data-input="date" value="${data.date}"></label>
+            <label class="nt-inline-label"><span>Hora apertura <span class="required">*</span></span>
+              <input class="form-input" type="time" data-input="open_str" value="${data.open_str}"></label>
+            <label class="nt-inline-label">Hora cierre
+              <input class="form-input" type="time" data-input="close_str" value="${data.close_str}"></label>
+          </div>`)}
+        ${meta.links.map(l => row(l.label,
+          `<input class="form-input" type="url" data-input="${l.key}" value="${esc(data[l.key] || '')}" placeholder="https://www.tradingview.com/x/...">`)).join('')}
+        ${row('Reflexión', `<div><textarea class="form-textarea" data-input="reflexion" placeholder="Notas sobre el trade, lo que hiciste bien o mal, qué aprender...">${esc(data.reflexion)}</textarea></div>`)}
       </div>
     </div>
   `;
+
+  side.innerHTML = `
+    <div class="card nt-summary">
+      <div class="nt-section-title">Resumen del trade</div>
+      <div id="ntSumBody"></div>
+      <div class="nt-sum-actions">
+        <button class="btn primary" type="button" id="saveBtn">Guardar trade</button>
+        <button class="btn" type="button" id="cancelBtn">Cancelar</button>
+      </div>
+    </div>`;
+
+  // ── Resumen lateral en vivo ──────────────────────────────
+  const sumBody = side.querySelector('#ntSumBody');
+  const cuentaNombre = a => {
+    const c = state.cuentas.find(x => x.id === a.accountId);
+    return c ? `${c.empresa} ${capShort(c.capital)}` : 'Cuenta';
+  };
+  function update() {
+    const pnl = parseFloat(data.pnl_pct);
+    const hasPnl = data.pnl_pct !== '' && isFinite(pnl);
+    const res = !hasPnl ? '' : (pnl > 0.2 ? 'TP' : pnl < -0.2 ? 'SL' : 'BE');
+    const risk = parseFloat(data.risk_real_pct);
+    const riskOk = isFinite(risk) && risk >= 0 ? risk : 1;
+    const color = res === 'TP' ? 'var(--green)' : res === 'SL' ? 'var(--red)' : 'var(--muted)';
+    // Atajos de resultado: se marca el que corresponde al % escrito
+    wrap.querySelectorAll('#resultChips [data-res]').forEach(b => b.classList.toggle('active', b.dataset.res === res));
+
+    const accs = Array.isArray(data.accounts) ? data.accounts : [];
+    const kv = (k, v) => `<div class="nt-kv"><span>${k}</span><b>${v || '—'}</b></div>`;
+    const avisos = [];
+    if (SENS_NEGATIVAS.includes(data.sensacion)) avisos.push(['warn', '⚠ Sensación de riesgo: revisa tu protocolo antes del siguiente trade.']);
+    if (data.plan_followed === false) avisos.push(['bad', '⚠ Fuera del plan: contará en Diagnóstico como trade fuera de plan.']);
+    if (res === 'SL' && accs.length) avisos.push(['bad', `→ SL en ${esc(accs.map(cuentaNombre).join(', '))}: con SL la rotación pasa a la siguiente cuenta.`]);
+    const faltan = validate(sheet, data).length;
+    if (faltan) avisos.push(['info', `Faltan ${faltan} campo${faltan === 1 ? '' : 's'} obligatorio${faltan === 1 ? '' : 's'}.`]);
+    if (!avisos.length) avisos.push(['ok', '✓ Todo en regla según tu plan.']);
+
+    sumBody.innerHTML = `
+      <div class="nt-sum-pnl pnl-value" style="color:${color}">${hasPnl ? fmtPct(pnl) : '—'}</div>
+      <div class="nt-sum-sub">${hasPnl ? `${res} · P&L real <span class="pnl-value">${fmtPct(pnl * riskOk)}</span> con riesgo ${riskOk}%` : 'Elige el resultado o escribe el % P&L'}</div>
+      <div class="nt-kvs">
+        ${kv('Estrategia', meta.label)}
+        ${kv('Activo', esc(data.pair))}
+        ${kv('Setup', esc(data.setup))}
+        ${meta.models ? kv('Modelo', data.model ? esc(modelLabel(data.model)) : '') : ''}
+        ${kv('Zona', esc((data.zone || []).join(' · ')))}
+        ${meta.showEntry ? kv('Entrada', esc((data.entry || []).join(' · '))) : ''}
+        ${kv('Cuenta', accs.length ? esc(accs.map(cuentaNombre).join(', ')) : 'Sin asignar')}
+        ${kv('Fecha', data.date ? `${formatDateEs(data.date)}${data.open_str ? ' · ' + esc(data.open_str) : ''}` : '')}
+      </div>
+      <div class="nt-avisos">${avisos.map(([t, m]) => `<div class="nt-aviso ${t}">${m}</div>`).join('')}</div>`;
+  }
 
   // Pills wiring
   if (!meta.pairFixed) {
     renderPills(wrap.querySelector('[data-field="pair"]'), {
       name: 'pair', options: meta.pairs, value: data.pair, variant: meta.pairsCols ? 'cols-' + meta.pairsCols : '', rowStarts: meta.pairsRowStarts || [],
-      onChange: v => data.pair = v,
+      onChange: v => { data.pair = v; update(); },
     });
   } else {
     data.pair = meta.pairs[0];
   }
   renderPills(wrap.querySelector('[data-field="setup"]'), {
     name: 'setup', options: ['LONG', 'SHORT'], value: data.setup,
-    onChange: v => data.setup = v,
+    onChange: v => { data.setup = v; update(); },
   });
   const zonePills = renderPills(wrap.querySelector('[data-field="zone"]'), {
     name: 'zone', options: meta.zones, value: data.zone, variant: meta.zonesCols ? `cols-${meta.zonesCols}` : '',
     multi: !!meta.zonesMulti,
-    onChange: v => { data.zone = meta.zonesMulti ? v : (v ? [v] : []); },
+    onChange: v => { data.zone = meta.zonesMulti ? v : (v ? [v] : []); update(); },
   });
   let entryPills = null;
   if (meta.showEntry) {
     entryPills = renderPills(wrap.querySelector('[data-field="entry"]'), {
       name: 'entry', options: meta.entries, value: data.entry, variant: meta.entriesCols ? `cols-${meta.entriesCols}` : '', rowStarts: meta.entriesRowStarts || [],
       multi: !!meta.entriesMulti,
-      onChange: v => { data.entry = meta.entriesMulti ? v : (v ? [v] : []); },
+      onChange: v => { data.entry = meta.entriesMulti ? v : (v ? [v] : []); update(); },
     });
   }
   if (meta.models) {
@@ -246,14 +278,14 @@ function renderForm(wrap, sheet, data, getter) {
       name: 'model',
       options: meta.models,   // obligatorio: en un alta no se puede dejar sin modelo
       value: data.model || '',
-      onChange: v => { data.model = v || ''; aplicarReglasModelo(meta, data, { entry: entryPills, zone: zonePills }, true); },
+      onChange: v => { data.model = v || ''; aplicarReglasModelo(meta, data, { entry: entryPills, zone: zonePills }, true); update(); },
     });
     aplicarReglasModelo(meta, data, { entry: entryPills, zone: zonePills }, false);
   }
   renderPills(wrap.querySelector('[data-field="sensacion"]'), {
     name: 'sensacion', options: SENS_OPTIONS, value: data.sensacion,
     variant: 'sens',
-    onChange: v => data.sensacion = v,
+    onChange: v => { data.sensacion = v; update(); },
   });
   renderPills(wrap.querySelector('[data-field="plan_followed"]'), {
     name: 'plan_followed',
@@ -262,7 +294,7 @@ function renderForm(wrap, sheet, data, getter) {
       { value: 'no',  label: '✗ No' },
     ],
     value: data.plan_followed === true ? 'yes' : data.plan_followed === false ? 'no' : '',
-    onChange: v => { data.plan_followed = v === 'yes' ? true : v === 'no' ? false : null; },
+    onChange: v => { data.plan_followed = v === 'yes' ? true : v === 'no' ? false : null; update(); },
   });
 
   // Inputs
@@ -270,6 +302,7 @@ function renderForm(wrap, sheet, data, getter) {
     el.addEventListener('input', () => {
       const k = el.dataset.input;
       data[k] = el.value;
+      update();
     });
   });
   attachDictation(wrap.querySelector('[data-input="reflexion"]'));
@@ -283,6 +316,7 @@ function renderForm(wrap, sheet, data, getter) {
   if (assignBox) {
     ca = renderCuentaAssign(assignBox, data.accounts || [], (accs) => {
       data.accounts = accs;
+      update();
     }, {
       getDefaultRisk: () => {
         const n = parseFloat(data.risk_real_pct);
@@ -299,12 +333,22 @@ function renderForm(wrap, sheet, data, getter) {
     });
   }
 
+  // Atajos TP / SL / BE: rellenan el % P&L sistema (que se puede ajustar a mano).
+  wrap.querySelectorAll('#resultChips [data-res]').forEach(b => b.addEventListener('click', () => {
+    const inp = wrap.querySelector('[data-input="pnl_pct"]');
+    data.pnl_pct = b.dataset.pnl;
+    inp.value = b.dataset.pnl;
+    if (ca) ca.recalc();
+    update();
+  }));
+
   // Actions
-  wrap.querySelector('#cancelBtn').addEventListener('click', () => router.go('#/dashboard'));
-  wrap.querySelector('#saveBtn').addEventListener('click', () => attemptSave(sheet, data, wrap));
+  side.querySelector('#cancelBtn').addEventListener('click', () => router.go('#/dashboard'));
+  side.querySelector('#saveBtn').addEventListener('click', () => attemptSave(sheet, data, wrap, onSaved));
+  update();
 }
 
-function attemptSave(sheet, data, wrap) {
+function attemptSave(sheet, data, wrap, onSaved) {
   const errors = validate(sheet, data);
   // Clear previous errors
   wrap.querySelectorAll('.form-error').forEach(e => e.remove());
@@ -320,6 +364,9 @@ function attemptSave(sheet, data, wrap) {
         target.parentNode.appendChild(msg);
       }
     }
+    // Lleva la vista al primer error (el botón Guardar está en el lateral).
+    const first = wrap.querySelector('.form-error');
+    if (first) first.scrollIntoView({ block: 'center', behavior: 'smooth' });
     return;
   }
   // Build trade and show confirmation modal
@@ -337,7 +384,9 @@ function attemptSave(sheet, data, wrap) {
           // Si es un SL sobre la cuenta activa de la rotación, avanza a la siguiente.
           state.rotateAfterSL(trade);
           close();
-          router.go('#/dashboard');
+          showToast('Trade guardado');
+          // Formulario limpio con la misma estrategia, listo para el siguiente.
+          if (typeof onSaved === 'function') onSaved(); else router.go('#/dashboard');
         },
       },
     ],

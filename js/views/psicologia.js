@@ -14,6 +14,7 @@ import { MONTHS_ES, MONTHS_ES_SHORT } from '../utils/date-helpers.js';
 import { fmtPct } from '../utils/number-format-es.js';
 import { psicotradingTabs } from '../components/psicotrading-tabs.js';
 import { attachDictation } from '../utils/dictation.js';
+import { showToast } from '../components/toast.js';
 
 let tab = 'daily'; // 'daily' | 'weekly' | 'monthly'
 let calYear = null;
@@ -290,6 +291,7 @@ function renderReflectionModal(type, period, content, mode) {
           close();
         } else {
           state.saveReflection(type, period, newContent);
+          showToast('Reflexión guardada');
           // Volvemos al modo lectura con el contenido recién guardado
           renderReflectionModal(type, period, newContent, 'read');
         }

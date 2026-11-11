@@ -367,3 +367,6 @@ select option { background: var(--surface); color: var(--text); }
 .ap-reset { border: 1px solid var(--line); background: transparent; color: var(--text); border-radius: 999px; padding: 10px; font-size: 13px; cursor: pointer; font-family: inherit; }
 .ap-reset:hover { background: var(--hover); }
 @media (max-width: 600px) { .appearance-overlay { padding: 0; } .appearance-panel { border-radius: 0; max-height: 100vh; } }
+
+/* Enlaces con aspecto de boton: sin subrayado */
+a.btn { text-decoration: none; }

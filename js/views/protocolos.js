@@ -12,6 +12,7 @@ import { psicotradingTabs } from '../components/psicotrading-tabs.js';
 import { PROTOCOLOS_FIJOS } from '../utils/protocolos-fijos.js';
 import { openModal } from '../components/modal.js';
 import { attachDictation } from '../utils/dictation.js';
+import { showToast } from '../components/toast.js';
 
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
@@ -132,6 +133,7 @@ function openEditor(proto) {
           }
           if (isNew) state.addProtocolo({ titulo, docUrl, content });
           else state.updateProtocolo(p.id, { titulo, docUrl, content });
+          showToast(isNew ? 'Protocolo añadido' : 'Protocolo guardado');
           close();
         },
       },
