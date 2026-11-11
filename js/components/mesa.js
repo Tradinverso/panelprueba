@@ -176,7 +176,7 @@ export function renderMesa(container) {
   };
   const directosBox = !directos.length ? '' : `
       <section class="card mesa-box ${enDirecto ? 'has-live' : ''}">
-        <div class="mesa-block-head"><h2>Próximos directos</h2><a class="mesa-link" href="${FORMACION_URL}" target="_blank" rel="noopener noreferrer">Formación ↗</a></div>
+        <div class="mesa-block-head"><h2>Próximos directos</h2></div>
         ${directos.map(directoRow).join('')}
       </section>`;
 
@@ -230,12 +230,14 @@ export function renderMesa(container) {
     }));
   } else {
     const deg = chk.total ? chk.done / chk.total * 360 : 0;
-    const liveUrl = enDirecto ? (safeUrl(enDirecto.url) || FORMACION_URL) : '';
+    const liveUrl = enDirecto ? safeUrl(enDirecto.url) : '';
     container.innerHTML = `
       <div class="card mesa-rail" aria-label="Columna Hoy recogida">
         <button type="button" class="mesa-rail-open" id="mesaToggle" aria-label="Abrir la columna Hoy" title="Abrir: checklist, noticias, directos y cuentas">›</button>
         <span class="mesa-rail-title">Hoy</span>
-        ${enDirecto ? `<a class="mesa-rail-live" href="${escapeHtml(liveUrl)}" target="_blank" rel="noopener noreferrer" title="En directo ahora: ${escapeHtml(enDirecto.title)}">LIVE</a>` : ''}
+        ${enDirecto ? (liveUrl
+          ? `<a class="mesa-rail-live" href="${escapeHtml(liveUrl)}" target="_blank" rel="noopener noreferrer" title="En directo ahora: ${escapeHtml(enDirecto.title)} · pulsa para entrar">LIVE</a>`
+          : `<span class="mesa-rail-live" title="En directo ahora: ${escapeHtml(enDirecto.title)}">LIVE</span>`) : ''}
         ${accs.map(a => `
           <div class="mesa-pill" title="${escapeHtml(a.name)} · ${fmtPct(a.pct)} · SL hoy ${a.sl}/1">
             <span class="mesa-pill-abbr">${escapeHtml(a.abbr)}</span>
