@@ -4,16 +4,17 @@
 // pruebas; desde ahí se leen con CORS abierto. Son iguales para todos los
 // usuarios (no llevan nada personal) y los usan pruebas y producción.
 //
-// Caché: memoria + localStorage, 30 min. Si la descarga falla se sigue
+// Caché: memoria + localStorage, 10 min (y siempre se refresca al cargar la página). Si la descarga falla se sigue
 // enseñando lo último que hubiera; si nunca hubo nada, la columna
 // simplemente no muestra esos bloques.
 
 const DATA_URL = 'https://raw.githubusercontent.com/Tradinverso/panelprueba/data/hoy.json';
 const LS_KEY = 'tradinverso_hoy_data';
-const TTL_MS = 30 * 60 * 1000;
+const TTL_MS = 10 * 60 * 1000;
 
 let mem = null;          // { at, data }
 let inflight = null;
+let pedidoEnEstaCarga = false;
 const listeners = new Set();
 
 function readLocal() {
@@ -54,7 +55,13 @@ async function refresh() {
 // lanza la descarga en segundo plano; al llegar avisa a los suscritos.
 export function getHoyData() {
   if (!mem) mem = readLocal();
-  if (!mem || Date.now() - mem.at > TTL_MS) refresh();
+  // La primera vez tras cargar la página se piden SIEMPRE datos frescos (lo
+  // guardado se enseña mientras llegan): así una recarga trae lo último y no
+  // hay que esperar a que caduque la caché para ver un cambio del calendario.
+  if (!pedidoEnEstaCarga || !mem || Date.now() - mem.at > TTL_MS) {
+    pedidoEnEstaCarga = true;
+    refresh();
+  }
   return mem ? mem.data : null;
 }
 
