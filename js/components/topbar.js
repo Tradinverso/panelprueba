@@ -71,6 +71,40 @@ setInterval(() => {
   document.querySelectorAll('[data-clock-fecha]').forEach(el => { el.textContent = c.fecha; });
 }, 15000);
 
+// Encaje de la barra en UNA fila. Lo que cabe depende del rol (el admin tiene
+// más apartados), de "Ver como", de la letra elegida y del ancho de pantalla,
+// así que se mide en vez de fiarlo a un ancho fijo:
+//   1) todo en una fila;  2) si no cabe → modo compacto (Apariencia solo
+//   icono, reloj sin fecha, logo sin texto);  3) si aun así no cabe → la
+//   navegación baja a una segunda fila centrada.
+// En móvil (< 900 px) manda la hoja de estilos (navegación con scroll).
+function fitTopbar(el) {
+  if (!el || !el.firstChild) return;
+  el.classList.remove('tb-compact', 'tb-wrap');
+  if (window.innerWidth < 900) return;
+  const noCabe = () => el.scrollWidth > el.clientWidth + 1;
+  if (!noCabe()) return;
+  el.classList.add('tb-compact');
+  if (noCabe()) el.classList.add('tb-wrap');
+}
+let fitTimer = null;
+const refit = () => { clearTimeout(fitTimer); fitTimer = setTimeout(() => fitTopbar(document.getElementById('topbar')), 80); };
+window.addEventListener('resize', refit);
+// Además del resize de ventana, cualquier cambio de ANCHO de la propia barra
+// (abrir/cerrar paneles del navegador, zoom…). Solo el ancho: el alto cambia
+// al pasar a dos filas y no debe volver a disparar el encaje.
+if (typeof ResizeObserver === 'function') {
+  let lastW = 0;
+  const ro = new ResizeObserver(entries => {
+    const w = Math.round(entries[0].contentRect.width);
+    if (w !== lastW) { lastW = w; refit(); }
+  });
+  const attach = () => { const el = document.getElementById('topbar'); if (el) ro.observe(el); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', attach); else attach();
+}
+// Las fuentes web cambian los anchos al terminar de cargar.
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
+
 function initials(name) {
   const parts = String(name || '').trim().split(/[\s._-]+/).filter(Boolean);
   if (!parts.length) return '·';
@@ -125,12 +159,13 @@ export function renderTopbar(container) {
         <span class="tb-clock-hora" data-clock-hora>${clock.hora}</span>
         <span class="tb-clock-fecha" data-clock-fecha>${clock.fecha}</span>
       </a>
-      <button type="button" class="tb-tool tb-appearance" id="tbAppearance" title="Apariencia · tema, colores y letra"><span class="tb-dot"></span>Apariencia</button>
+      <button type="button" class="tb-tool tb-appearance" id="tbAppearance" title="Apariencia · tema, colores y letra" aria-label="Apariencia"><span class="tb-dot"></span><span class="tb-appearance-txt">Apariencia</span></button>
       <a class="tb-tool tb-icon ${AJUSTES_ROUTES.includes(current) ? 'active' : ''}" href="#/ajustes" title="Ajustes · Importar · Tabla" aria-label="Ajustes">${icon('ajustes')}</a>
       <a class="tb-avatar" href="#/ajustes" title="${escapeHtml(name)}">${escapeHtml(initials(name))}</a>
     </div>
   `;
 
+  fitTopbar(container);
   container.querySelector('#tbAppearance').addEventListener('click', () => openAppearancePanel());
   const exitBtn = container.querySelector('#tbExitViewAs');
   if (exitBtn) exitBtn.addEventListener('click', async () => {

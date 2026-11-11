@@ -65,8 +65,8 @@ function defaults() {
   tt.borderWidth = 1;
   tt.cornerRadius = 10;
   tt.padding = 10;
-  tt.titleFont = { family: "'Inter', sans-serif", weight: '600', size: 12 };
-  tt.bodyFont = { family: "'Inter', sans-serif", size: 12 };
+  tt.titleFont = { family: READ('--font') || "'Inter', sans-serif", weight: '600', size: 12 };
+  tt.bodyFont = { family: READ('--font') || "'Inter', sans-serif", size: 12 };
   tt.usePointStyle = true;
 }
 

@@ -28,14 +28,23 @@ body.mesa-closed #mesa { flex: 0 0 58px; min-width: 58px; }
 #mesa:empty, #topbar:empty, #footer:empty { display: none; }
 
 /* ── Barra superior ─────────────────────────────────────────── */
-#topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; z-index: 5; }
+#topbar { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 12px; z-index: 5; min-width: 0; }
+/* Encaje en una fila (lo decide topbar.js midiendo): compacto → segunda fila */
+#topbar.tb-compact .tb-brand-text, #topbar.tb-compact .tb-clock-fecha, #topbar.tb-compact .tb-appearance-txt { display: none; }
+#topbar.tb-compact .tb-appearance { width: 36px; height: 36px; padding: 0; justify-content: center; }
+#topbar.tb-compact .tb-viewas span { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#topbar.tb-wrap { flex-wrap: wrap; }
+#topbar.tb-wrap .tb-nav { order: 3; margin: 0 auto; flex-wrap: wrap; justify-content: center; }
+#topbar.tb-wrap .tb-brand { margin-right: auto; }
+#topbar.tb-wrap .tb-brand-text, #topbar.tb-wrap .tb-clock-fecha, #topbar.tb-wrap .tb-appearance-txt { display: revert; }
+#topbar.tb-wrap .tb-appearance { width: auto; height: auto; padding: 8px 14px; }
 .tb-brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; }
 .tb-logo { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--accent), var(--pos)); color: #fff; }
 .tb-logo svg { width: 26px; height: 26px; }
 .tb-brand-text { font-weight: 700; font-size: 17px; letter-spacing: -0.02em; white-space: nowrap; }
 .tb-test { color: var(--orange); font-size: 10px; letter-spacing: .12em; vertical-align: middle; margin-left: 4px; }
 
-.tb-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 4px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); }
+.tb-nav { display: flex; flex-wrap: nowrap; flex: none; align-items: center; gap: 2px; padding: 4px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); }
 :root[data-nav="flat"] .tb-nav { background: transparent; border-color: transparent; }
 :root[data-skin="glass"] .tb-nav { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 30px rgba(0,0,0,0.3); }
 :root[data-skin="glassLight"] .tb-nav { background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.85); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 10px 30px rgba(0,0,0,0.08); }
@@ -223,21 +232,13 @@ body[data-auth="false"] #topbar, body[data-auth="false"] #mesa, body[data-auth="
 body[data-auth="false"] #view { border: 0; background: transparent; padding: 0; }
 
 /* ── Pantallas estrechas ────────────────────────────────────── */
-/* Hasta ~1750 px no caben logo + 12 apartados + reloj + "Viendo a" en una
-   fila: la navegación pasa a una segunda fila, centrada; logo y herramientas
-   arriba. (Sin esto la fila se partía por donde pillaba.) */
-@media (max-width: 1999px) {
-  .tb-nav { order: 3; margin: 0 auto; }
-  .tb-brand { margin-right: auto; }
-}
 @media (max-width: 1100px) {
   .tb-clock-fecha { display: none; }
-  .tb-appearance span + * { display: none; }
 }
 @media (max-width: 900px) {
   body { padding: 10px; gap: 10px; }
-  #topbar { gap: 8px; }
-  .tb-nav { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; scrollbar-width: none; order: 3; flex-basis: 100%; }
+  #topbar { gap: 8px; flex-wrap: wrap; }
+  .tb-nav { flex-wrap: nowrap; flex: 0 0 100%; overflow-x: auto; max-width: 100%; scrollbar-width: none; order: 3; }
   .tb-nav::-webkit-scrollbar { display: none; }
   .tb-brand-text { font-size: 15px; }
   .tb-appearance { padding: 8px 10px; }

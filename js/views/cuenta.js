@@ -415,7 +415,7 @@ function paintEquityChart(container, curve) {
   Chart.getChart(canvas)?.destroy();
   Chart.defaults.color = READ('--muted');
   Chart.defaults.borderColor = READ('--border');
-  Chart.defaults.font.family = "'DM Mono', monospace";
+  Chart.defaults.font.family = READ('--font') || "'Inter', sans-serif";
 
   // Marcar puntos de retiro (naranja) y ajustes manuales (cian)
   const pointBg = curve.map(p => p.type === 'withdrawal' ? READ('--zonas') : p.type === 'adjustment' ? READ('--cyan') : 'transparent');

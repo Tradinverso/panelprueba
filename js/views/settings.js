@@ -39,7 +39,7 @@ export function settingsView(container) {
       <div class="setting-row">
         <div class="setting-info">
           <div class="setting-label">Nombre para mostrar</div>
-          <div class="setting-desc">Aparece en el header del Dashboard y en la barra lateral.</div>
+          <div class="setting-desc">Aparece en la cabecera del Dashboard y en tu avatar de la barra superior.</div>
         </div>
         <div class="setting-control" style="display:flex;gap:8px;">
           <input class="form-input" type="text" id="nameInput" value="${escapeHtml(profile.nombre || '')}" placeholder="Tu nombre" style="flex:1;">

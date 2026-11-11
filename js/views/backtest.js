@@ -136,7 +136,7 @@ function render(container, sheet) {
   // También se crea desde aquí: el formulario lleva dentro el selector de
   // estrategia y nace ya marcado como no tomado. Se crea donde va a vivir, en
   // vez de crearlo en su estrategia y verlo desaparecer de allí al guardar.
-  const botonNuevo = `<button class="btn primary" id="btNewBtn">+ ${esNoTomados ? 'Nuevo no tomado' : 'Nuevo trade'}</button>`;
+  const botonNuevo = `<button class="btn primary" id="btNewBtn">+ ${esNoTomados ? 'Nuevo no tomado' : 'Nuevo backtest'}</button>`;
   const subtituloBase = esNoTomados
     ? 'Trades que se escaparon · NO cuentan en las estadísticas de cada estrategia'
     : 'Histórico de backtests · separado de tu journal real';

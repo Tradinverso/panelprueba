@@ -370,3 +370,19 @@ select option { background: var(--surface); color: var(--text); }
 
 /* Enlaces con aspecto de boton: sin subrayado */
 a.btn { text-decoration: none; }
+
+/* ── Una sola familia de letra ───────────────────────────────────
+   El diseño anterior usaba DM Mono para etiquetas, cifras y textos pequeños
+   (más de 200 reglas con var(--mono)). En los temas nuevos todo va en la
+   letra elegida en Apariencia; las cifras se alinean con números tabulares. */
+:root[data-skin] { --mono: var(--font-ui); }
+:root[data-skin] body { font-variant-numeric: tabular-nums; }
+
+/* ── Calendario y Psicotrading: mismas tarjetas que el resto ─── */
+:root[data-skin] .cs-card { background: var(--card-bg); border: 1px solid var(--line); border-radius: 20px; padding: 16px 18px; box-shadow: var(--card-shadow); }
+:root[data-skin="glass"] .cs-card { background: linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.05) 35%, rgba(255,255,255,0.025) 65%, rgba(255,255,255,0.09) 100%); border-color: rgba(255,255,255,0.16); }
+:root[data-skin="glassLight"] .cs-card { background: linear-gradient(135deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.42) 40%, rgba(255,255,255,0.30) 65%, rgba(255,255,255,0.62) 100%); border-color: rgba(255,255,255,0.85); }
+:root[data-skin] .cs-label { font-weight: 600; letter-spacing: .12em; }
+:root[data-skin] .cs-val { font-size: 24px; font-weight: 700; letter-spacing: -0.03em; }
+:root[data-skin] .cal-wrap { border-radius: 20px; border-color: var(--line); }
+:root[data-skin] .cal-btn { border-radius: 999px; border-color: var(--line); background: transparent; }
