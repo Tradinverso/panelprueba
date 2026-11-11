@@ -85,6 +85,21 @@ export function noticiasDeHoy(data, tz, now = new Date()) {
   return { hoy, proxima };
 }
 
+// Noticias de hoy en adelante, agrupadas por día (en el huso del usuario):
+// [{ label: 'Jue 12', esHoy, items: [...] }]
+export function noticiasDeLaSemana(data, tz, now = new Date()) {
+  if (!data) return [];
+  const hoyStr = ymd(now, tz);
+  const grupos = new Map();
+  for (const n of data.news) {
+    const dia = ymd(new Date(n.t), tz);
+    if (dia < hoyStr) continue;
+    if (!grupos.has(dia)) grupos.set(dia, { label: diaCortoEn(n.t, tz), esHoy: dia === hoyStr, items: [] });
+    grupos.get(dia).items.push(n);
+  }
+  return [...grupos.values()];
+}
+
 // Próximos directos: los que no han terminado todavía (o empezaron hace < 90 min).
 export function proximosDirectos(data, max = 3, now = new Date()) {
   if (!data) return [];

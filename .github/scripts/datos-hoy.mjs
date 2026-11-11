@@ -47,6 +47,18 @@ async function noticias() {
     .sort((a, b) => a.t.localeCompare(b.t));
 }
 
+const PUBLICAR_ENLACES = /^(si|sí|1|true|yes)$/i.test((process.env.CLASES_PUBLICAR_ENLACES || '').trim());
+
+// Enlace de la reunión de un evento: primero uno de Zoom (en ubicación,
+// descripción o campo URL); si no hay, el primer https que aparezca.
+function enlaceDe(comp) {
+  const campo = n => { try { return String(comp?.getFirstPropertyValue?.(n) || ''); } catch (e) { return ''; } };
+  const texto = [campo('location'), campo('url'), campo('description'), campo('x-google-conference')].join(' \n ')
+    .replace(/&amp;/g, '&').replace(/\\n/g, ' ');
+  const urls = (texto.match(/https:\/\/[^\s<>"')\]]+/g) || []).map(u => u.replace(/[.,;]+$/, ''));
+  return urls.find(u => /zoom\.us\//i.test(u)) || urls[0] || '';
+}
+
 // null = calendario sin configurar (no hay secreto).
 async function directos() {
   const url = (process.env.CLASES_ICS_URL || '').trim();
@@ -66,11 +78,20 @@ async function directos() {
   return todos
     .filter(x => x.start && !x.start.isDate)                 // fuera los de día completo
     .filter(x => String(x.comp?.getFirstPropertyValue?.('status') || '').toUpperCase() !== 'CANCELLED')
-    .map(x => ({
-      t: x.start.toJSDate().toISOString(),
-      end: x.end ? x.end.toJSDate().toISOString() : null,
-      title: String(x.title || 'Directo').trim().slice(0, 80),
-    }))
+    .map(x => {
+      const d = {
+        t: x.start.toJSDate().toISOString(),
+        end: x.end ? x.end.toJSDate().toISOString() : null,
+        title: String(x.title || 'Directo').trim().slice(0, 80),
+      };
+      // Enlace para entrar (Zoom…): SOLO si CLASES_PUBLICAR_ENLACES=si. Ojo:
+      // hoy.json es un archivo PÚBLICO; quien tenga la dirección ve los enlaces.
+      if (PUBLICAR_ENLACES) {
+        const url = enlaceDe(x.comp);
+        if (url) d.url = url;
+      }
+      return d;
+    })
     .sort((a, b) => a.t.localeCompare(b.t))
     .slice(0, 8);
 }

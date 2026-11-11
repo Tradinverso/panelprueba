@@ -1,8 +1,9 @@
 // Columna "Hoy" (antes "Mesa"; el código conserva ese nombre): columna
-// izquierda sticky (260 px) con lo que hay que tener a mano mientras se opera:
-// checklist, noticias de alto impacto de hoy, cuentas activas, próximos
-// directos y regla del día. Se recoge en una barrita de 58 px con indicadores
-// (mini-pastilla por cuenta, anillo del checklist, hora de la próxima noticia).
+// izquierda sticky (260 px) con lo que hay que tener a mano mientras se opera.
+// Cada cosa en su propia caja: checklist · noticias de alto impacto · próximos
+// directos · cuentas activas · regla del día · Formación.
+// Se recoge en una barrita de 58 px con indicadores (mini-pastilla por cuenta,
+// anillo del checklist, directo en curso, hora de la próxima noticia).
 // El estado abierto/recogido se guarda en las preferencias (appearance.mesa).
 // Sustituye a la barra lateral de navegación: la navegación va arriba (topbar.js).
 
@@ -18,7 +19,7 @@ import { clockParts } from './topbar.js';
 import { NEWS_URLS } from './footer.js';
 import { storage } from '../storage.js';
 import { icon } from './icons.js';
-import { getHoyData, onHoyData, noticiasDeHoy, proximosDirectos, horaEn, diaCortoEn } from '../utils/hoy-data.js';
+import { getHoyData, onHoyData, noticiasDeHoy, noticiasDeLaSemana, proximosDirectos, horaEn, diaCortoEn } from '../utils/hoy-data.js';
 
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
 
@@ -27,6 +28,14 @@ const SHEET_SHORT = { ZONAS: 'Zonas', LIQUIDEZ: 'Liquidez', NASDAQ: 'Nasdaq' };
 let unsubAuth = null;
 let unsubState = null;
 let unsubHoy = null;
+let newsScope = 'hoy';   // 'hoy' | 'semana' (conmutador de la caja de noticias)
+
+// La columna depende de la hora (directo en curso, noticia ya pasada): se
+// repinta sola cada minuto mientras esté montada y no haya nada abierto encima.
+setInterval(() => {
+  const el = document.getElementById('mesa');
+  if (el && el.firstChild && auth.currentUser && !document.hidden) renderMesa(el);
+}, 60000);
 
 // "Lucid 25K", "E2T 50K"
 function shortName(c) {
@@ -83,6 +92,17 @@ function fmtPct(v) {
   return `${sign}${Math.abs(v).toFixed(1)}%`;
 }
 
+// Estado de un directo respecto a ahora: en curso, empieza pronto (< 30 min) o futuro.
+function estadoDirecto(d, ahora) {
+  const ini = Date.parse(d.t);
+  const fin = d.end ? Date.parse(d.end) : ini + 90 * 60000;
+  if (ini <= ahora && fin > ahora) return { tipo: 'live' };
+  const min = Math.round((ini - ahora) / 60000);
+  if (min > 0 && min <= 30) return { tipo: 'soon', min };
+  return { tipo: 'next' };
+}
+const safeUrl = u => (typeof u === 'string' && /^https:\/\//i.test(u)) ? u : '';
+
 export function renderMesa(container) {
   if (!container) return;
   if (!unsubAuth)  unsubAuth  = auth.on(() => renderMesa(container));
@@ -104,36 +124,61 @@ export function renderMesa(container) {
   const tz = auth.timezone();
   const hoyData = getHoyData();
   const { hoy: noticias, proxima } = noticiasDeHoy(hoyData, tz);
+  const semana = noticiasDeLaSemana(hoyData, tz);
   const directos = proximosDirectos(hoyData, 3);
   const newsUrl = NEWS_URLS[storage.getNewsSource()];
   const ahora = Date.now();
   const sigHoy = noticias.find(n => Date.parse(n.t) > ahora) || null;   // próxima de hoy aún por salir
+  const enDirecto = directos.find(d => estadoDirecto(d, ahora).tipo === 'live') || null;
+
   const newsRow = n => `
     <div class="mesa-news ${Date.parse(n.t) <= ahora ? 'past' : ''}" title="${escapeHtml(n.cur + ' · ' + n.title)}${n.forecast ? ' · previsión ' + escapeHtml(n.forecast) : ''}${n.previous ? ' · anterior ' + escapeHtml(n.previous) : ''}">
       <span class="mesa-news-time">${horaEn(n.t, tz)}</span>
       <span class="mesa-news-dot"></span>
       <span class="mesa-news-txt"><b>${escapeHtml(n.cur)}</b> ${escapeHtml(n.title)}${n.forecast || n.previous ? `<small>${n.forecast ? 'prev. ' + escapeHtml(n.forecast) : ''}${n.forecast && n.previous ? ' · ' : ''}${n.previous ? 'ant. ' + escapeHtml(n.previous) : ''}</small>` : ''}</span>
     </div>`;
-  const newsBlock = !hoyData ? '' : `
-        <div class="mesa-sep"></div>
-        <div class="mesa-block">
-          <div class="mesa-block-head"><h2>Alto impacto hoy</h2><a class="mesa-link" href="${newsUrl}" target="_blank" rel="noopener noreferrer" title="Fuente: Forex Factory · solo alto impacto · USD, EUR y GBP · en tu hora">Calendario ↗</a></div>
-          ${noticias.length
-            ? noticias.map(newsRow).join('') + `<div class="mesa-news-warn">Evita operar en la noticia</div>`
-            : `<div class="mesa-empty">Hoy no hay noticias de alto impacto.${proxima ? ` Próxima: <b>${diaCortoEn(proxima.t, tz)} · ${horaEn(proxima.t, tz)}</b> ${escapeHtml(proxima.cur)} ${escapeHtml(proxima.title)}.` : ''}</div>`}
-        </div>`;
-  const directosBlock = !directos.length ? '' : `
-        <div class="mesa-sep"></div>
-        <div class="mesa-block">
-          <div class="mesa-block-head"><h2>Próximos directos</h2><a class="mesa-link" href="${FORMACION_URL}" target="_blank" rel="noopener noreferrer">Formación ↗</a></div>
-          ${directos.map(d => {
-            const enCurso = Date.parse(d.t) <= ahora;
-            return `<div class="mesa-live ${enCurso ? 'now' : ''}">
-              <span class="mesa-live-when">${enCurso ? 'Ahora' : `${diaCortoEn(d.t, tz)} · ${horaEn(d.t, tz)}`}</span>
-              <span class="mesa-live-title">${escapeHtml(d.title)}</span>
-            </div>`;
-          }).join('')}
-        </div>`;
+
+  let newsBody;
+  if (newsScope === 'semana') {
+    newsBody = semana.length
+      ? semana.map(g => `<div class="mesa-news-day ${g.esHoy ? 'hoy' : ''}">${escapeHtml(g.label)}${g.esHoy ? ' · hoy' : ''}</div>${g.items.map(newsRow).join('')}`).join('')
+      : `<div class="mesa-empty">Esta semana no quedan noticias de alto impacto.</div>`;
+  } else {
+    newsBody = noticias.length
+      ? noticias.map(newsRow).join('') + `<div class="mesa-news-warn">Evita operar en la noticia</div>`
+      : `<div class="mesa-empty">Hoy no hay noticias de alto impacto.${proxima ? ` Próxima: <b>${diaCortoEn(proxima.t, tz)} · ${horaEn(proxima.t, tz)}</b> ${escapeHtml(proxima.cur)} ${escapeHtml(proxima.title)}.` : ''}</div>`;
+  }
+  const newsBox = !hoyData ? '' : `
+      <section class="card mesa-box">
+        <div class="mesa-block-head">
+          <h2>Alto impacto</h2>
+          <div class="mesa-mini-seg" role="group" aria-label="Periodo de noticias">
+            <button type="button" class="${newsScope === 'hoy' ? 'on' : ''}" data-news-scope="hoy">Hoy</button>
+            <button type="button" class="${newsScope === 'semana' ? 'on' : ''}" data-news-scope="semana">Semana</button>
+          </div>
+        </div>
+        ${newsBody}
+        <a class="mesa-link mesa-foot-link" href="${newsUrl}" target="_blank" rel="noopener noreferrer" title="Fuente de la lista: Forex Factory · solo alto impacto · USD, EUR y GBP · en tu hora">Ver calendario completo ↗</a>
+      </section>`;
+
+  const directoRow = d => {
+    const st = estadoDirecto(d, ahora);
+    const url = safeUrl(d.url);
+    const cuando = st.tipo === 'live' ? '<span class="mesa-live-badge">● En directo</span>'
+      : st.tipo === 'soon' ? `<span class="mesa-live-soon">Empieza en ${st.min} min</span> · ${horaEn(d.t, tz)}`
+      : `${diaCortoEn(d.t, tz)} · ${horaEn(d.t, tz)}`;
+    const inner = `
+        <span class="mesa-live-when">${cuando}</span>
+        <span class="mesa-live-title">${escapeHtml(d.title)}${url ? ' <span class="mesa-live-go">↗</span>' : ''}</span>`;
+    return url
+      ? `<a class="mesa-live ${st.tipo}" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" title="${st.tipo === 'live' ? 'Entrar al directo' : 'Abrir el enlace del directo'}">${inner}</a>`
+      : `<div class="mesa-live ${st.tipo}">${inner}</div>`;
+  };
+  const directosBox = !directos.length ? '' : `
+      <section class="card mesa-box ${enDirecto ? 'has-live' : ''}">
+        <div class="mesa-block-head"><h2>Próximos directos</h2><a class="mesa-link" href="${FORMACION_URL}" target="_blank" rel="noopener noreferrer">Formación ↗</a></div>
+        ${directos.map(directoRow).join('')}
+      </section>`;
 
   if (open) {
     container.innerHTML = `
@@ -141,33 +186,32 @@ export function renderMesa(container) {
         <span class="mesa-title">Hoy · ${clock.ddmm}</span>
         <button type="button" class="mesa-toggle" id="mesaToggle" aria-label="Recoger la columna Hoy">‹ Recoger</button>
       </div>
-      <section class="card mesa-card">
-        <div class="mesa-block">
-          <button type="button" class="mesa-chk" id="mesaChecklist" title="Abrir el checklist pre-sesión">
-            <span class="mesa-chk-head"><b>Checklist pre-sesión</b><span class="${chk.done === chk.total ? 'ok' : ''}">${chk.done === chk.total ? '✓ completo' : `${chk.done}/${chk.total}`}</span></span>
-            <span class="mesa-bar"><span style="width:${chk.total ? chk.done / chk.total * 100 : 0}%" class="${chk.done === chk.total ? 'ok' : ''}"></span></span>
-          </button>
-        </div>${newsBlock}
-        <div class="mesa-sep"></div>
-        <div class="mesa-block">
-          <div class="mesa-block-head"><h2>Cuentas</h2><a href="#/cuentas" class="mesa-link">${accs.length} activa${accs.length === 1 ? '' : 's'} →</a></div>
-          ${accs.length ? accs.map(a => `
-            <div class="mesa-acc" title="${escapeHtml(a.name)} · ${fmtPct(a.pct)} · SL hoy ${a.sl}/1">
-              <div class="mesa-acc-row">
-                <span class="mesa-acc-name"><span class="mesa-dot ${a.sl > 0 ? 'bad' : 'ok'}" title="SL hoy ${a.sl}/1"></span>${escapeHtml(a.name)}</span>
-                <span class="mesa-acc-pct pnl-value" style="color:${colorOf(a.pct)}">${fmtPct(a.pct)}</span>
-              </div>
-              ${a.progress != null ? `<div class="mesa-bar" title="Progreso hacia el objetivo de la fase: ${a.progress.toFixed(0)}%"><div style="width:${a.progress}%"></div></div>` : ''}
-              <div class="mesa-acc-row sub"><span>${escapeHtml(a.strats)}</span><span class="pnl-value">${fmtUsd(a.balance)}</span></div>
-            </div>`).join('')
-          : `<div class="mesa-empty">Sin cuentas activas. <a href="#/cuentas">Añade una →</a></div>`}
-        </div>${directosBlock}
-        <div class="mesa-sep"></div>
-        <div class="mesa-block">
-          <div class="mesa-block-head"><div class="mesa-label">Regla del día</div><span class="mesa-muted">${regla.num}/${regla.total}</span></div>
-          <div class="mesa-rule">${escapeHtml(regla.main)}</div>
-          <div class="mesa-rule-sub">${escapeHtml(regla.sub)}</div>
-        </div>
+
+      <section class="card mesa-box">
+        <button type="button" class="mesa-chk" id="mesaChecklist" title="Abrir el checklist pre-sesión">
+          <span class="mesa-chk-head"><b>Checklist pre-sesión</b><span class="${chk.done === chk.total ? 'ok' : ''}">${chk.done === chk.total ? '✓ completo' : `${chk.done}/${chk.total}`}</span></span>
+          <span class="mesa-bar"><span style="width:${chk.total ? chk.done / chk.total * 100 : 0}%" class="${chk.done === chk.total ? 'ok' : ''}"></span></span>
+        </button>
+      </section>
+      ${newsBox}
+      ${directosBox}
+      <section class="card mesa-box">
+        <div class="mesa-block-head"><h2>Cuentas</h2><a href="#/cuentas" class="mesa-link">${accs.length} activa${accs.length === 1 ? '' : 's'} →</a></div>
+        ${accs.length ? accs.map(a => `
+          <div class="mesa-acc" title="${escapeHtml(a.name)} · ${fmtPct(a.pct)} · SL hoy ${a.sl}/1">
+            <div class="mesa-acc-row">
+              <span class="mesa-acc-name"><span class="mesa-dot ${a.sl > 0 ? 'bad' : 'ok'}" title="SL hoy ${a.sl}/1"></span>${escapeHtml(a.name)}</span>
+              <span class="mesa-acc-pct pnl-value" style="color:${colorOf(a.pct)}">${fmtPct(a.pct)}</span>
+            </div>
+            ${a.progress != null ? `<div class="mesa-bar" title="Progreso hacia el objetivo de la fase: ${a.progress.toFixed(0)}%"><div style="width:${a.progress}%"></div></div>` : ''}
+            <div class="mesa-acc-row sub"><span>${escapeHtml(a.strats)}</span><span class="pnl-value">${fmtUsd(a.balance)}</span></div>
+          </div>`).join('')
+        : `<div class="mesa-empty">Sin cuentas activas. <a href="#/cuentas">Añade una →</a></div>`}
+      </section>
+      <section class="card mesa-box">
+        <div class="mesa-block-head"><div class="mesa-label">Regla del día</div><span class="mesa-muted">${regla.num}/${regla.total}</span></div>
+        <div class="mesa-rule">${escapeHtml(regla.main)}</div>
+        <div class="mesa-rule-sub">${escapeHtml(regla.sub)}</div>
       </section>
       <a class="card mesa-cta" href="${FORMACION_URL}" target="_blank" rel="noopener noreferrer" title="Cursos y directos de Tradinverso">
         <span class="mesa-cta-ic">${icon('formacion')}</span>
@@ -180,12 +224,18 @@ export function renderMesa(container) {
         <span class="mesa-cta-arrow">↗</span>
       </a>`}
     `;
+    container.querySelectorAll('[data-news-scope]').forEach(b => b.addEventListener('click', () => {
+      newsScope = b.dataset.newsScope;
+      renderMesa(container);
+    }));
   } else {
     const deg = chk.total ? chk.done / chk.total * 360 : 0;
+    const liveUrl = enDirecto ? (safeUrl(enDirecto.url) || FORMACION_URL) : '';
     container.innerHTML = `
       <div class="card mesa-rail" aria-label="Columna Hoy recogida">
-        <button type="button" class="mesa-rail-open" id="mesaToggle" aria-label="Abrir la columna Hoy" title="Abrir: checklist, noticias, cuentas y directos">›</button>
+        <button type="button" class="mesa-rail-open" id="mesaToggle" aria-label="Abrir la columna Hoy" title="Abrir: checklist, noticias, directos y cuentas">›</button>
         <span class="mesa-rail-title">Hoy</span>
+        ${enDirecto ? `<a class="mesa-rail-live" href="${escapeHtml(liveUrl)}" target="_blank" rel="noopener noreferrer" title="En directo ahora: ${escapeHtml(enDirecto.title)}">LIVE</a>` : ''}
         ${accs.map(a => `
           <div class="mesa-pill" title="${escapeHtml(a.name)} · ${fmtPct(a.pct)} · SL hoy ${a.sl}/1">
             <span class="mesa-pill-abbr">${escapeHtml(a.abbr)}</span>

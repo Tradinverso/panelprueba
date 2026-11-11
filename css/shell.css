@@ -373,3 +373,28 @@ body[data-auth="false"] #view { border: 0; background: transparent; padding: 0; 
 .mesa-live.now .mesa-live-when { color: var(--green); }
 .mesa-live-title { font-size: 12.5px; font-weight: 600; line-height: 1.3; }
 .mesa-rail-news { width: 42px; padding: 6px 0; border-radius: 10px; text-align: center; text-decoration: none; font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }
+
+/* ── Columna "Hoy": cada cosa en su caja ────────────────────── */
+.mesa-box { display: flex; flex-direction: column; gap: 9px; padding: 14px 16px !important; border-radius: 20px !important; }
+.mesa-box .mesa-block-head { margin-bottom: 1px; }
+.mesa-box.has-live { border-color: var(--red) !important; }
+.mesa-foot-link { align-self: flex-start; margin-top: 2px; }
+.mesa-mini-seg { display: inline-flex; padding: 2px; border-radius: 999px; background: var(--card2); }
+.mesa-mini-seg button { border: 0; background: transparent; color: var(--muted); font-family: inherit; font-size: 10.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; cursor: pointer; }
+.mesa-mini-seg button.on { background: var(--text); color: var(--bg); }
+:root[data-skin="glass"] .mesa-mini-seg button.on { color: #0b1020; }
+.mesa-news-day { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+.mesa-news-day.hoy { color: var(--accent); }
+.mesa-news-day:first-of-type { margin-top: 0; }
+
+/* Directos: fila pulsable, en directo (rojo) y "empieza pronto" (ámbar) */
+a.mesa-live { text-decoration: none; color: inherit; border-radius: 0 10px 10px 0; transition: background .15s; }
+a.mesa-live:hover { background: var(--hover); }
+.mesa-live.live { border-left-color: var(--red); background: var(--red-bg); padding: 7px 8px 7px 10px; border-radius: 0 10px 10px 0; }
+.mesa-live.soon { border-left-color: var(--warn, var(--orange)); }
+.mesa-live-badge { color: var(--red); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; animation: mesaLive 1.4s ease-in-out infinite; }
+.mesa-live-soon { color: var(--warn, var(--orange)); }
+.mesa-live-go { color: var(--muted); font-weight: 400; }
+@keyframes mesaLive { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .mesa-live-badge { animation: none; } }
+.mesa-rail-live { width: 42px; padding: 6px 0; border-radius: 10px; text-align: center; text-decoration: none; font-size: 10px; font-weight: 800; letter-spacing: .06em; background: var(--red); color: #fff; animation: mesaLive 1.4s ease-in-out infinite; }

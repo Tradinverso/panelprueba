@@ -41,6 +41,9 @@ jobs:
         run: node .github/scripts/datos-hoy.mjs
         env:
           CLASES_ICS_URL: ${{ secrets.CLASES_ICS_URL }}
+          # 'si' = publicar también el enlace (Zoom) de cada directo. hoy.json es
+          # un archivo PÚBLICO: solo activarlo si se acepta que el enlace lo sea.
+          CLASES_PUBLICAR_ENLACES: 'no'
       - name: Publicar en la rama data
         run: |
           mkdir out && cp hoy.json out/ && cd out
