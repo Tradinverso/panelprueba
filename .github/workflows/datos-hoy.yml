@@ -42,8 +42,10 @@ jobs:
         env:
           CLASES_ICS_URL: ${{ secrets.CLASES_ICS_URL }}
           # 'si' = publicar también el enlace (Zoom) de cada directo. hoy.json es
-          # un archivo PÚBLICO: solo activarlo si se acepta que el enlace lo sea.
-          CLASES_PUBLICAR_ENLACES: 'no'
+          # un archivo PÚBLICO: activado por decisión de David (2026-11-11),
+          # sabiendo que el enlace queda visible para quien tenga la dirección.
+          # Para dejar de publicarlos, poner 'no'.
+          CLASES_PUBLICAR_ENLACES: 'si'
       - name: Publicar en la rama data
         run: |
           mkdir out && cp hoy.json out/ && cd out
