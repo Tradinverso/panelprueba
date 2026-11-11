@@ -22,8 +22,9 @@ import { icon } from './icons.js';
 import { getHoyData, onHoyData, noticiasDeHoy, noticiasDeLaSemana, proximosDirectos, horaEn, diaCortoEn } from '../utils/hoy-data.js';
 
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
-// Invitación a la comunidad (donde se anuncian y comentan los directos).
-const DISCORD_URL = 'https://discord.gg/7suPtXC9Va';
+// Canal de la comunidad en Discord (dirección directa, NO una invitación:
+// solo abre a quien ya es miembro del servidor).
+const DISCORD_URL = 'https://discord.com/channels/1306561566958817280/1306561566958817285';
 
 const SHEET_SHORT = { ZONAS: 'Zonas', LIQUIDEZ: 'Liquidez', NASDAQ: 'Nasdaq' };
 
