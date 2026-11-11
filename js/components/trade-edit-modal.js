@@ -306,6 +306,8 @@ function doSave(trade, data, close) {
 
   const pnl = parseFloat(data.pnl_pct);
   if (data.pnl_pct === '' || isNaN(pnl)) return showErr('El % P&L tiene que ser un número.');
+  // El % P&L va en R: un valor enorme suele ser pips o dólares y descuadra las estadísticas.
+  if (Math.abs(pnl) > 10) return showErr(`El % P&L va en R (2 = TP de 2R, −1 = SL): ${pnl} no es válido.`);
   if (!data.date) return showErr('Falta la fecha.');
   if (!data.setup) return showErr('Falta el setup (LONG o SHORT).');
   if (data.plan_followed !== true && data.plan_followed !== false) return showErr('Indica si has seguido el plan (Sí o No).');

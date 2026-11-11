@@ -98,6 +98,21 @@ export function modelLabel(code) {
   return MODEL_LABELS[code] || code;
 }
 
+// Objetivo de TP de cada estrategia, en R: [mínimo, máximo].
+// Zonas va a TP fijo de 2R; Liquidez se mueve entre 2R y 3R; Nasdaq entre 1,5R
+// y 2R. Lo usan los atajos de resultado de Nuevo trade y el diagnóstico de
+// "cierres antes del objetivo" (un TP por debajo del mínimo).
+export const TP_RANGE = { ZONAS: [2, 2], LIQUIDEZ: [2, 3], NASDAQ: [1.5, 2] };
+// Tope de cordura del % P&L (va en R): por encima de esto es casi seguro que
+// se han apuntado pips o dólares.
+export const R_MAXIMO = 10;
+export const fmtR = n => String(n).replace('.', ',');
+export function tpRangeLabel(sheet) {
+  const r = TP_RANGE[sheet];
+  if (!r) return '';
+  return r[0] === r[1] ? `${fmtR(r[0])}R` : `${fmtR(r[0])}–${fmtR(r[1])}R`;
+}
+
 export const STRATEGIES = {
   ZONAS: {
     label: 'Zonas',

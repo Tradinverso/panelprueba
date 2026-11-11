@@ -3,20 +3,22 @@ import { renderPills } from '../components/pills.js';
 import { openModal } from '../components/modal.js';
 import { renderCuentaAssign } from '../components/cuenta-assign.js';
 import { router } from '../router.js';
-import { TODAS as SENS_OPTIONS, NEGATIVAS as SENS_NEGATIVAS } from '../utils/sensaciones.js';
+import { TODAS as SENS_OPTIONS, NEGATIVAS as SENS_NEGATIVAS, NEUTRALES as SENS_NEUTRALES } from '../utils/sensaciones.js';
 import { parseTime, durationMinutes, formatDateEs } from '../utils/date-helpers.js';
 import { auth } from '../auth.js';
 import { todayLocal } from '../utils/timezone.js';
 import { fmtPct } from '../utils/number-format-es.js';
 import { fmtUsd } from '../utils/account-stats.js';
-import { STRATEGIES as STRAT_META, modelLabel, errorModeloEntrada } from '../utils/strategy-config.js';
+import { STRATEGIES as STRAT_META, modelLabel, errorModeloEntrada, TP_RANGE, R_MAXIMO, tpRangeLabel } from '../utils/strategy-config.js';
+import { resumenR } from '../utils/diagnostics.js';
 import { aplicarReglasModelo } from '../components/model-rules.js';
 import { attachDictation } from '../utils/dictation.js';
 import { showToast } from '../components/toast.js';
 
 const SHEETS = ['ZONAS', 'LIQUIDEZ', 'NASDAQ'];
-// R objetivo de cada estrategia: lo que rellena el atajo "TP" del resultado.
-const TP_R = { ZONAS: 2, LIQUIDEZ: 3, NASDAQ: 1.5 };
+// El R objetivo de cada estrategia (TP_RANGE, en strategy-config.js) es lo que
+// rellenan los atajos "TP" del resultado: uno si el TP es fijo (Zonas), dos si
+// la estrategia trabaja con un rango (Liquidez 2–3R, Nasdaq 1,5–2R).
 
 // Estrategia pedida en la URL (#/nuevo?s=NASDAQ, desde "+ Nuevo trade" de Estrategias).
 function sheetFromUrl() {
@@ -131,7 +133,8 @@ function row(label, field, { required = false, hint = '' } = {}) {
 
 function renderForm(wrap, side, sheet, data, onSaved) {
   const meta = STRAT_META[sheet];
-  const tpR = TP_R[sheet] || 2;
+  const [tpMin, tpMax] = TP_RANGE[sheet] || [2, 2];
+  const tpChips = tpMin === tpMax ? [tpMin] : [tpMin, tpMax];
   wrap.innerHTML = `
     <div class="form nt-form">
       <div class="card nt-section">
@@ -146,12 +149,12 @@ function renderForm(wrap, side, sheet, data, onSaved) {
       <div class="card nt-section">
         <div class="nt-section-title">Resultado y cuenta</div>
         ${row('Resultado', `<div class="pill-group nt-result" id="resultChips">
-            <button type="button" class="pill" data-res="TP" data-pnl="${tpR}">TP +${tpR}%</button>
+            ${tpChips.map(r => `<button type="button" class="pill" data-res="TP" data-pnl="${r}">TP +${r}%</button>`).join('')}
             <button type="button" class="pill" data-res="SL" data-pnl="-1">SL −1%</button>
             <button type="button" class="pill" data-res="BE" data-pnl="0">BE 0%</button>
           </div>`, { hint: 'atajo: rellena el % P&L' })}
         ${row('% P&L sistema', `<div class="nt-inline">
-            <input class="form-input" type="number" step="0.01" data-input="pnl_pct" value="${data.pnl_pct}" placeholder="${tpR}.00 = TP / -1.00 = SL">
+            <input class="form-input" type="number" step="0.01" data-input="pnl_pct" value="${data.pnl_pct}" placeholder="${tpMin.toFixed(2)} = TP / -1.00 = SL">
             <label class="nt-inline-label">Riesgo real (%)
               <input class="form-input" type="number" step="0.01" min="0" data-input="risk_real_pct" value="${data.risk_real_pct}" placeholder="1.00"></label>
             ${meta.showRR ? `<label class="nt-inline-label">RR
@@ -209,13 +212,30 @@ function renderForm(wrap, side, sheet, data, onSaved) {
     const riskOk = isFinite(risk) && risk >= 0 ? risk : 1;
     const color = res === 'TP' ? 'var(--green)' : res === 'SL' ? 'var(--red)' : 'var(--muted)';
     // Atajos de resultado: se marca el que corresponde al % escrito
-    wrap.querySelectorAll('#resultChips [data-res]').forEach(b => b.classList.toggle('active', b.dataset.res === res));
+    // (con dos atajos de TP, solo el que coincide con la cifra)
+    wrap.querySelectorAll('#resultChips [data-res]').forEach(b => b.classList.toggle('active',
+      b.dataset.res === res && (res !== 'TP' || Math.abs(parseFloat(b.dataset.pnl) - pnl) < 0.005)));
 
     const accs = Array.isArray(data.accounts) ? data.accounts : [];
     const kv = (k, v) => `<div class="nt-kv"><span>${k}</span><b>${v || '—'}</b></div>`;
     const avisos = [];
-    if (SENS_NEGATIVAS.includes(data.sensacion)) avisos.push(['warn', '⚠ Sensación de riesgo: revisa tu protocolo antes del siguiente trade.']);
-    if (data.plan_followed === false) avisos.push(['bad', '⚠ Fuera del plan: contará en Diagnóstico como trade fuera de plan.']);
+    // Sensación de riesgo y fuera del plan: se enseña el dato PROPIO del
+    // alumno (es lo que más pesa en el resultado, según sus propios trades).
+    const propio = filtro => { const r = resumenR(state.trades.filter(filtro)); return r.dec >= 5 ? r : null; };
+    const frase = r => `${r.n} trades, ${r.wr.toFixed(0)}% de acierto, <span class="pnl-value">${fmtPct(r.r, 1)}</span> en total`;
+    if (SENS_NEGATIVAS.includes(data.sensacion) || SENS_NEUTRALES.includes(data.sensacion)) {
+      const r = propio(t => t.sensacion === data.sensacion);
+      const grave = SENS_NEGATIVAS.includes(data.sensacion);
+      avisos.push([grave ? 'bad' : 'warn', r
+        ? `⚠ Tus trades con «${esc(data.sensacion)}»: ${frase(r)}.`
+        : (grave ? '⚠ Sensación de riesgo: revisa tu protocolo antes del siguiente trade.' : '⚠ Si hay duda, no se opera.')]);
+    }
+    if (data.plan_followed === false) {
+      const r = propio(t => t.plan_followed === false);
+      avisos.push(['bad', r ? `⚠ Tus trades fuera del plan: ${frase(r)}.` : '⚠ Fuera del plan: contará en Diagnóstico como trade fuera de plan.']);
+    }
+    if (res === 'TP' && pnl < tpMin - 0.15) avisos.push(['info', `TP por debajo del objetivo de ${meta.label} (${tpRangeLabel(sheet)}).`]);
+    if (hasPnl && Math.abs(pnl) > R_MAXIMO) avisos.push(['bad', `⚠ El % P&L va en R (${tpMin} = TP de ${tpMin}R, −1 = SL). ${pnl} no parece correcto.`]);
     if (res === 'SL' && accs.length) avisos.push(['bad', `→ SL en ${esc(accs.map(cuentaNombre).join(', '))}: con SL la rotación pasa a la siguiente cuenta.`]);
     const faltan = validate(sheet, data).length;
     if (faltan) avisos.push(['info', `Faltan ${faltan} campo${faltan === 1 ? '' : 's'} obligatorio${faltan === 1 ? '' : 's'}.`]);
@@ -397,6 +417,7 @@ function validate(sheet, data) {
   if (!data.open_str) errs.push({ field: 'open_str', msg: 'Hora apertura obligatoria' });
   const pnl = parseFloat(data.pnl_pct);
   if (data.pnl_pct === '' || isNaN(pnl)) errs.push({ field: 'pnl_pct', msg: '% P&L numérico obligatorio' });
+  else if (Math.abs(pnl) > R_MAXIMO) errs.push({ field: 'pnl_pct', msg: `El % P&L va en R (2 = TP de 2R, −1 = SL): ${pnl} no es válido` });
   if (!data.sensacion) errs.push({ field: 'sensacion', msg: 'Selecciona la sensación' });
   if (data.plan_followed !== true && data.plan_followed !== false) {
     errs.push({ field: 'plan_followed', msg: 'Indica si has seguido el plan (Sí o No)' });
