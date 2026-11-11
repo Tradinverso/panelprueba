@@ -10,7 +10,6 @@ import { stampNow, slug, exportXlsx } from '../utils/sheet-export.js';
 import { TIMEZONES, tzLabel, guessTz } from '../utils/timezone.js';
 import { ajustesTabs } from '../components/ajustes-tabs.js';
 import { icon } from '../components/icons.js';
-import { renderFooter } from '../components/footer.js';
 
 export function settingsView(container) {
   const inViewAs = !!state.viewAsUid;
@@ -87,22 +86,10 @@ export function settingsView(container) {
       <div class="setting-row">
         <div class="setting-info">
           <div class="setting-label">Tema, colores y letra</div>
-          <div class="setting-desc">Seis temas (Liquid Glass, Midnight, Light…), color de acento, colores de TP/SL, tipografía y densidad. Se guarda en tu cuenta. También desde la paleta de la barra lateral.</div>
+          <div class="setting-desc">Seis temas (Liquid Glass, Midnight, Light…), color de acento, colores de TP/SL, tipografía y densidad. Se guarda en tu cuenta. También desde el botón Apariencia de la barra superior.</div>
         </div>
         <div class="setting-control" style="display:flex;justify-content:flex-end;">
           <button class="btn" id="appearanceOpenBtn"><span class="seg-ic">${icon('paleta')}</span> Abrir Apariencia</button>
-        </div>
-      </div>
-      <div class="setting-row">
-        <div class="setting-info">
-          <div class="setting-label">Noticias · calendario económico</div>
-          <div class="setting-desc">Qué web abre el acceso <strong>Noticias</strong> de la barra lateral.</div>
-        </div>
-        <div class="setting-control">
-          <select class="select" id="newsSel">
-            <option value="investing"    ${storage.getNewsSource() === 'investing'    ? 'selected' : ''}>Investing.com</option>
-            <option value="forexfactory" ${storage.getNewsSource() === 'forexfactory' ? 'selected' : ''}>ForexFactory</option>
-          </select>
         </div>
       </div>
     </div>
@@ -260,13 +247,6 @@ export function settingsView(container) {
 
   const appearanceOpenBtn = container.querySelector('#appearanceOpenBtn');
   if (appearanceOpenBtn) appearanceOpenBtn.addEventListener('click', () => openAppearancePanel());
-
-  const newsSel = container.querySelector('#newsSel');
-  if (newsSel) newsSel.addEventListener('change', e => {
-    storage.setNewsSource(e.target.value);
-    renderFooter(document.getElementById('footer'));  // el enlace "Calendario económico" del pie apunta a la nueva web
-    flashOk(container, e.target.value === 'forexfactory' ? 'Noticias: ForexFactory' : 'Noticias: Investing.com');
-  });
 
   const saveTzBtn = container.querySelector('#saveTzBtn');
   if (saveTzBtn) saveTzBtn.addEventListener('click', async () => {

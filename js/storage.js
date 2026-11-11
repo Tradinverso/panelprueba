@@ -3,7 +3,6 @@ const KEYS = {
   theme: 'tradinverso_theme',
   url: 'tradinverso_apps_script_url',
   version: 'tradinverso_schema_version',
-  news: 'tradinverso_news_source',
   checklist: 'tradinverso_checklist',
 };
 
@@ -50,13 +49,6 @@ export const storage = {
     for (const k of Object.keys(entries)) if (!k.startsWith(day)) delete entries[k];
     entries[key] = done;
     localStorage.setItem(KEYS.checklist, JSON.stringify({ entries }));
-  },
-  // Fuente del calendario económico del botón "Noticias": 'investing' | 'forexfactory'.
-  getNewsSource() {
-    return localStorage.getItem(KEYS.news) === 'forexfactory' ? 'forexfactory' : 'investing';
-  },
-  setNewsSource(v) {
-    localStorage.setItem(KEYS.news, v === 'forexfactory' ? 'forexfactory' : 'investing');
   },
   getAppsScriptUrl() {
     return localStorage.getItem(KEYS.url) || '';

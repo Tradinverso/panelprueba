@@ -16,12 +16,12 @@ import { checklistProgress } from '../utils/checklist-items.js';
 import { todayLocal } from '../utils/timezone.js';
 import { openChecklistModal } from './checklist-modal.js';
 import { clockParts } from './topbar.js';
-import { NEWS_URLS } from './footer.js';
-import { storage } from '../storage.js';
 import { icon } from './icons.js';
 import { getHoyData, onHoyData, noticiasDeHoy, noticiasDeLaSemana, proximosDirectos, horaEn, diaCortoEn } from '../utils/hoy-data.js';
 
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
+// Calendario económico completo (la lista de la caja sale de Forex Factory).
+const INVESTING_URL = 'https://es.investing.com/economic-calendar';
 // Canal de la comunidad en Discord (dirección directa, NO una invitación:
 // solo abre a quien ya es miembro del servidor).
 const DISCORD_URL = 'https://discord.com/channels/1306561566958817280/1426808153839767553';
@@ -129,7 +129,7 @@ export function renderMesa(container) {
   const { hoy: noticias, proxima } = noticiasDeHoy(hoyData, tz);
   const semana = noticiasDeLaSemana(hoyData, tz);
   const directos = proximosDirectos(hoyData, 3);
-  const newsUrl = NEWS_URLS[storage.getNewsSource()];
+  const newsUrl = INVESTING_URL;
   const ahora = Date.now();
   const sigHoy = noticias.find(n => Date.parse(n.t) > ahora) || null;   // próxima de hoy aún por salir
   const enDirecto = directos.find(d => estadoDirecto(d, ahora).tipo === 'live') || null;
@@ -162,7 +162,7 @@ export function renderMesa(container) {
         </div>
         <div class="mesa-source" title="Lista sacada del calendario de Forex Factory: solo carpeta roja (alto impacto) de USD, EUR y GBP, en tu hora."><span class="mesa-news-dot"></span>Forex Factory · carpeta roja</div>
         ${newsBody}
-        <a class="mesa-link mesa-foot-link" href="${NEWS_URLS.investing}" target="_blank" rel="noopener noreferrer" title="Calendario económico de Investing (3 estrellas = alto impacto)">Ver calendario de Investing ↗</a>
+        <a class="mesa-link mesa-foot-link" href="${INVESTING_URL}" target="_blank" rel="noopener noreferrer" title="Calendario económico de Investing (3 estrellas = alto impacto)">Ver calendario de Investing ↗</a>
       </section>`;
 
   const directoRow = d => {
@@ -225,7 +225,7 @@ export function renderMesa(container) {
         <span class="mesa-cta-text"><b>Formación</b><small>Cursos · directos</small></span>
         <span class="mesa-cta-arrow">↗</span>
       </a>
-      ${hoyData ? '' : `<a class="card mesa-cta" href="${newsUrl}" target="_blank" rel="noopener noreferrer" title="Calendario económico · la fuente se cambia en Ajustes">
+      ${hoyData ? '' : `<a class="card mesa-cta" href="${newsUrl}" target="_blank" rel="noopener noreferrer" title="Calendario económico de Investing">
         <span class="mesa-cta-ic alt">${icon('noticias')}</span>
         <span class="mesa-cta-text"><b>Noticias</b><small>Calendario económico</small></span>
         <span class="mesa-cta-arrow">↗</span>
