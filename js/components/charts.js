@@ -107,6 +107,8 @@ function softScales(yFmt) {
 }
 
 export function createEquity(canvas, datasets, opts = {}) {
+  // Sin lienzo (la vista cambio antes de pintar): no hay nada que dibujar.
+  if (!canvas) return null;
   defaults();
   Chart.getChart(canvas)?.destroy();
   const GREEN = READ('--green'), Z = READ('--zonas'), L = READ('--liquidez'), N = READ('--nasdaq');
@@ -153,6 +155,8 @@ export function createEquity(canvas, datasets, opts = {}) {
 }
 
 export function createDonut(canvas, tp, sl, be) {
+  // Sin lienzo (la vista cambio antes de pintar): no hay nada que dibujar.
+  if (!canvas) return null;
   defaults();
   Chart.getChart(canvas)?.destroy();
   const DIM = READ('--dim');
@@ -185,6 +189,8 @@ export function createDonut(canvas, tp, sl, be) {
 }
 
 export function createBar(canvas, labels, data, opts = {}) {
+  // Sin lienzo (la vista cambio antes de pintar): no hay nada que dibujar.
+  if (!canvas) return null;
   defaults();
   Chart.getChart(canvas)?.destroy();
   const GREEN = READ('--green'), RED = READ('--red');
@@ -211,6 +217,8 @@ export function createBar(canvas, labels, data, opts = {}) {
 }
 
 export function createHourBar(canvas, hourData) {
+  // Sin lienzo (la vista cambio antes de pintar): no hay nada que dibujar.
+  if (!canvas) return null;
   defaults();
   Chart.getChart(canvas)?.destroy();
   const GREEN = READ('--green'), RED = READ('--red'), BLUE = READ('--cyan');
@@ -253,6 +261,8 @@ export function createHourBar(canvas, hourData) {
 }
 
 export function createDayBar(canvas, dayData) {
+  // Sin lienzo (la vista cambio antes de pintar): no hay nada que dibujar.
+  if (!canvas) return null;
   defaults();
   Chart.getChart(canvas)?.destroy();
   const GREEN = READ('--green'), RED = READ('--red'), BLUE = READ('--cyan');
@@ -292,6 +302,8 @@ export function createDayBar(canvas, dayData) {
 }
 
 export function createLongShort(canvas, lsData) {
+  // Sin lienzo (la vista cambio antes de pintar): no hay nada que dibujar.
+  if (!canvas) return null;
   defaults();
   Chart.getChart(canvas)?.destroy();
   const GREEN = READ('--green'), RED = READ('--red');

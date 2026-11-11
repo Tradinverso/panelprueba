@@ -417,3 +417,53 @@ a.mesa-live:hover { background: var(--hover); }
 .mesa-source { display: flex; align-items: center; gap: 6px; }
 .mesa-source .mesa-news-dot { margin-top: 0; }
 div.mesa-source:hover { color: var(--muted); }
+
+/* ── Móvil: nada puede ensanchar la página ──────────────────────
+   En columna, #shell tenía align-items:flex-start (pensado para la fila de
+   escritorio) y #view crecía al ancho de su contenido más ancho (un gráfico,
+   una tabla): la página medía 800 px en un móvil de 375. */
+.grid-2 > *, .grid-3 > *, .grid-2-1 > *, .grid-1-2 > *, .kpi-grid > *, .bento > * { min-width: 0; }
+@media (max-width: 900px) {
+  #shell { align-items: stretch; }
+  #view { flex: none; width: 100%; min-width: 0; overflow-x: clip; }
+  #view .card { max-width: 100%; }
+  /* Tablas y rejillas anchas: scroll dentro de su tarjeta */
+  #view .card:has(> table), #view .card:has(> .data-table), #view .table-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .page-actions { width: 100%; }
+  .page-actions .select { flex: 1 1 140px; min-width: 0; }
+  .setting-row { flex-direction: column; align-items: stretch !important; gap: 10px; }
+  .setting-control { width: 100%; flex-wrap: wrap; }
+  .setting-control .select, .setting-control .form-input { min-width: 0; flex: 1 1 160px; }
+  .pulse { padding: 12px 4px; }
+  .pulse-col { min-width: 124px; padding: 4px 12px; }
+  .strat-tabs { width: 100%; }
+}
+
+/* Rejillas en pantallas estrechas. Estas reglas ya existían en styles.css,
+   pero ANTES de las definiciones base (.grid-3, .kpi-grid…), que las pisaban:
+   en móvil las tarjetas seguían en 2-3 columnas apretadas. Aquí van al final. */
+@media (max-width: 880px) {
+  .grid-3, .grid-2, .grid-2-1, .grid-1-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  :root[data-skin] .kpi-card { padding: 14px 12px 12px; }
+  :root[data-skin] .kpi-value { font-size: 20px; }
+  .cal-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .plan-box-head { padding: 12px 14px; }
+}
+@media (max-width: 900px) {
+  /* Cabeceras de sección con filtros (Cuentas, Estrategias…): los filtros bajan debajo del título */
+  .section-title-row { flex-wrap: wrap; }
+  .section-title-row > div { flex-wrap: wrap; min-width: 0; }
+  .section-title-row .select { min-width: 0; flex: 1 1 130px; }
+  #view .card:has(.data-table) { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+@media (max-width: 640px) {
+  /* Franja Pulso: rejilla 2×2 en vez de una fila con scroll */
+  .pulse { flex-wrap: wrap; overflow: visible; padding: 6px 4px; }
+  .pulse-col { flex: 1 1 45%; min-width: 0; border-left: 0; padding: 10px 14px; }
+  .pulse-val { font-size: 19px; }
+  .pulse-sub { white-space: normal; }
+  .pulse-tools { flex: 1 1 100%; flex-direction: row; justify-content: space-between; align-items: center; border-left: 0; border-top: 1px solid var(--line); padding: 10px 14px 6px; }
+}
