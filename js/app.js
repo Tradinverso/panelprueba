@@ -5,6 +5,7 @@ import { auth } from './auth.js';
 import { state } from './state.js';
 import { appearance } from './appearance.js';
 import { router } from './router.js';
+import { initPnlMask, syncPnlMask } from './utils/pnl-mask.js';
 import { renderTopbar } from './components/topbar.js';
 import { renderMesa } from './components/mesa.js';
 import { renderFooter } from './components/footer.js';
@@ -42,6 +43,7 @@ appearance.onChange(p => {
 });
 
 const view = document.getElementById('view');
+initPnlMask();
 const topbar = document.getElementById('topbar');
 const mesa = document.getElementById('mesa');
 const footer = document.getElementById('footer');
@@ -117,6 +119,7 @@ auth.on(async () => {
     await state.loadFromCloud();
     // La apariencia guardada en la nube manda sobre la de este navegador.
     appearance.applyFromCloud(state.config && state.config.appearance);
+    syncPnlMask();   // "Ocultar P&L" guardado en la cuenta
     // Después de cargar, ofrece migrar localStorage si hay datos
     maybeShowMigrationPrompt();
   }

@@ -442,6 +442,7 @@ function paintEquityChart(container, curve) {
       plugins: {
         legend: { display: false },
         tooltip: {
+          enabled: !document.body.classList.contains('hide-pnl'),
           callbacks: {
             label: ctx => {
               const p = curve[ctx.dataIndex];
@@ -453,7 +454,7 @@ function paintEquityChart(container, curve) {
       },
       scales: {
         x: { ticks: { maxTicksLimit: 8, autoSkip: true }, grid: { color: READ('--border') } },
-        y: { ticks: { callback: v => '$' + v.toLocaleString('en-US') }, grid: { color: READ('--border') } },
+        y: { ticks: { callback: v => document.body.classList.contains('hide-pnl') ? '$•••' : '$' + v.toLocaleString('en-US') }, grid: { color: READ('--border') } },
       },
     },
   });
@@ -480,7 +481,7 @@ function paintMonthlyChart(container, monthly) {
       plugins: { legend: { display: false } },
       scales: {
         x: { grid: { color: READ('--border') } },
-        y: { ticks: { callback: v => '$' + v.toLocaleString('en-US') }, grid: { color: READ('--border') } },
+        y: { ticks: { callback: v => document.body.classList.contains('hide-pnl') ? '$•••' : '$' + v.toLocaleString('en-US') }, grid: { color: READ('--border') } },
       },
     },
   });

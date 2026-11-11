@@ -499,10 +499,10 @@ function paintChart(container) {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 10, boxHeight: 10, padding: 16, usePointStyle: true, font: { family: READ('--font') || "'Inter', sans-serif", size: 11 } } } },
+      plugins: { tooltip: { enabled: !document.body.classList.contains('hide-pnl') }, legend: { display: true, position: 'top', labels: { boxWidth: 10, boxHeight: 10, padding: 16, usePointStyle: true, font: { family: READ('--font') || "'Inter', sans-serif", size: 11 } } } },
       scales: {
         x: { grid: { display: false }, border: { display: false } },
-        y: { ticks: { callback: v => '$' + v.toLocaleString('en-US') }, grid: { color: READ('--border') }, border: { display: false } },
+        y: { ticks: { callback: v => document.body.classList.contains('hide-pnl') ? '$•••' : '$' + v.toLocaleString('en-US') }, grid: { color: READ('--border') }, border: { display: false } },
       },
     },
   });

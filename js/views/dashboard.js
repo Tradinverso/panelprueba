@@ -77,8 +77,7 @@ function render(container) {
   // Ocultar / mostrar importes de P&L (preferencia de Apariencia)
   const hideBtn = container.querySelector('#pulseHide');
   if (hideBtn) hideBtn.addEventListener('click', () => {
-    appearance.set({ hidePnl: !appearance.get().hidePnl });
-    render(container);
+    appearance.set({ hidePnl: !appearance.get().hidePnl });   // pnl-mask.js repinta la vista
   });
 
   // KPIs y tablas (HTML puro) se pintan ya.

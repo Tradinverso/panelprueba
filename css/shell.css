@@ -156,12 +156,8 @@ body.mesa-closed #mesa { flex: 0 0 58px; min-width: 58px; }
 .pulse-hide { border: none; background: transparent; color: var(--muted); font-size: 11px; cursor: pointer; font-family: inherit; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
 .pulse-hide:hover { color: var(--text); }
 
-/* Ocultar importes de P&L: los valores se desenfocan (KPIs, Pulso, Mesa,
-   tarjetas de cuenta y celdas de P&L). Pasar el ratón no los revela. */
-body.hide-pnl .pnl-value, body.hide-pnl .kpi-value, body.hide-pnl .cuenta-equity,
-body.hide-pnl .mini-stat-val, body.hide-pnl .stat-value, body.hide-pnl .cal-pnl, body.hide-pnl .cal-day-pnl {
-  filter: blur(7px); user-select: none;
-}
+/* Ocultar importes de P&L: lo hace js/utils/pnl-mask.js sustituyendo el texto
+   por "•••" (antes era un desenfoque que tapaba también winrates y días). */
 
 /* ── Dashboard: tarjetas por estrategia (anillo de winrate) ─── */
 .strat-card { display: block; text-decoration: none; color: inherit; position: relative; overflow: hidden; cursor: pointer; transition: transform .45s cubic-bezier(.2,.9,.25,1.2), border-color .2s; }

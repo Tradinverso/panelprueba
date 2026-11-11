@@ -41,6 +41,11 @@ function grad2(canvas, c0, c1) {
   return g;
 }
 
+// "Ocultar P&L" activo (ver utils/pnl-mask.js): los gráficos de P&L tapan sus
+// cifras (ejes, tooltips y valores sobre las barras) con •••.
+const oculto = () => document.body.classList.contains('hide-pnl');
+const TAPADO = () => '•••';
+
 // Con un tema nuevo (data-skin) las etiquetas van en la letra de la interfaz;
 // en el tema clásico se mantiene DM Mono.
 const hasSkin = () => document.documentElement.hasAttribute('data-skin');
@@ -77,6 +82,7 @@ const shortDate = v => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) 
 const BAR_VALUES = {
   id: 'tvBarValues',
   afterDatasetsDraw(chart, _args, opts) {
+    if (oculto()) return;
     const fmt = opts && opts.fmt ? opts.fmt : (v => v);
     const { ctx } = chart;
     const GREEN = READ('--green'), RED = READ('--red');
@@ -113,7 +119,7 @@ export function createEquity(canvas, datasets, opts = {}) {
   Chart.getChart(canvas)?.destroy();
   const GREEN = READ('--green'), Z = READ('--zonas'), L = READ('--liquidez'), N = READ('--nasdaq');
   const palette = { ALL: GREEN, ZONAS: Z, LIQUIDEZ: L, NASDAQ: N, PORT: READ('--cyan') };
-  const fmt = typeof opts.formatter === 'function' ? opts.formatter : (v => v.toFixed(1) + '%');
+  const fmt = oculto() ? TAPADO : (typeof opts.formatter === 'function' ? opts.formatter : (v => v.toFixed(1) + '%'));
   return new Chart(canvas, {
     type: 'line',
     data: {
@@ -196,7 +202,7 @@ export function createBar(canvas, labels, data, opts = {}) {
   const GREEN = READ('--green'), RED = READ('--red');
   // Degradado vertical color → color al 25 %; radio grande por el lado que crece.
   const colors = data.map(v => v >= 0 ? vGrad(canvas, GREEN, 1, 0.25) : vGrad(canvas, RED, 0.25, 1));
-  const fmt = typeof opts.formatter === 'function' ? opts.formatter : (v => v + '%');
+  const fmt = oculto() ? TAPADO : (typeof opts.formatter === 'function' ? opts.formatter : (v => v + '%'));
   const { formatter, ...restOpts } = opts;
   return new Chart(canvas, {
     type: 'bar',
