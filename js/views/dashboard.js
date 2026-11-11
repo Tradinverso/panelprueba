@@ -550,9 +550,8 @@ function paintStrategy(container, sheet, trades) {
   const last = sub.length ? sub.map(t => t.date).sort().pop() : null;
   const daysAgo = last ? Math.round((Date.now() - new Date(last + 'T12:00:00').getTime()) / 86400000) : null;
   const st = card.querySelector('[data-field="status"]');
-  const paused = state.isPaused(sheet);
-  st.textContent = paused ? 'En pausa' : (!sub.length ? 'Sin trades' : (daysAgo > 60 ? 'Inactiva' : 'Activa'));
-  card.classList.toggle('dim', paused || !sub.length || daysAgo > 60);
+  st.textContent = !sub.length ? 'Sin trades' : (daysAgo > 60 ? 'Inactiva' : 'Activa');
+  card.classList.toggle('dim', !sub.length || daysAgo > 60);
 }
 
 function paintTiming(container, trades) {

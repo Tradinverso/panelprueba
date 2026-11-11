@@ -252,7 +252,7 @@ body[data-auth="false"] #view { border: 0; background: transparent; padding: 0; 
 }
 
 /* ════════════════════════════════════════════════════════════════
-   Fase 3 — Nuevo trade, pausa de estrategias y Plan en dos recuadros
+   Fase 3 — Nuevo trade y Plan en dos recuadros
    ════════════════════════════════════════════════════════════════ */
 
 /* ── Nuevo trade: formulario (izq.) + resumen en vivo (dcha.) ── */
@@ -306,11 +306,6 @@ body[data-auth="false"] #view { border: 0; background: transparent; padding: 0; 
   .nt-row { flex-direction: column; gap: 8px; }
   .nt-label { flex: none; padding-top: 0; }
 }
-
-/* ── Estrategias en pausa ───────────────────────────────────── */
-.strat-tabs .rg-tab.paused { opacity: .45; cursor: not-allowed; }
-.btn.strat-resume { background: var(--green-bg) !important; border-color: var(--green) !important; color: var(--green) !important; font-weight: 600; }
-.strat-paused-note { margin: 0 0 var(--gap, 16px); padding: 10px 14px; border-radius: 14px; font-size: 12.5px; background: var(--orange-bg); color: var(--warn, var(--orange)); border: 1px solid var(--orange); }
 
 /* ── Plan de trading: dos recuadros con scroll propio ───────── */
 .plan-two { display: flex; gap: var(--gap, 16px); align-items: stretch; }

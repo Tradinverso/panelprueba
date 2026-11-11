@@ -1109,19 +1109,6 @@ export const state = {
     return this.config;
   },
 
-  // ── Estrategias en pausa ─────────────────────────────────
-  // config.pausedStrategies = { ZONAS: true, … }. Una estrategia en pausa no se
-  // puede elegir en Nuevo trade, pero sus trades siguen contando en el
-  // histórico y en todas las estadísticas. Sin clave = activa (retrocompatible).
-  isPaused(sheet) {
-    const p = this.config && this.config.pausedStrategies;
-    return !!(p && p[sheet] === true);
-  },
-  setPaused(sheet, paused) {
-    const cur = (this.config && this.config.pausedStrategies) || {};
-    return this.setConfig({ pausedStrategies: { ...cur, [sheet]: !!paused } });
-  },
-
   // Mapa id→cuenta del contexto actual (propio o alumno en viewAs). Lo usan los
   // cálculos de "P&L real" ponderado por capital.
   cuentaMap() {

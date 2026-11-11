@@ -5,7 +5,6 @@ SPA local de trading journal y dashboard para David Rosell y la academia Tradinv
 Reemplaza el dashboard estático `v17.html` con una app completa de:
 - Dashboard con franja Pulso (hoy, semana, mes, últimas 4 semanas), KPIs, equity, mensual, por estrategia, timing, heatmap, rachas y duración
 - Formulario de entrada de trades por secciones, con atajos TP/SL/BE y resumen lateral en vivo con avisos del plan
-- Pausar / reactivar estrategias (en pausa no se pueden elegir en Nuevo trade; sus trades siguen contando)
 - Plan de trading en dos recuadros: documento de Drive embebido + plan escrito (Leer / Editar)
 - Vistas dedicadas para Zonas, Liquidez y Nasdaq
 - Calendario interactivo

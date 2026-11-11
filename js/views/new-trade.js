@@ -26,10 +26,8 @@ function sheetFromUrl() {
 }
 
 export function newTradeView(container) {
-  const activas = SHEETS.filter(k => !state.isPaused(k));
-  const pedida = sheetFromUrl();
-  let sheet = (pedida && !state.isPaused(pedida)) ? pedida : (activas[0] || null);
-  let formData = sheet ? init(sheet) : null;
+  let sheet = sheetFromUrl() || 'ZONAS';
+  let formData = init(sheet);
 
   container.innerHTML = `
     <div class="page-header">
@@ -48,23 +46,20 @@ export function newTradeView(container) {
   const formWrap = container.querySelector('#formWrap');
   const sideWrap = container.querySelector('#sideWrap');
 
-  // Selector de estrategia: pestañas grandes con el color de cada una. Las que
-  // están en pausa salen atenuadas y no se pueden elegir.
+  // Selector de estrategia: pestañas grandes con el color de cada una. Son
+  // botones (cambian el formulario), no enlaces de navegación.
   function paintChooser() {
     stratC.innerHTML = `
       <div class="rg-tabs gestion-tabs strat-tabs">
         ${SHEETS.map(k => {
           const meta = STRAT_META[k] || { label: k };
           const on = sheet === k;
-          const paused = state.isPaused(k);
-          return `<button type="button" class="rg-tab ${on ? 'active' : ''} ${paused ? 'paused' : ''}" data-sheet="${k}"
-                    ${paused ? 'aria-disabled="true" title="En pausa · reactívala en Estrategias"' : ''}
-                    ${on && meta.color ? `style="--tab-accent:${meta.color};"` : ''}>${meta.label}${paused ? ' · en pausa' : ''}</button>`;
+          return `<button type="button" class="rg-tab ${on ? 'active' : ''}" data-sheet="${k}"
+                    ${on && meta.color ? `style="--tab-accent:${meta.color};"` : ''}>${meta.label}</button>`;
         }).join('')}
       </div>`;
     stratC.querySelectorAll('[data-sheet]').forEach(b => b.addEventListener('click', () => {
       const k = b.dataset.sheet;
-      if (state.isPaused(k)) { showToast(`${STRAT_META[k].label} está en pausa · reactívala en Estrategias`); return; }
       if (k === sheet) return;
       sheet = k;
       // Conservar lo que no depende de la estrategia (fechas, P&L, riesgo,
@@ -85,11 +80,6 @@ export function newTradeView(container) {
     }));
   }
   paintChooser();
-
-  if (!sheet) {
-    formWrap.innerHTML = `<div class="empty"><div class="big">⏸</div><div>Todas las estrategias están en pausa. Reactiva una en <a href="#/zonas">Estrategias</a> para registrar trades.</div></div>`;
-    return;
-  }
 
   // Tras guardar: formulario limpio, misma estrategia (para meter el siguiente).
   function onSaved() {
