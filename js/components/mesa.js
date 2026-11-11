@@ -160,8 +160,9 @@ export function renderMesa(container) {
             <button type="button" class="${newsScope === 'semana' ? 'on' : ''}" data-news-scope="semana">Semana</button>
           </div>
         </div>
+        <a class="mesa-source" href="${NEWS_URLS.forexfactory}" target="_blank" rel="noopener noreferrer" title="Lista sacada del calendario de Forex Factory: solo carpeta roja (alto impacto) de USD, EUR y GBP, en tu hora. Pulsa para abrirlo.">Forex Factory · carpeta roja ↗</a>
         ${newsBody}
-        <a class="mesa-link mesa-foot-link" href="${newsUrl}" target="_blank" rel="noopener noreferrer" title="Fuente de la lista: Forex Factory · solo alto impacto · USD, EUR y GBP · en tu hora">Ver calendario completo ↗</a>
+        <a class="mesa-link mesa-foot-link" href="${NEWS_URLS.investing}" target="_blank" rel="noopener noreferrer" title="Calendario económico de Investing (3 estrellas = alto impacto)">Ver calendario de Investing ↗</a>
       </section>`;
 
   const directoRow = d => {

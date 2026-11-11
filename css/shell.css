@@ -398,3 +398,5 @@ a.mesa-live:hover { background: var(--hover); }
 @keyframes mesaLive { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
 @media (prefers-reduced-motion: reduce) { .mesa-live-badge { animation: none; } }
 .mesa-rail-live { width: 42px; padding: 6px 0; border-radius: 10px; text-align: center; text-decoration: none; font-size: 10px; font-weight: 800; letter-spacing: .06em; background: var(--red); color: #fff; animation: mesaLive 1.4s ease-in-out infinite; }
+.mesa-source { font-size: 10.5px; color: var(--muted); text-decoration: none; margin-top: -5px; }
+.mesa-source:hover { color: var(--text); }
