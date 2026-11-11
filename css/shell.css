@@ -463,3 +463,54 @@ div.mesa-source:hover { color: var(--muted); }
   .pulse-sub { white-space: normal; }
   .pulse-tools { flex: 1 1 100%; flex-direction: row; justify-content: space-between; align-items: center; border-left: 0; border-top: 1px solid var(--line); padding: 10px 14px 6px; }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   Formularios dentro de modales (Editar trade, Nuevo backtest): mismo patrón
+   que Nuevo trade — una fila por campo, etiqueta a la izquierda (170 px),
+   chips en rejilla de columnas iguales. Solo estilos: la lógica de esos
+   modales (valores antiguos, reglas por modelo…) no se toca. Va con la clase
+   .form-rows para no alterar el resto de modales con formulario (cuentas,
+   retiradas, admin…), que siguen con su rejilla de dos columnas.
+   ════════════════════════════════════════════════════════════════ */
+#modal-root .form.form-rows { max-width: none !important; gap: 0 !important; }
+#modal-root .form.form-rows .nt-section { background: transparent; border: 0; box-shadow: none; padding: 0; gap: 0; margin-top: 16px; backdrop-filter: none; -webkit-backdrop-filter: none; border-radius: 0; }
+#modal-root .form.form-rows .nt-section:first-child { margin-top: 0; }
+#modal-root .form.form-rows .nt-section-title { font-family: var(--font); font-size: 11px; font-weight: 700; letter-spacing: .14em; margin-bottom: 2px; }
+#modal-root .form.form-rows .form-row:not(.cols-3) { display: contents; }
+#modal-root .form.form-rows .form-field { display: grid; grid-template-columns: 170px minmax(0, 1fr); column-gap: 16px; row-gap: 4px; align-items: start; padding: 12px 0; border-top: 1px solid var(--line); margin: 0 !important; }
+#modal-root .form.form-rows > .form-field:first-child, #modal-root .form.form-rows .nt-section-title + .form-field, #modal-root .form.form-rows .nt-section-title + .form-row > .form-field:first-child { border-top: 0; }
+#modal-root .form.form-rows .form-field > :not(.form-label) { grid-column: 2; min-width: 0; }
+#modal-root .form.form-rows .form-field > .form-label { grid-column: 1; grid-row: 1; font-family: var(--font); font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--text); padding-top: 10px; }
+#modal-root .form.form-rows .form-field > .form-input, #modal-root .form.form-rows .form-field textarea { width: 100%; box-sizing: border-box; }
+/* Filas de tres campos cortos (fecha · apertura · cierre, P&L · riesgo): en línea, etiqueta encima */
+#modal-root .form.form-rows .form-row.cols-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 12px 0 12px 186px; border-top: 1px solid var(--line); }
+#modal-root .form.form-rows .form-row.cols-3 > .form-field { display: flex; flex-direction: column; gap: 5px; padding: 0; border-top: 0; }
+#modal-root .form.form-rows .form-row.cols-3 > .form-field > .form-label { font-size: 11px; color: var(--muted); padding-top: 0; }
+/* Chips en rejilla de columnas iguales */
+#modal-root .form.form-rows .pill-group:not([class*="cols-"]) { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; }
+#modal-root .form.form-rows .pill-group.sens { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+#modal-root .form.form-rows .pill-group[class*="cols-"] { width: 100%; gap: 8px; }
+#modal-root .form.form-rows .pill { justify-content: center; text-align: center; display: inline-flex; align-items: center; }
+#modal-root .form.form-rows .legacy-note { font-family: var(--font); font-size: 11px; }
+@media (max-width: 640px) {
+  #modal-root .form.form-rows .form-field { grid-template-columns: 1fr; }
+  #modal-root .form.form-rows .form-field > :not(.form-label), #modal-root .form.form-rows .form-field > .form-label { grid-column: 1; grid-row: auto; }
+  #modal-root .form.form-rows .form-field > .form-label { padding-top: 0; }
+  #modal-root .form.form-rows .form-row.cols-3 { padding-left: 0; grid-template-columns: 1fr 1fr; }
+}
+/* La caja de asignación a cuentas ocupa su columna entera */
+#modal-root .form.form-rows .form-field > [id^="cuentaAssignBox"] { width: 100%; }
+#modal-root .form.form-rows .ca-add .select { flex: 1 1 220px; min-width: 0; }
+/* .modal-body conserva saltos de línea (pre-wrap) para los textos; en un
+   formulario eso pintaba como huecos los saltos de la propia plantilla. */
+#modal-root .modal-body:has(> .form) { white-space: normal; }
+/* Sin ese salto, el formulario quedaba pegado al titulo cuando no hay subtitulo */
+#modal-root .modal-title + .modal-body:has(> .form) { margin-top: 14px; }
+
+/* Aviso de novedades (components/novedades.js) */
+#modal-root .modal-body:has(> .nov) { white-space: normal; }
+.nov { display: flex; flex-direction: column; gap: 14px; }
+.nov-item { display: flex; gap: 12px; align-items: flex-start; }
+.nov-dot { flex: 0 0 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-top: 7px; box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent); }
+.nov-item b { display: block; font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.35; }
+.nov-item p { margin: 2px 0 0; font-size: 13px; line-height: 1.5; color: var(--muted); }

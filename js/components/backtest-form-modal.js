@@ -72,7 +72,7 @@ export function openBacktestFormModal(sheet, existing, onSaved, draft = null, op
   };
 
   const body = `
-    <div class="form nt-form">
+    <div class="form nt-form form-rows">
       ${pickSheet ? `
       <div class="nt-section">
         <div class="nt-section-title">Estrategia</div>

@@ -43,9 +43,10 @@ export function openEditTradeModal(trade) {
 
   openModal({
     title: `Editar trade · ${meta.label}`,
+    size: 'lg',   // mismo ancho que Nuevo backtest: caben la etiqueta a la izquierda y los chips
     meta: `${trade.date} · ${trade.pair || ''} · ${trade.setup || ''} · ${trade.result}`,
     body: `
-      <div class="form" style="max-width:none;gap:14px;">
+      <div class="form form-rows" style="max-width:none;gap:14px;">
         ${!meta.pairFixed && meta.models ? `<div class="form-row">
           <div class="form-field" style="grid-column:1/-1;">
             <label class="form-label">Modelo de entrada${trade.model ? ' <span class="required">*</span>' : ''}</label>

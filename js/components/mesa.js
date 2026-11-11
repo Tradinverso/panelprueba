@@ -18,6 +18,7 @@ import { openChecklistModal } from './checklist-modal.js';
 import { clockParts } from './topbar.js';
 import { icon } from './icons.js';
 import { getHoyData, onHoyData, noticiasDeHoy, noticiasDeLaSemana, proximosDirectos, horaEn, diaCortoEn } from '../utils/hoy-data.js';
+import { tituloEs } from '../utils/noticias-es.js';
 
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
 // Calendario económico completo (la lista de la caja sale de Forex Factory).
@@ -135,10 +136,10 @@ export function renderMesa(container) {
   const enDirecto = directos.find(d => estadoDirecto(d, ahora).tipo === 'live') || null;
 
   const newsRow = n => `
-    <div class="mesa-news ${Date.parse(n.t) <= ahora ? 'past' : ''}" title="${escapeHtml(n.cur + ' · ' + n.title)}${n.forecast ? ' · previsión ' + escapeHtml(n.forecast) : ''}${n.previous ? ' · anterior ' + escapeHtml(n.previous) : ''}">
+    <div class="mesa-news ${Date.parse(n.t) <= ahora ? 'past' : ''}" title="${escapeHtml(n.cur + ' · ' + tituloEs(n.title) + (tituloEs(n.title) !== n.title ? ' — ' + n.title : ''))}${n.forecast ? ' · previsión ' + escapeHtml(n.forecast) : ''}${n.previous ? ' · anterior ' + escapeHtml(n.previous) : ''}">
       <span class="mesa-news-time">${horaEn(n.t, tz)}</span>
       <span class="mesa-news-dot"></span>
-      <span class="mesa-news-txt"><b>${escapeHtml(n.cur)}</b> ${escapeHtml(n.title)}${n.forecast || n.previous ? `<small>${n.forecast ? 'prev. ' + escapeHtml(n.forecast) : ''}${n.forecast && n.previous ? ' · ' : ''}${n.previous ? 'ant. ' + escapeHtml(n.previous) : ''}</small>` : ''}</span>
+      <span class="mesa-news-txt"><b>${escapeHtml(n.cur)}</b> ${escapeHtml(tituloEs(n.title))}${n.forecast || n.previous ? `<small>${n.forecast ? 'prev. ' + escapeHtml(n.forecast) : ''}${n.forecast && n.previous ? ' · ' : ''}${n.previous ? 'ant. ' + escapeHtml(n.previous) : ''}</small>` : ''}</span>
     </div>`;
 
   let newsBody;
@@ -149,7 +150,7 @@ export function renderMesa(container) {
   } else {
     newsBody = noticias.length
       ? noticias.map(newsRow).join('') + `<div class="mesa-news-warn">Evita operar en la noticia</div>`
-      : `<div class="mesa-empty">Hoy no hay noticias de alto impacto.${proxima ? ` Próxima: <b>${diaCortoEn(proxima.t, tz)} · ${horaEn(proxima.t, tz)}</b> ${escapeHtml(proxima.cur)} ${escapeHtml(proxima.title)}.` : ''}</div>`;
+      : `<div class="mesa-empty">Hoy no hay noticias de alto impacto.${proxima ? ` Próxima: <b>${diaCortoEn(proxima.t, tz)} · ${horaEn(proxima.t, tz)}</b> ${escapeHtml(proxima.cur)} ${escapeHtml(tituloEs(proxima.title))}.` : ''}</div>`;
   }
   const newsBox = !hoyData ? '' : `
       <section class="card mesa-box">
@@ -256,7 +257,7 @@ export function renderMesa(container) {
         <span class="mesa-sep"></span>
         <a class="mesa-rail-link" href="${FORMACION_URL}" target="_blank" rel="noopener noreferrer" title="Formación · cursos y directos" aria-label="Formación">${icon('formacion')}</a>
         ${sigHoy
-          ? `<a class="mesa-rail-news" href="${newsUrl}" target="_blank" rel="noopener noreferrer" title="Noticia de alto impacto hoy a las ${horaEn(sigHoy.t, tz)}: ${escapeHtml(sigHoy.cur + ' ' + sigHoy.title)}">${horaEn(sigHoy.t, tz)}</a>`
+          ? `<a class="mesa-rail-news" href="${newsUrl}" target="_blank" rel="noopener noreferrer" title="Noticia de alto impacto hoy a las ${horaEn(sigHoy.t, tz)}: ${escapeHtml(sigHoy.cur + ' ' + tituloEs(sigHoy.title))}">${horaEn(sigHoy.t, tz)}</a>`
           : `<a class="mesa-rail-link" href="${newsUrl}" target="_blank" rel="noopener noreferrer" title="${hoyData ? (noticias.length ? 'Las noticias de alto impacto de hoy ya han salido' : 'Hoy no hay noticias de alto impacto') : 'Noticias · calendario económico'}" aria-label="Noticias">${icon('noticias')}</a>`}
       </div>
     `;

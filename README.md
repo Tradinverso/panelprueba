@@ -100,8 +100,9 @@ tradinverso/
     components/
       topbar.js           barra superior: navegación en píldora, reloj, Apariencia, avatar
       mesa.js             columna "Hoy": checklist, noticias de alto impacto, cuentas, próximos directos, regla del día; recogible a barrita
-      footer.js           pie: Formación, Calendario económico, Ajustes
+      footer.js           pie: versión, Formación, Ajustes
       checklist-modal.js  pop-up del checklist pre-sesión
+      novedades.js        aviso de novedades, una vez por cuenta (config.novedadesVista)
       appearance-panel.js panel Apariencia (tema, acento, TP/SL, letra, densidad)
       toast.js            toast de confirmación
       pills.js            selector de pills
@@ -122,6 +123,9 @@ tradinverso/
       sheet-parsers.js    columnas exactas por pestaña + validación
       apps-script-import.js mapeo del JSON del endpoint
       csv.js              CSV reader/writer + descarga
+      hoy-data.js         lee hoy.json (noticias y directos) de la rama data
+      noticias-es.js      titulares de Forex Factory en español
+      pnl-mask.js         "Ocultar P&L": tapa importes y porcentajes con •••
 ```
 
 ---
@@ -197,7 +201,10 @@ Lo hace una tarea de GitHub Actions del repo de pruebas:
 - `.github/workflows/datos-hoy.yml` se ejecuta cada 6 horas (y a mano desde la pestaña Actions).
 - `.github/scripts/datos-hoy.mjs` descarga el export semanal de Forex Factory (solo alto impacto, USD/EUR/GBP)
   y, si existe el secreto `CLASES_ICS_URL`, las próximas clases del calendario "Tradinverso Clases"
-  (solo título y hora; nunca enlaces).
+  (título, hora y el enlace de Zoom del evento: `CLASES_PUBLICAR_ENLACES: 'si'` en el workflow;
+  la app solo enseña el enlace desde 30 min antes de empezar).
 - El resultado (`hoy.json`) se publica en la rama `data` (un único commit que se sobrescribe).
-- La app lo lee en `js/utils/hoy-data.js` desde `raw.githubusercontent.com`, con caché de 30 min.
+- La app lo lee en `js/utils/hoy-data.js` desde `raw.githubusercontent.com`, con caché de 10 min
+  y una recarga en cada carga de página. Los titulares llegan en inglés y se traducen en
+  `js/utils/noticias-es.js` (lo no reconocido se deja en inglés; el original va en el tooltip).
   Producción lee el mismo archivo: `.github/` no se promociona.

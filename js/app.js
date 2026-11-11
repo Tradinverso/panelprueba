@@ -10,6 +10,7 @@ import { renderTopbar } from './components/topbar.js';
 import { renderMesa } from './components/mesa.js';
 import { renderFooter } from './components/footer.js';
 import { maybeShowMigrationPrompt } from './components/migrate-modal.js';
+import { maybeShowNovedades } from './components/novedades.js';
 
 import { dashboardView } from './views/dashboard.js';
 import { newTradeView } from './views/new-trade.js';
@@ -122,6 +123,8 @@ auth.on(async () => {
     syncPnlMask();   // "Ocultar P&L" guardado en la cuenta
     // Después de cargar, ofrece migrar localStorage si hay datos
     maybeShowMigrationPrompt();
+    // Aviso de novedades (una vez por cuenta)
+    maybeShowNovedades();
   }
 
   renderChrome();
