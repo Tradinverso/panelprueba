@@ -658,28 +658,3 @@ body.mesa-closed #mesa { flex: 0 0 98px; min-width: 98px; }
 .sdot.mid { background: #eab308; }
 .sdot.warn { background: var(--orange); }
 .sdot.bad { background: var(--alerta, var(--red)); }
-
-/* ════════════════════════════════════════════════════════════════
-   Diagnóstico → "Dónde ganas y dónde pierdes": tablas informativas por par,
-   franja, día y dirección. Las filas con poca muestra van atenuadas.
-   ════════════════════════════════════════════════════════════════ */
-.pat-card { margin-bottom: 24px; }
-.pat-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
-.pat-head .card-sub { max-width: 720px; margin-bottom: 0; }
-.pat-tabs { flex: none; }
-.pat-total { margin: 14px 0 6px; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--text) 5%, transparent); font-size: 12.5px; color: var(--muted); }
-.pat-total b { color: var(--text); font-weight: 600; }
-.pat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 28px; }
-.pat-grupo { min-width: 0; }
-.pat-grupo-t { font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 14px 0 2px; }
-.pat-table { width: 100%; }
-.pat-table th, .pat-table td { padding: 7px 8px; font-size: 12px; text-align: right; white-space: nowrap; }
-.pat-table th:first-child, .pat-table td:first-child { text-align: left; font-weight: 500; }
-.pat-table tr.fiab-baja td { opacity: .5; }
-.pat-fiab { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
-.pat-fiab.alta { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
-.pat-table tr.fiab-baja td:last-child { opacity: 1; }
-@media (max-width: 880px) {
-  .pat-grid { grid-template-columns: 1fr; }
-  .pat-table th, .pat-table td { padding: 6px 5px; font-size: 11px; }
-}

@@ -118,7 +118,7 @@ tradinverso/
       number-format-es.js parser de "1.000,50 €" / "2,00%"
       calculations.js     WR, P&L, PF, DD, rachas
       sensaciones.js      grupos y stats por sensación
-      diagnostics.js      alertas (buildAlerts), semáforo del día y bloque informativo por par/franja/día (buildPatrones).
+      diagnostics.js      alertas y puntos fuertes (buildAlerts) y semáforo del día (todayStatus).
                           Umbrales revisados en nov 2026 con datos reales: ver la cabecera del fichero
       paste-parser.js     distribuye contenido pegado
       sheet-parsers.js    columnas exactas por pestaña + validación

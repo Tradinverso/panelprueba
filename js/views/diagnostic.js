@@ -1,5 +1,5 @@
 import { state } from '../state.js';
-import { buildAlerts, buildPatrones } from '../utils/diagnostics.js';
+import { buildAlerts } from '../utils/diagnostics.js';
 import { sensacionStats, withSensacion, TODAS, POSITIVAS, NEGATIVAS } from '../utils/sensaciones.js';
 import { fmtPct, fmtPctNoSign } from '../utils/number-format-es.js';
 import { planComparisonStats } from '../utils/calculations.js';
@@ -31,8 +31,6 @@ function render(container) {
       ${box('Alertas', a.emoAlertas, 'Sin alertas emocionales activas', 'emoAlertas', 'activas')}
       ${box('Lo que va bien', a.emoInsights, 'Nada que destacar todavía', 'emoInsights')}
     </div>
-
-    <div id="patrones"></div>
 
     <div class="section-title">Sensaciones — distribución y rendimiento</div>
     <div class="grid-2">
@@ -66,61 +64,9 @@ function render(container) {
     </div>
   `;
 
-  paintPatrones(container.querySelector('#patrones'), trades);
   paintSensDist(container.querySelector('#sensDist'), trades);
   paintSensTable(container.querySelector('#sensTable'), trades);
   paintPlanCompare(container.querySelector('#planCompareTbody'), trades);
-}
-
-// ── Dónde ganas y dónde pierdes ────────────────────────────
-// Par, franja, día y dirección dentro de cada estrategia. Es información, no
-// alarma: con poca muestra las diferencias suelen ser azar, así que cada fila
-// lleva su fiabilidad y las de muestra baja van atenuadas.
-let patSheet = null;
-const FIAB = { alta: 'Alta', media: 'Media', baja: 'Baja' };
-function paintPatrones(container, trades) {
-  if (!container) return;
-  const p = buildPatrones(trades);
-  if (!p.estrategias.length) { container.innerHTML = ''; return; }
-  if (!p.estrategias.some(e => e.sheet === patSheet)) patSheet = p.estrategias[0].sheet;
-  const e = p.estrategias.find(x => x.sheet === patSheet);
-  const color = v => v > 0 ? 'var(--green)' : v < 0 ? 'var(--red)' : 'var(--muted)';
-  const tabla = g => `
-    <div class="pat-grupo">
-      <div class="pat-grupo-t">${g.titulo}</div>
-      <table class="data-table pat-table">
-        <thead><tr><th></th><th>Trades</th><th>Acierto</th><th>P&L</th><th>Por trade</th><th>Fiabilidad</th></tr></thead>
-        <tbody>${g.filas.map(f => `
-          <tr class="fiab-${f.fiab}">
-            <td>${f.key}</td>
-            <td>${f.n}</td>
-            <td>${f.dec ? fmtPctNoSign(f.wr, 0) : '–'}</td>
-            <td style="color:${color(f.r)};font-weight:500;">${fmtPct(f.r, 1)}</td>
-            <td style="color:${color(f.rTrade)};">${fmtPct(f.rTrade, 2)}</td>
-            <td><span class="pat-fiab ${f.fiab}">${FIAB[f.fiab]}</span></td>
-          </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>`;
-  container.innerHTML = `
-    <div class="section-title">Dónde ganas y dónde pierdes</div>
-    <div class="card pat-card">
-      <div class="pat-head">
-        <div>
-          <div class="card-title">Por par, franja, día y dirección</div>
-          <div class="card-sub">Es información, no una alarma: con pocas operaciones la diferencia entre un par y otro suele ser azar. Fíjate en las filas de fiabilidad alta (${p.umbrales.alta} trades o más); las de fiabilidad baja (menos de ${p.umbrales.media}) van atenuadas.</div>
-        </div>
-        <div class="pill-group pat-tabs">
-          ${p.estrategias.map(x => `<button type="button" class="pill ${x.sheet === patSheet ? 'active' : ''}" data-pat="${x.sheet}">${x.label}</button>`).join('')}
-        </div>
-      </div>
-      <div class="pat-total">${e.label}: <b>${e.total.n}</b> trades · <b>${e.total.dec ? fmtPctNoSign(e.total.wr, 0) : '–'}</b> de acierto · P&L sistema <b style="color:${color(e.total.r)}">${fmtPct(e.total.r, 1)}</b> · <b style="color:${color(e.total.rTrade)}">${fmtPct(e.total.rTrade, 2)}</b> por trade</div>
-      <div class="pat-grid">${e.grupos.map(tabla).join('')}</div>
-    </div>`;
-  container.querySelectorAll('[data-pat]').forEach(b => b.addEventListener('click', () => {
-    patSheet = b.dataset.pat;
-    paintPatrones(container, trades);
-  }));
 }
 
 function paintPlanCompare(container, trades) {
