@@ -22,6 +22,8 @@ import { icon } from './icons.js';
 import { getHoyData, onHoyData, noticiasDeHoy, noticiasDeLaSemana, proximosDirectos, horaEn, diaCortoEn } from '../utils/hoy-data.js';
 
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
+// Invitación a la comunidad (donde se anuncian y comentan los directos).
+const DISCORD_URL = 'https://discord.gg/7suPtXC9Va';
 
 const SHEET_SHORT = { ZONAS: 'Zonas', LIQUIDEZ: 'Liquidez', NASDAQ: 'Nasdaq' };
 
@@ -176,7 +178,7 @@ export function renderMesa(container) {
   };
   const directosBox = !directos.length ? '' : `
       <section class="card mesa-box ${enDirecto ? 'has-live' : ''}">
-        <div class="mesa-block-head"><h2>Próximos directos</h2></div>
+        <div class="mesa-block-head"><h2>Próximos directos</h2><a class="mesa-link" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer" title="Comunidad de Tradinverso en Discord">Discord ↗</a></div>
         ${directos.map(directoRow).join('')}
       </section>`;
 
