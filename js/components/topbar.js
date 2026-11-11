@@ -10,6 +10,7 @@ import { auth } from '../auth.js';
 import { IS_TEST_ENV } from '../firebase.js';
 import { tzLabel } from '../utils/timezone.js';
 import { countDangerAlerts } from '../utils/diagnostics.js';
+import { appearance } from '../appearance.js';
 import { icon } from './icons.js';
 import { openAppearancePanel } from './appearance-panel.js';
 import { STRATEGY_ROUTES } from './strategy-tabs.js';
@@ -45,7 +46,7 @@ const NAV_GESTOR = [
   { group: 'Academia', path: '#/alumnos', label: 'Alumnos' },
 ];
 // Rutas que "viven dentro" de Ajustes (pestañas): marcan activo el engranaje.
-export const AJUSTES_ROUTES = ['#/ajustes', '#/importar', '#/tabla'];
+export const AJUSTES_ROUTES = ['#/importar', '#/tabla'];
 
 let unsubAuth = null;
 let unsubState = null;
@@ -55,7 +56,7 @@ export function clockParts() {
   const d = new Date();
   const opts = auth.hasTimezone() ? { timeZone: auth.timezone() } : {};
   try {
-    const hora = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false, ...opts }).format(d);
+    const hora = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit', hour12: !!appearance.get().hour12, ...opts }).format(d);
     const fecha = new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: 'numeric', month: 'short', ...opts }).format(d);
     const ddmm = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: '2-digit', ...opts }).format(d).replace('/', '.');
     return { hora, fecha: fecha.charAt(0).toUpperCase() + fecha.slice(1), ddmm };
@@ -75,16 +76,19 @@ setInterval(() => {
 // más apartados), de "Ver como", de la letra elegida y del ancho de pantalla,
 // así que se mide en vez de fiarlo a un ancho fijo:
 //   1) todo en una fila;  2) si no cabe → modo compacto (Apariencia solo
-//   icono, reloj sin fecha, logo sin texto);  3) si aun así no cabe → la
-//   navegación baja a una segunda fila centrada.
+//   icono, reloj sin fecha, logo sin texto);  3) si aun así no cabe → el botón
+//   del usuario se queda en el avatar;  4) y si tampoco → la navegación baja
+//   a una segunda fila centrada.
 // En móvil (< 900 px) manda la hoja de estilos (navegación con scroll).
 function fitTopbar(el) {
   if (!el || !el.firstChild) return;
-  el.classList.remove('tb-compact', 'tb-wrap');
+  el.classList.remove('tb-compact', 'tb-mini', 'tb-wrap');
   if (window.innerWidth < 900) return;
   const noCabe = () => el.scrollWidth > el.clientWidth + 1;
   if (!noCabe()) return;
-  el.classList.add('tb-compact');
+  el.classList.add('tb-compact');          // Apariencia solo icono, reloj sin fecha, logo sin texto
+  if (!noCabe()) return;
+  el.classList.add('tb-mini');             // el botón del usuario se queda en el avatar
   if (noCabe()) el.classList.add('tb-wrap');
 }
 let fitTimer = null;
@@ -154,14 +158,17 @@ export function renderTopbar(container) {
     <nav class="tb-nav" aria-label="Secciones">${items}</nav>
     <div class="tb-right">
       ${inViewAs ? `<button type="button" class="tb-viewas" id="tbExitViewAs" title="Estás viendo a este alumno · pulsa para volver a tu cuenta">${icon('volver')} <span>Viendo a <strong>${escapeHtml(name)}</strong></span></button>` : ''}
-      <a class="tb-clock ${auth.hasTimezone() ? '' : 'warn'}" href="#/ajustes" title="${escapeHtml(tz)} · pulsa para cambiar la zona horaria">
+      <button type="button" class="tb-clock ${auth.hasTimezone() ? '' : 'warn'}" data-account="perfil" title="${escapeHtml(tz)} · pulsa para cambiar la zona horaria">
         ${icon(auth.hasTimezone() ? 'reloj' : 'aviso')}
         <span class="tb-clock-hora" data-clock-hora>${clock.hora}</span>
         <span class="tb-clock-fecha" data-clock-fecha>${clock.fecha}</span>
-      </a>
+      </button>
       <button type="button" class="tb-tool tb-appearance" id="tbAppearance" title="Apariencia · tema, colores y letra" aria-label="Apariencia"><span class="tb-dot"></span><span class="tb-appearance-txt">Apariencia</span></button>
-      <a class="tb-tool tb-icon ${AJUSTES_ROUTES.includes(current) ? 'active' : ''}" href="#/ajustes" title="Ajustes · Importar · Tabla" aria-label="Ajustes">${icon('ajustes')}</a>
-      <a class="tb-avatar" href="#/ajustes" title="${escapeHtml(name)}">${escapeHtml(initials(name))}</a>
+      <button type="button" class="tb-user" data-account="perfil" title="Tu cuenta y ajustes" aria-haspopup="dialog">
+        <span class="tb-user-av">${escapeHtml(initials(name))}</span>
+        <span class="tb-user-name">${escapeHtml(name)}</span>
+        <span class="tb-user-chev" aria-hidden="true">▾</span>
+      </button>
     </div>
   `;
 

@@ -35,17 +35,37 @@ export function closeAppearancePanel() {
 
 function onKey(e) { if (e.key === 'Escape') closeAppearancePanel(); }
 
-// Cambiar un ajuste → aplicar + repintar el panel (estado "on") + repintar la
-// vista con un pequeño retardo (varios clics seguidos = un solo repintado).
+// Cambiar un ajuste → aplicar + repintar quien lo muestra (el panel rápido o la
+// sección Preferencias del pop-up de la cuenta) + repintar la vista con un
+// pequeño retardo (varios clics seguidos = un solo repintado).
 // router.reload() también repinta barra superior, Mesa y pie (router.onChange).
-function change(patch) {
+function apply(patch, rerender) {
   appearance.set(patch);
-  render();
+  rerender();
   clearTimeout(reloadTimer);
   reloadTimer = setTimeout(() => router.reload(), 180);
 }
 
-function render() {
+// Clic sobre cualquier control de apariencia. Devuelve true si lo ha tratado.
+export function handleAppearanceClick(e, rerender) {
+  const btn = e.target.closest('[data-set]');
+  if (btn) { apply({ [btn.dataset.set]: btn.dataset.val }, rerender); return true; }
+  const tg = e.target.closest('[data-toggle]');
+  if (tg) { apply({ [tg.dataset.toggle]: !appearance.get()[tg.dataset.toggle] }, rerender); return true; }
+  if (e.target.closest('[data-reset]')) {
+    appearance.reset();
+    rerender();
+    clearTimeout(reloadTimer);
+    reloadTimer = setTimeout(() => router.reload(), 180);
+    showToast('Apariencia restaurada');
+    return true;
+  }
+  return false;
+}
+
+// Todos los controles (tema, acento, TP/SL, tarjetas, letra, barra, densidad,
+// paneles y restaurar). Lo pintan el panel rápido y el pop-up de la cuenta.
+export function appearanceBodyHtml() {
   const p = appearance.get();
   const dark = appearance.isDark();
   const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim();
@@ -89,17 +109,7 @@ function render() {
   const glassNote = appearance.isGlass()
     ? `<div class="ap-desc" style="font-size:11px;color:var(--muted)">En los temas Liquid Glass manda siempre la tarjeta de cristal.</div>` : '';
 
-  root().innerHTML = `
-    <div class="appearance-overlay" data-close>
-      <div class="appearance-panel" role="dialog" aria-label="Apariencia">
-        <div class="ap-head">
-          <div>
-            <h2>Apariencia</h2>
-            <div class="ap-summary">${appearance.summary()}</div>
-          </div>
-          <button type="button" class="ap-close" aria-label="Cerrar" data-close>×</button>
-        </div>
-
+  return `
         <div class="ap-sec">
           <div class="ap-sec-title">Tema</div>
           <div class="ap-grid2">${themeOpts}</div>
@@ -144,6 +154,21 @@ function render() {
         </div>
 
         <button type="button" class="ap-reset" data-reset>Restaurar los de serie</button>
+  `;
+}
+
+function render() {
+  root().innerHTML = `
+    <div class="appearance-overlay" data-close>
+      <div class="appearance-panel" role="dialog" aria-label="Apariencia">
+        <div class="ap-head">
+          <div>
+            <h2>Apariencia</h2>
+            <div class="ap-summary">${appearance.summary()}</div>
+          </div>
+          <button type="button" class="ap-close" aria-label="Cerrar" data-close>×</button>
+        </div>
+        ${appearanceBodyHtml()}
       </div>
     </div>
   `;
@@ -152,18 +177,7 @@ function render() {
   let downOnBackdrop = false;
   overlay.addEventListener('mousedown', e => { downOnBackdrop = (e.target === overlay); });
   overlay.addEventListener('click', e => {
-    const btn = e.target.closest('[data-set]');
-    if (btn) { change({ [btn.dataset.set]: btn.dataset.val }); return; }
-    const tg = e.target.closest('[data-toggle]');
-    if (tg) { change({ [tg.dataset.toggle]: !appearance.get()[tg.dataset.toggle] }); return; }
-    if (e.target.closest('[data-reset]')) {
-      appearance.reset();
-      render();
-      clearTimeout(reloadTimer);
-      reloadTimer = setTimeout(() => router.reload(), 180);
-      showToast('Apariencia restaurada');
-      return;
-    }
+    if (handleAppearanceClick(e, render)) return;
     if (e.target.closest('.ap-close')) { closeAppearancePanel(); return; }
     if (e.target === overlay && downOnBackdrop) closeAppearancePanel();
   });

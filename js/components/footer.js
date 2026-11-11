@@ -12,6 +12,6 @@ export function renderFooter(container) {
   container.innerHTML = `
     <span class="ft-ver">Trading Journal v.2.5</span>
     <a class="ft-link" href="https://tradinverso.thinkific.com/enrollments" target="_blank" rel="noopener noreferrer" title="Cursos y directos">${icon('formacion')} Formación ↗</a>
-    <a class="ft-link" href="#/ajustes">${icon('ajustes')} Ajustes</a>
+    <button type="button" class="ft-link" data-account="preferencias">${icon('ajustes')} Ajustes</button>
   `;
 }

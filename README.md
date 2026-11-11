@@ -103,6 +103,9 @@ tradinverso/
       footer.js           pie: versión, Formación, Ajustes
       checklist-modal.js  pop-up del checklist pre-sesión
       novedades.js        aviso de novedades, una vez por cuenta (config.novedadesVista)
+      account-modal.js    pop-up de la cuenta (sustituye a la página Ajustes): Perfil, Trofeos, Módulos,
+                          Apps Script, Preferencias, Datos y privacidad, Mantenimiento y Sobre
+      trophies.js         Trofeos: certificados de prop firms (imagen o PDF), galería y visor
       appearance-panel.js panel Apariencia (tema, acento, TP/SL, letra, densidad)
       toast.js            toast de confirmación
       pills.js            selector de pills
@@ -126,6 +129,8 @@ tradinverso/
       csv.js              CSV reader/writer + descarga
       hoy-data.js         lee hoy.json (noticias y directos) de la rama data
       noticias-es.js      titulares de Forex Factory en español
+      export-trades.js    exportar una selección de trades (estrategia y periodo) en Excel, CSV o PDF
+      breaker.js          cortacircuitos: pausa de 5 min tras el primer SL del día en una cuenta
       pnl-mask.js         "Ocultar P&L": tapa importes y porcentajes con •••
 ```
 
@@ -209,3 +214,26 @@ Lo hace una tarea de GitHub Actions del repo de pruebas:
   y una recarga en cada carga de página. Los titulares llegan en inglés y se traducen en
   `js/utils/noticias-es.js` (lo no reconocido se deja en inglés; el original va en el tooltip).
   Producción lee el mismo archivo: `.github/` no se promociona.
+
+---
+
+## Cuenta y ajustes (pop-up)
+
+La página `#/ajustes` ya no existe: es un pop-up (`js/components/account-modal.js`, estilos en
+`css/account.css`) que se abre desde el botón con el nombre del usuario, desde "Ajustes" del pie y
+desde cualquier elemento con `data-account="<sección>"`. Entrar por la URL `#/ajustes` también lo abre.
+Importar (`#/importar`) y Tabla (`#/tabla`) siguen siendo pantallas, enlazadas desde Datos y privacidad.
+
+- Todo se guarda en la cuenta: el perfil en `users/{uid}/profile/data`; la URL de Apps Script
+  (`config.appsScriptUrl`), el cortacircuitos (`config.cortacircuitos`) y la apariencia, incluido el
+  formato de hora (`config.appearance.hour12`), en `users/{uid}/config/data`.
+- **Trofeos sin Firebase Storage**: los dos proyectos están en el plan gratuito y no tienen Storage.
+  El archivo se guarda troceado en Firestore: metadatos y miniatura en `users/{uid}/trophies/{id}` y
+  el contenido en base64 en `users/{uid}/trophyFiles/{id}_{n}` (las reglas solo cubren un nivel bajo
+  `users/{uid}`, por eso no van anidados). Imágenes a JPEG de 1800 px como mucho; PDF hasta 4 MB.
+- **Eliminar cuenta**: pide la contraseña (Firebase exige sesión reciente), borra todas las
+  colecciones del usuario y después el usuario de acceso. El `profile` no lo puede borrar el propio
+  alumno (reglas): queda vacío y marcado como eliminado. El admin no puede eliminarse desde aquí.
+- En "Ver como" (admin mirando a un alumno) solo salen Trofeos (lectura), Datos y Mantenimiento, y
+  actúan sobre la cuenta del alumno.
+

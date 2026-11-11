@@ -234,11 +234,11 @@ function doImport(container) {
 }
 
 // ── URL TAB ──────────────────────────────────────────────────
-function paintUrlTab(container) {
+export function paintUrlTab(container) {
   // En modo admin viendo alumno, NO pre-rellenamos con la URL del admin
   // (que está en localStorage y es personal).
   const inViewAs = !!state.viewAsUid;
-  const url = inViewAs ? '' : storage.getAppsScriptUrl();
+  const url = inViewAs ? '' : ((state.config && state.config.appsScriptUrl) || storage.getAppsScriptUrl());
   const subText = inViewAs
     ? 'URL del Apps Script del alumno (no se guarda en tu sesión)'
     : 'URL pública del endpoint del Google Apps Script · todos los importes se almacenan como porcentaje';
@@ -284,7 +284,7 @@ function paintUrlTab(container) {
 }
 
 // ── FILE TAB ─────────────────────────────────────────────────
-function paintFileTab(container) {
+export function paintFileTab(container) {
   container.innerHTML = `
     <div class="card">
       <div class="card-title">Subir archivo</div>

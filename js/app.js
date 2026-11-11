@@ -11,6 +11,8 @@ import { renderMesa } from './components/mesa.js';
 import { renderFooter } from './components/footer.js';
 import { maybeShowMigrationPrompt } from './components/migrate-modal.js';
 import { maybeShowNovedades } from './components/novedades.js';
+import { openAccountModal, isAccountOpen } from './components/account-modal.js';
+import { initBreaker } from './utils/breaker.js';
 
 import { dashboardView } from './views/dashboard.js';
 import { newTradeView } from './views/new-trade.js';
@@ -19,7 +21,6 @@ import { calendarView } from './views/calendar.js';
 import { diagnosticView } from './views/diagnostic.js';
 import { importView } from './views/import-table.js';
 import { tablaDatosView } from './views/tabla-datos.js';
-import { settingsView } from './views/settings.js';
 import { psicologiaView } from './views/psicologia.js';
 import { loginView } from './views/login.js';
 import { adminView } from './views/admin.js';
@@ -75,7 +76,13 @@ router
   .add('#/protocolos',  (_, c) => protocolosView(c))
   .add('#/importar',    (_, c) => importView(c))
   .add('#/tabla',       (_, c) => tablaDatosView(c))
-  .add('#/ajustes',     (_, c) => settingsView(c))
+  // Ajustes ya no es una página: es el pop-up de la cuenta. Si alguien entra
+  // por la URL, se pinta el inicio debajo y se abre el pop-up.
+  .add('#/ajustes',     (_, c) => {
+    const limpiar = auth.isAdmin() && !state.viewAsUid ? adminView(c) : dashboardView(c);
+    if (!isAccountOpen()) openAccountModal('perfil');
+    return limpiar;
+  })
   .add('#/admin',       (_, c) => adminView(c))
   .add('#/grupo',       (_, c) => grupoView(c))
   .add('#/alumnos',     (_, c) => alumnosView(c))
@@ -92,6 +99,16 @@ router
   .add('#/bt-importar', (_, c) => backtestImportView(c));
 
 router.onChange(() => renderChrome());
+
+// Cualquier elemento con data-account="<sección>" abre el pop-up de la cuenta
+// (botón del usuario y reloj de la barra superior, "Ajustes" del pie…).
+document.addEventListener('click', e => {
+  const el = e.target.closest && e.target.closest('[data-account]');
+  if (!el) return;
+  e.preventDefault();
+  openAccountModal(el.dataset.account || 'perfil');
+});
+initBreaker();
 
 // Cuando cambia el estado de auth: cargar datos + arrancar router
 let started = false;

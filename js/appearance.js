@@ -59,6 +59,7 @@ export const DEFAULTS = Object.freeze({
   // demasiado ancho al contenido (David, 2026-11-10). Se abre con un clic.
   mesa: false,
   hidePnl: false,   // enmascarar importes y porcentajes de P&L
+  hour12: false,    // reloj y horas de la columna Hoy en formato 12 h (a. m. / p. m.)
 });
 
 let prefs = { ...DEFAULTS };
@@ -76,6 +77,7 @@ function sanitize(p) {
   if (NAV_STYLES.some(n => n[0] === p.nav)) out.nav = p.nav;
   if (typeof p.mesa === 'boolean') out.mesa = p.mesa;
   if (typeof p.hidePnl === 'boolean') out.hidePnl = p.hidePnl;
+  if (typeof p.hour12 === 'boolean') out.hour12 = p.hour12;
   return out;
 }
 

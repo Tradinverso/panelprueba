@@ -5,7 +5,7 @@
 import { auth as fbAuth, db, firebaseConfig } from './firebase.js';
 import {
   onAuthStateChanged, signInWithEmailAndPassword, signOut as fbSignOut,
-  createUserWithEmailAndPassword, updatePassword, getAuth,
+  createUserWithEmailAndPassword, updatePassword, EmailAuthProvider, reauthenticateWithCredential, deleteUser, getAuth,
   sendPasswordResetEmail,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -123,6 +123,29 @@ export const auth = {
   async changePassword(newPassword) {
     if (!this.currentUser) throw new Error('No hay usuario activo');
     return updatePassword(this.currentUser, newPassword);
+  },
+
+  // Confirma la contraseña actual (Firebase lo exige para cambiarla o para
+  // borrar la cuenta si la sesión no es reciente).
+  async reauth(currentPassword) {
+    if (!this.currentUser) throw new Error('No hay usuario activo');
+    const cred = EmailAuthProvider.credential(this.currentUser.email, currentPassword);
+    return reauthenticateWithCredential(this.currentUser, cred);
+  },
+
+  async changePasswordWithCurrent(currentPassword, newPassword) {
+    await this.reauth(currentPassword);
+    return updatePassword(this.currentUser, newPassword);
+  },
+
+  // Elimina la cuenta propia: primero los datos (hace falta estar autenticado
+  // para borrarlos) y después el usuario de acceso.
+  async deleteOwnAccount(currentPassword) {
+    if (!this.currentUser) throw new Error('No hay usuario activo');
+    if (this.isAdmin()) throw new Error('La cuenta de administración no se puede eliminar desde aquí.');
+    await this.reauth(currentPassword);
+    await sync.deleteOwnData(this.currentUser.uid);
+    await deleteUser(this.currentUser);
   },
 
   async updateName(nombre) {

@@ -1,3 +1,4 @@
+import { appearance } from '../appearance.js';
 // Datos públicos de la columna "Hoy": noticias de alto impacto de la semana y
 // próximos directos de la formación. Los genera una tarea de GitHub
 // (.github/workflows/datos-hoy.yml) y los deja en la rama `data` del repo de
@@ -73,7 +74,7 @@ function ymd(date, tz) {
   catch (e) { return date.toISOString().substring(0, 10); }
 }
 export function horaEn(iso, tz) {
-  try { return new Intl.DateTimeFormat('es-ES', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(iso)); }
+  try { return new Intl.DateTimeFormat('es-ES', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: !!appearance.get().hour12 }).format(new Date(iso)); }
   catch (e) { return new Date(iso).toISOString().substring(11, 16); }
 }
 export function diaCortoEn(iso, tz) {

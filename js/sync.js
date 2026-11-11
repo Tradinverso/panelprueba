@@ -68,7 +68,7 @@ export const sync = {
   // journal nuevo. La cuenta se quita a mano en la consola de Firebase.
   async deleteStudentCompletely(uid) {
     if (!uid) throw new Error('uid requerido');
-    const COLS = ['trades', 'backtests', 'cuentas', 'reflections', 'perfiles', 'config', 'tradingPlan'];
+    const COLS = ['trades', 'backtests', 'cuentas', 'reflections', 'perfiles', 'config', 'tradingPlan', 'trophies', 'trophyFiles'];
     const borrados = {};
     for (const c of COLS) {
       const snap = await getDocs(collection(db, 'users', uid, c));
@@ -100,6 +100,59 @@ export const sync = {
       { blocked: false, unblockedAt: serverTimestamp() },
       { merge: true }
     );
+  },
+
+  // ── Trofeos (certificados de prop firms) ───────────────────
+  // Sin Firebase Storage (plan gratuito): el archivo va troceado en Firestore.
+  //   users/{uid}/trophies/{id}          → metadatos + miniatura
+  //   users/{uid}/trophyFiles/{id}_{n}   → trozos del archivo en base64
+  // Las reglas solo cubren un nivel bajo users/{uid}, por eso los trozos van
+  // en una colección hermana y no anidados.
+  async loadTrophies(uid) {
+    const snap = await getDocs(collection(db, 'users', uid, 'trophies'));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  async saveTrophy(uid, meta, chunks) {
+    if (!meta || !meta.id) throw new Error('Trofeo sin id');
+    for (let i = 0; i < chunks.length; i++) {
+      await setDoc(doc(db, 'users', uid, 'trophyFiles', `${meta.id}_${i}`), { trophyId: meta.id, i, data: chunks[i] });
+    }
+    await setDoc(doc(db, 'users', uid, 'trophies', meta.id), { ...meta, chunks: chunks.length });
+  },
+
+  async loadTrophyFile(uid, id, n) {
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const snap = await getDoc(doc(db, 'users', uid, 'trophyFiles', `${id}_${i}`));
+      if (!snap.exists()) throw new Error('Falta parte del archivo');
+      out.push(snap.data().data);
+    }
+    return out.join('');
+  },
+
+  async deleteTrophy(uid, id, n) {
+    for (let i = 0; i < (n || 0); i++) await deleteDoc(doc(db, 'users', uid, 'trophyFiles', `${id}_${i}`));
+    await deleteDoc(doc(db, 'users', uid, 'trophies', id));
+  },
+
+  // El propio usuario elimina su cuenta: borra todas sus colecciones. Su
+  // profile no lo puede borrar (las reglas solo se lo dejan al admin), así que
+  // se vacía de datos personales. El usuario de acceso lo borra auth.js.
+  async deleteOwnData(uid) {
+    if (!uid) throw new Error('uid requerido');
+    const COLS = ['trades', 'backtests', 'cuentas', 'reflections', 'perfiles', 'config', 'tradingPlan', 'trophies', 'trophyFiles'];
+    for (const c of COLS) {
+      const snap = await getDocs(collection(db, 'users', uid, c));
+      const ids = snap.docs.map(d => d.id);
+      for (let i = 0; i < ids.length; i += FIRESTORE_BATCH_LIMIT) {
+        const batch = writeBatch(db);
+        for (const id of ids.slice(i, i + FIRESTORE_BATCH_LIMIT)) batch.delete(doc(db, 'users', uid, c, id));
+        await batch.commit();
+      }
+    }
+    await setDoc(doc(db, 'users', uid, 'profile', 'data'), { email: '', nombre: '', deleted: true, deletedAt: serverTimestamp() }, { merge: true });
+    await deleteDoc(doc(db, 'users', uid));
   },
 
   // ── Config ─────────────────────────────────────────────────

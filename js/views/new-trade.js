@@ -14,6 +14,7 @@ import { resumenR } from '../utils/diagnostics.js';
 import { aplicarReglasModelo } from '../components/model-rules.js';
 import { attachDictation } from '../utils/dictation.js';
 import { showToast } from '../components/toast.js';
+import { armBreaker } from '../utils/breaker.js';
 
 const SHEETS = ['ZONAS', 'LIQUIDEZ', 'NASDAQ'];
 // El R objetivo de cada estrategia (TP_RANGE, en strategy-config.js) es lo que
@@ -391,6 +392,12 @@ function attemptSave(sheet, data, wrap, onSaved) {
         label: 'Confirmar y guardar', variant: 'primary',
         onClick: close => {
           state.add(trade);
+          // Cortacircuitos (cuenta → Módulos): primer SL del día en alguna de sus cuentas
+          if (state.config.cortacircuitos === true && trade.result === 'SL' && (trade.accounts || []).length) {
+            const ids = trade.accounts.map(a => a.accountId);
+            const slHoy = state.trades.filter(t => t.date === trade.date && t.result === 'SL' && (t.accounts || []).some(a => ids.includes(a.accountId)));
+            if (slHoy.length === 1) armBreaker();
+          }
           // Si es un SL sobre la cuenta activa de la rotación, avanza a la siguiente.
           state.rotateAfterSL(trade);
           close();
