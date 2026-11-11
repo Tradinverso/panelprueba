@@ -166,7 +166,10 @@ export function renderMesa(container) {
 
   const directoRow = d => {
     const st = estadoDirecto(d, ahora);
-    const url = safeUrl(d.url);
+    // El enlace para entrar solo se ofrece cuando el directo está en curso o
+    // le faltan menos de 30 min (para poder entrar puntual). Antes, la fila
+    // es solo informativa.
+    const url = (st.tipo === 'live' || st.tipo === 'soon') ? safeUrl(d.url) : '';
     const cuando = st.tipo === 'live' ? '<span class="mesa-live-badge">● En directo</span>'
       : st.tipo === 'soon' ? `<span class="mesa-live-soon">Empieza en ${st.min} min</span> · ${horaEn(d.t, tz)}`
       : `${diaCortoEn(d.t, tz)} · ${horaEn(d.t, tz)}`;
@@ -175,7 +178,7 @@ export function renderMesa(container) {
         <span class="mesa-live-title">${escapeHtml(d.title)}${url ? ' <span class="mesa-live-go">↗</span>' : ''}</span>`;
     return url
       ? `<a class="mesa-live ${st.tipo}" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" title="${st.tipo === 'live' ? 'Entrar al directo' : 'Abrir el enlace del directo'}">${inner}</a>`
-      : `<div class="mesa-live ${st.tipo}">${inner}</div>`;
+      : `<div class="mesa-live ${st.tipo}"${safeUrl(d.url) ? ' title="El enlace para entrar aparece 30 min antes de empezar"' : ''}>${inner}</div>`;
   };
   const directosBox = !directos.length ? '' : `
       <section class="card mesa-box ${enDirecto ? 'has-live' : ''}">
