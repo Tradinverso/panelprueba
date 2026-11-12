@@ -207,19 +207,22 @@ a.firma-name:hover { color: var(--accent); }
 .firma-go { margin-top: auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; font-size: 12px; }
 .firma-go svg { width: 13px; height: 13px; }
 
-/* La destacada: grande, en fila, con el código y el botón a la derecha */
+/* La destacada: ocupa dos celdas de la rejilla. Logo y textos arriba, botón
+   grande abajo a todo el ancho. */
 .firma.destacada {
+  grid-column: span 2;
   position: relative; overflow: hidden;
-  flex-direction: row; align-items: center; gap: 24px; margin-bottom: 14px; padding: 26px 28px;
+  flex-direction: row; flex-wrap: wrap; align-items: center; align-content: space-between;
+  gap: 16px 20px; padding: 20px 22px;
   border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
   background:
     radial-gradient(520px 220px at 0% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
     linear-gradient(120deg, color-mix(in srgb, var(--accent) 9%, var(--card2)), var(--card2) 65%);
   box-shadow: 0 18px 40px -28px color-mix(in srgb, var(--accent) 80%, transparent);
 }
-.firma.destacada .firma-logo { width: 104px; height: 104px; border-radius: 26px; }
-.firma.destacada .firma-logo img { padding: 12px; }
-.firma.destacada .firma-id { flex: 1; gap: 6px; }
+.firma.destacada .firma-logo { width: 96px; height: 96px; border-radius: 24px; }
+.firma.destacada .firma-logo img { padding: 11px; }
+.firma.destacada .firma-id { flex: 1 1 0; gap: 6px; }
 .firma.destacada .firma-name { font-size: 26px; letter-spacing: -0.02em; line-height: 1.1; }
 .firma-lema { font-size: 14px; color: var(--text); opacity: .85; }
 .firma-badge {
@@ -230,9 +233,9 @@ a.firma-name:hover { color: var(--accent); }
   border-radius: 99px; padding: 4px 11px 4px 9px; margin-bottom: 2px;
 }
 .firma-badge svg { width: 12px; height: 12px; }
-.firma-side { flex: none; display: flex; flex-direction: column; gap: 10px; min-width: 300px; }
+.firma-side { flex: 1 1 100%; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 /* :root delante para ganar a ":root[data-skin] .btn" de skins.css */
-:root .firma.destacada .firma-go { margin-top: 0; padding: 20px 36px; font-size: 17px; font-weight: 700; border-radius: 16px; gap: 10px; box-shadow: 0 14px 30px -14px color-mix(in srgb, var(--accent) 90%, transparent); }
+:root .firma.destacada .firma-go { margin-top: 0; padding: 18px 36px; font-size: 17px; font-weight: 700; border-radius: 16px; gap: 10px; box-shadow: 0 14px 30px -14px color-mix(in srgb, var(--accent) 90%, transparent); }
 .firma.destacada .firma-go svg { width: 17px; height: 17px; }
 .firma.destacada .firma-go:hover { transform: translateY(-2px); }
 
@@ -240,9 +243,8 @@ a.firma-name:hover { color: var(--accent); }
   .firmas-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
-  .firma.destacada { flex-direction: column; align-items: flex-start; padding: 20px; gap: 16px; }
-  .firma.destacada .firma-logo { width: 76px; height: 76px; border-radius: 20px; }
-  .firma.destacada .firma-name { font-size: 22px; }
-  .firma-side { align-self: stretch; min-width: 0; }
   .firmas-grid { grid-template-columns: 1fr; }
+  .firma.destacada { grid-column: auto; padding: 18px; }
+  .firma.destacada .firma-logo { width: 72px; height: 72px; border-radius: 20px; }
+  .firma.destacada .firma-name { font-size: 22px; }
 }

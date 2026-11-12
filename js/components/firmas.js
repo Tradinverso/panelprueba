@@ -1,5 +1,6 @@
-// Bloque "Firmas que usamos en Tradinverso" de la vista Cuentas: la destacada
-// en grande y el resto en rejilla, con las herramientas al final.
+// Bloque "Firmas que usamos en Tradinverso" de la vista Cuentas: una rejilla de
+// cuatro columnas en la que la destacada ocupa dos celdas; las herramientas
+// van al final.
 // Los datos están en js/utils/firmas.js.
 
 import { ic } from './icons.js';
@@ -84,8 +85,7 @@ export function firmasHtml() {
         <div class="section-title" style="margin:0;">Firmas que usamos en Tradinverso</div>
         <div class="type-tabs" id="firmasTabs"></div>
       </div>
-      ${destacada ? tarjeta(destacada) : ''}
-      ${resto.length || herramientas.length ? `<div class="firmas-grid">${[...resto, ...herramientas].map(tarjeta).join('')}</div>` : ''}
+      ${lista.length ? `<div class="firmas-grid">${[destacada, ...resto, ...herramientas].filter(Boolean).map(tarjeta).join('')}</div>` : ''}
       ${lista.length ? '' : '<div class="empty">Ninguna firma en este mercado.</div>'}
       <p class="firmas-nota">Son enlaces de afiliado: a ti no te cuesta más y a nosotros nos ayuda.</p>
     </section>`;
