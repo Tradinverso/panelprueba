@@ -457,14 +457,14 @@ function checklistChip() {
           </button>`;
 }
 
-// Diario de hoy: naranja si falta el plan, verde cuando plan y revisión están.
+// Diario de hoy: naranja si falta el diario inverso, verde con los dos hechos.
 // En "Ver como" no sale: el diario es del alumno, no de quien mira.
 function diarioChip() {
   if (state.viewAsUid) return '';
   const e = estadoDia(hoyDiario());
   const hecho = e.plan && e.review;
-  const txt = hecho ? '✓ Diario de hoy' : !e.plan ? '✎ Plan de hoy' : '✎ Revisar el día';
-  return `<button class="chk-chip ${hecho ? 'done' : !e.plan ? 'pending' : 'mid'}" id="diarioChip" title="Diario del día: plan antes de operar, trades y revisión">${txt}</button>`;
+  const txt = hecho ? '✓ Diario de hoy' : !e.plan ? '✎ Diario inverso' : '✎ Cerrar el día';
+  return `<button class="chk-chip ${hecho ? 'done' : !e.plan ? 'pending' : 'mid'}" id="diarioChip" title="Diario del día: diario inverso antes de operar, trades y diario del trader al cerrar">${txt}</button>`;
 }
 
 // ── Franja "Pulso" ───────────────────────────────────────────

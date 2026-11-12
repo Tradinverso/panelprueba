@@ -376,26 +376,30 @@ function sanitizeTradingPlan(p) {
 }
 
 // Diario del día (utils/diario.js): la reflexión diaria puede llevar, además
-// del texto libre, el plan de antes de operar y la revisión del final. Son
+// del texto libre, el diario inverso (antes de operar) y el diario del trader
+// (al cerrar). Son
 // campos opcionales: las reflexiones antiguas (solo `content`) siguen igual.
 const corto = (v, n) => String(v ?? '').slice(0, n);
 function sanitizeDiaPlan(p) {
   if (!p || typeof p !== 'object') return null;
   const out = {
-    sesgo: corto(p.sesgo, 20), niveles: corto(p.niveles, 2000), regla: corto(p.regla, 300), estado: corto(p.estado, 30),
+    // Diario inverso: hoy no haré · hoy mejoraré · si pasa X haré Y
+    noHare: corto(p.noHare, 400), mejorare: corto(p.mejorare, 400), siPasa: corto(p.siPasa, 300), hare: corto(p.hare, 300),
+    regla: corto(p.regla, 300), estado: corto(p.estado, 30),
     at: typeof p.at === 'number' ? p.at : Date.now(), antes: p.antes === true,
   };
-  return (out.sesgo || out.niveles.trim() || out.regla.trim() || out.estado) ? out : null;
+  const algo = out.noHare.trim() || out.mejorare.trim() || out.siPasa.trim() || out.hare.trim() || out.regla.trim() || out.estado;
+  return algo ? out : null;
 }
 function sanitizeDiaReview(r) {
   if (!r || typeof r !== 'object') return null;
   const out = {
-    plan: corto(r.plan, 20), estado: corto(r.estado, 40), error: corto(r.error, 30),
-    limites: r.limites === true ? true : r.limites === false ? false : null,
-    bien: corto(r.bien, 600), mejorar: corto(r.mejorar, 600), leccion: corto(r.leccion, 300),
+    // Diario del trader: ¿he respetado mi plan? · bien · sabotaje · mejorar mañana
+    plan: corto(r.plan, 20), bien: corto(r.bien, 600), sabotaje: corto(r.sabotaje, 600), mejorar: corto(r.mejorar, 600),
+    leccion: corto(r.leccion, 300),
     at: typeof r.at === 'number' ? r.at : Date.now(),
   };
-  const algo = out.plan || out.estado || out.error || out.limites !== null || out.bien.trim() || out.mejorar.trim() || out.leccion.trim();
+  const algo = out.plan || out.bien.trim() || out.sabotaje.trim() || out.mejorar.trim() || out.leccion.trim();
   return algo ? out : null;
 }
 

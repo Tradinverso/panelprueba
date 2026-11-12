@@ -1,20 +1,24 @@
-// Diario del día: Plan (antes de operar) → Trades (salen solos) → Revisión
-// (al acabar). Se guarda dentro de la reflexión diaria de siempre
+// Diario del día: los dos protocolos de Tradinverso alrededor de la sesión.
+//   · Diario inverso (antes de empezar): hoy no haré · hoy mejoraré · si pasa
+//     X haré Y · mi regla de hoy · cómo llego
+//   · Trades: salen solos
+//   · Diario del trader (al cerrar): ¿he respetado mi plan? · qué he hecho
+//     bien · dónde me he saboteado · qué quiero mejorar mañana
+// Se guarda dentro de la reflexión diaria de siempre
 // (users/{uid}/reflections/daily-YYYY-MM-DD), añadiéndole dos bloques:
-//   plan   → { sesgo, niveles, regla, estado, at, antes }
-//   review → { plan, estado, error, limites, bien, mejorar, leccion, at }
+//   plan   → { noHare, mejorare, siPasa, hare, regla, estado, at, antes }
+//   review → { plan, bien, sabotaje, mejorar, leccion, at }
 // `content` sigue siendo el texto libre de las reflexiones antiguas (ahora
 // "Notas"). Las reflexiones semanales y mensuales no cambian.
 //
-// `plan.antes` = el plan se escribió antes del primer trade de ese día. Es lo
-// que hace fiable el "seguí el plan": hasta ahora plan y sensación se
-// apuntaban con el trade ya cerrado.
+// `plan.antes` = el diario inverso se escribió antes del primer trade de ese
+// día. Es lo que hace fiable el "he respetado mi plan": hasta ahora plan y
+// sensación se apuntaban con el trade ya cerrado.
 
 import { state } from '../state.js';
 import { auth } from '../auth.js';
 import { todayLocal } from './timezone.js';
 
-export const SESGOS = [['alcista', 'Alcista'], ['bajista', 'Bajista'], ['neutral', 'Neutral'], ['sin', 'Sin sesgo']];
 export const ESTADOS = [
   { id: 'centrado', label: 'Descansado y centrado', tono: 'ok' },
   { id: 'normal', label: 'Normal', tono: '' },
@@ -23,11 +27,6 @@ export const ESTADOS = [
   { id: 'alterado', label: 'Alterado', tono: 'bad' },
 ];
 export const CUMPLIDO = [['si', 'Sí'], ['parcial', 'En parte'], ['no', 'No']];
-export const ERRORES = [
-  ['ninguno', 'Ninguno'], ['sin-setup', 'Entré sin setup'], ['mover-sl-tp', 'Moví el SL o el TP'],
-  ['cierre-antes', 'Cerré antes de tiempo'], ['sobreoperar', 'Sobreoperé'], ['noticia', 'Operé en noticia'],
-  ['horario', 'Fuera de horario'], ['otro', 'Otro'],
-];
 export const etiqueta = (lista, id) => { const x = lista.find(e => (e.id || e[0]) === id); return x ? (x.label || x[1]) : ''; };
 
 export const hoy = () => todayLocal(auth.timezone());
@@ -91,7 +90,16 @@ export function racha() {
   return { dias, ultimos };
 }
 
-// Lecciones escritas al revisar un día, de la más reciente a la más antigua.
+// Lo último que el trader dijo que quería mejorar "mañana", antes de `dia`:
+// se le recuerda en el diario inverso del día siguiente.
+export function mejorarPendiente(dia) {
+  const r = state.reflections
+    .filter(x => x.type === 'daily' && x.period < dia && x.review && String(x.review.mejorar || '').trim())
+    .sort((a, b) => b.period.localeCompare(a.period))[0];
+  return r ? { dia: r.period, texto: r.review.mejorar.trim() } : null;
+}
+
+// Lecciones escritas al cerrar un día, de la más reciente a la más antigua.
 export function lecciones() {
   return state.reflections
     .filter(r => r.type === 'daily' && r.review && String(r.review.leccion || '').trim())

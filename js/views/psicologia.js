@@ -95,7 +95,7 @@ function diarioHoyHtml() {
     <button type="button" class="dia-step ${hecho ? 'done' : ''}" data-diario="${id}">
       <span class="dia-step-n">${hecho ? '✓' : n}</span><span><b>${t}</b><small>${sub}</small></span>
     </button>`;
-  const cta = !e.plan ? ['plan', 'Añadir el plan de hoy'] : !e.review ? ['review', 'Revisar el día'] : ['review', 'Ver el diario de hoy'];
+  const cta = !e.plan ? ['plan', 'Hacer el diario inverso'] : !e.review ? ['review', 'Cerrar el día'] : ['review', 'Ver el diario de hoy'];
   const color = st.pnlSistema > 0 ? 'var(--green)' : st.pnlSistema < 0 ? 'var(--red)' : 'var(--muted)';
   const leccion = ls[0];
   return `
@@ -111,23 +111,23 @@ function diarioHoyHtml() {
             : `<b>–</b><span>sin trades hoy</span>`}</div>
         </div>
         <div class="dia-steps">
-          ${paso('plan', 1, 'Plan', 'Sesgo, niveles y una regla', e.plan)}
+          ${paso('plan', 1, 'Diario inverso', 'Antes de empezar el día', e.plan)}
           ${paso('trades', 2, 'Trades', ts.length ? `${ts.length} registrado${ts.length === 1 ? '' : 's'}` : 'Aparecen solos', ts.length > 0)}
-          ${paso('review', 3, 'Revisión', 'Cuatro toques y tres líneas', e.review)}
+          ${paso('review', 3, 'Diario del trader', 'Al cerrar el día', e.review)}
         </div>
-        <div class="dia-foot"><span class="dia-hint">${e.plan && e.review ? 'Diario de hoy completo.' : !e.plan ? 'Apunta el plan antes de abrir la plataforma.' : 'Cuando acabes la sesión, revisa el día.'}</span>
+        <div class="dia-foot"><span class="dia-hint">${e.plan && e.review ? 'Diario de hoy completo.' : !e.plan ? 'Haz el diario inverso antes de abrir la plataforma.' : 'Cuando acabes la sesión, cierra el día con el diario del trader.'}</span>
           <button type="button" class="btn primary" data-diario="${cta[0]}">${cta[1]}</button></div>
       </div>
       <div class="dia-side">
         <div class="card dia-racha">
           <div class="dia-racha-n"><b>${r.dias}</b><span>día${r.dias === 1 ? '' : 's'} seguido${r.dias === 1 ? '' : 's'} con diario</span></div>
-          <div class="dia-dots" title="Últimos 14 días laborables">${r.ultimos.map(x => `<i class="${x.plan && x.review ? 'full' : (x.plan || x.review) ? 'half' : ''} ${x.hoy ? 'hoy' : ''}" title="${x.dia}${x.plan ? ' · plan' : ''}${x.review ? ' · revisión' : ''}"></i>`).join('')}</div>
+          <div class="dia-dots" title="Últimos 14 días laborables">${r.ultimos.map(x => `<i class="${x.plan && x.review ? 'full' : (x.plan || x.review) ? 'half' : ''} ${x.hoy ? 'hoy' : ''}" title="${x.dia}${x.plan ? ' · diario inverso' : ''}${x.review ? ' · diario del trader' : ''}"></i>`).join('')}</div>
         </div>
         <div class="card dia-leccion">
           <div class="dia-eyebrow">Una lección tuya</div>
           ${leccion
             ? `<div class="dia-leccion-t">«${escapeHtml(leccion.texto)}»</div><div class="dia-leccion-f">${formatLongDate(leccion.dia)} · ${ls.length} lección${ls.length === 1 ? '' : 'es'} guardada${ls.length === 1 ? '' : 's'}</div>`
-            : `<div class="dia-leccion-f">Escribe una lección al revisar un día. Te volverá otro día, antes de operar.</div>`}
+            : `<div class="dia-leccion-f">Escribe una lección al cerrar un día. Te volverá otro día, antes de operar.</div>`}
         </div>
       </div>
     </div>`;

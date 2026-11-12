@@ -207,9 +207,9 @@ export function renderMesa(container) {
         </button>
       </section>
       <section class="card mesa-box">
-        <button type="button" class="mesa-chk mesa-dia" id="mesaDiario" title="Abrir el diario de hoy: plan, trades y revisión">
-          <span class="mesa-chk-head"><b>Diario de hoy</b><span class="${diaEst.plan && diaEst.review ? 'ok' : ''}">${diaEst.plan && diaEst.review ? '✓ completo' : !diaEst.plan ? 'falta el plan' : 'falta revisar'}</span></span>
-          <span class="mesa-dia-steps"><i class="${diaEst.plan ? 'ok' : ''}">Plan</i><i class="${diaTrades ? 'ok' : ''}">${diaTrades} trade${diaTrades === 1 ? '' : 's'}</i><i class="${diaEst.review ? 'ok' : ''}">Revisión</i></span>
+        <button type="button" class="mesa-chk mesa-dia" id="mesaDiario" title="Abrir el diario de hoy: diario inverso, trades y diario del trader">
+          <span class="mesa-chk-head"><b>Diario de hoy</b><span class="${diaEst.plan && diaEst.review ? 'ok' : ''}">${diaEst.plan && diaEst.review ? '✓ completo' : !diaEst.plan ? 'falta el inverso' : 'falta cerrar'}</span></span>
+          <span class="mesa-dia-steps"><i class="${diaEst.plan ? 'ok' : ''}">Inverso</i><i class="${diaTrades ? 'ok' : ''}">${diaTrades} trade${diaTrades === 1 ? '' : 's'}</i><i class="${diaEst.review ? 'ok' : ''}">Cierre</i></span>
         </button>
       </section>
       ${newsBox}
@@ -269,7 +269,7 @@ export function renderMesa(container) {
           </div>`).join('')}
         <span class="mesa-sep"></span>
         <button type="button" class="mesa-ring" id="mesaChecklist" title="Checklist pre-sesión · ${chk.done}/${chk.total}" style="background:conic-gradient(${chk.done === chk.total ? 'var(--green)' : 'var(--accent)'} ${deg}deg, var(--line) ${deg}deg 360deg)"><span>${chk.done}/${chk.total}</span></button>
-        <button type="button" class="mesa-rail-link mesa-rail-dia ${diaEst.plan && diaEst.review ? 'ok' : diaEst.plan ? 'half' : ''}" id="mesaDiario" title="Diario de hoy · ${!diaEst.plan ? 'falta el plan' : !diaEst.review ? 'falta revisar' : 'completo'}" aria-label="Diario de hoy">${icon('nota')}</button>
+        <button type="button" class="mesa-rail-link mesa-rail-dia ${diaEst.plan && diaEst.review ? 'ok' : diaEst.plan ? 'half' : ''}" id="mesaDiario" title="Diario de hoy · ${!diaEst.plan ? 'falta el diario inverso' : !diaEst.review ? 'falta el diario del trader' : 'completo'}" aria-label="Diario de hoy">${icon('nota')}</button>
         <span class="mesa-sep"></span>
         <a class="mesa-rail-link" href="${FORMACION_URL}" target="_blank" rel="noopener noreferrer" title="Formación · cursos y directos" aria-label="Formación">${icon('formacion')}</a>
         ${sigHoy

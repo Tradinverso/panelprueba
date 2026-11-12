@@ -106,7 +106,7 @@ tradinverso/
       account-modal.js    pop-up de la cuenta (sustituye a la página Ajustes): Perfil, Trofeos, Módulos,
                           Apps Script, Preferencias, Datos y privacidad, Mantenimiento y Sobre
       trophies.js         Trofeos: certificados de prop firms (imagen o PDF), galería y visor
-      diario-modal.js     diario del día: Plan (antes de operar) → Trades → Revisión
+      diario-modal.js     diario del día: Diario inverso (antes) → Trades → Diario del trader (al cerrar)
       appearance-panel.js panel Apariencia (tema, acento, TP/SL, letra, densidad)
       toast.js            toast de confirmación
       pills.js            selector de pills
@@ -247,12 +247,16 @@ Psicotrading → Reflexiones → Diaria ya no es un texto libre por día: es un 
 (`js/components/diario-modal.js`, datos en `js/utils/diario.js`). Se abre también desde la columna
 Hoy, desde el chip del Dashboard y desde el Calendario.
 
-- **Plan** (antes de operar): sesgo, niveles, una regla y cómo llegas. **Trades**: los del día,
-  solos. **Revisión**: si seguiste el plan, límites, sensación, error principal y tres líneas
-  (qué hice bien, qué mejoro, la lección).
+- Son los dos protocolos de Tradinverso (enlazados a su PDF de Psicotrading → Protocolos):
+  **Diario inverso** antes de empezar (hoy no haré · hoy mejoraré · si pasa X haré Y · mi regla de
+  hoy · cómo llego) y **Diario del trader** al cerrar (¿he respetado mi plan? · qué he hecho bien ·
+  dónde me he saboteado · qué quiero mejorar mañana · lección opcional). En medio, los **trades**
+  del día, que salen solos.
+- Lo que se escribe en "qué quiero mejorar mañana" se recuerda al día siguiente en "hoy mejoraré".
 - Se guarda en el mismo documento de la reflexión diaria (`users/{uid}/reflections/daily-AAAA-MM-DD`)
-  con dos bloques opcionales, `plan` y `review`. `content` sigue siendo el texto libre (ahora
-  "Notas libres"), así que las reflexiones antiguas se conservan sin migrar.
+  con dos bloques opcionales: `plan` {noHare, mejorare, siPasa, hare, regla, estado, at, antes} y
+  `review` {plan, bien, sabotaje, mejorar, leccion, at}. `content` sigue siendo el texto libre
+  (ahora "Notas libres"), así que las reflexiones antiguas se conservan sin migrar.
 - `plan.antes` marca si el plan se escribió antes del primer trade del día: es lo que permitirá
   comparar días con plan y sin plan sin el sesgo de apuntarlo a posteriori.
 - La racha cuenta días laborables seguidos con plan o revisión. La lección escrita al revisar un día
