@@ -16,6 +16,8 @@ import { kpiCard } from '../components/kpi-card.js';
 import { createEquity, createBar } from '../components/charts.js';
 import { renderPills } from '../components/pills.js';
 import { MONTHS_ES_SHORT } from '../utils/date-helpers.js';
+import { firmasHtml, wireFirmas } from '../components/firmas.js';
+import { showToast } from '../components/toast.js';
 
 let filterStatus = 'all';
 let filterFase = 'all';
@@ -116,7 +118,9 @@ function render(container) {
           ? renderGroupedCards(sortedFiltered)
           : '<div class="empty">Ninguna cuenta coincide con los filtros.</div>'}
       `}
+    ${state.viewAsUid ? '' : firmasHtml()}
   `;
+  wireFirmas(container, () => render(container));
 
   // Tab CFD/Futuros
   const tabsEl = container.querySelector('#typeTabs');
@@ -214,7 +218,10 @@ function render(container) {
         body: `¿Marcar <strong>${esc(c.empresa)} ${esc(c.numero || '')}</strong> como <strong>quemada</strong> (perdida)? Puedes revertirlo desde Editar.`,
         actions: [
           { label: 'Cancelar', onClick: close => close() },
-          { label: 'Sí, quemada', variant: 'danger', onClick: close => { state.markQuemada(c.id); close(); } },
+          { label: 'Sí, quemada', variant: 'danger', onClick: close => {
+            state.markQuemada(c.id); close();
+            if (!state.viewAsUid) showToast('Cuenta marcada como quemada. Si vas a por otra, abajo tienes las firmas que usamos.', { duration: 6000 });
+          } },
         ],
       });
     });

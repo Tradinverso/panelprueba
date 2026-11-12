@@ -277,4 +277,9 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   cuenta como cero si no se hace. Se ve en la franja del Dashboard y como columna ordenable en
   Mis Alumnos; en los dos sitios abre el desglose (`js/components/disciplina-modal.js`). No guarda
   nada: se calcula al vuelo. Para la columna, `sync.listStudents` trae también las reflexiones.
+- **Firmas que usamos** (al final de Cuentas): las prop firms y herramientas de la academia con su
+  enlace de afiliado y su código, con filtro Futuros / CFDs. La lista está en `js/utils/firmas.js`
+  (añadir, quitar o cambiar una es editar una entrada) y los logos en `assets/firmas/`. No guarda
+  nada en la cuenta del alumno y no se muestra cuando el admin está viendo a un alumno. No lleva
+  descuentos a propósito: cambian a menudo.
 
