@@ -32,8 +32,8 @@ export const FIRMAS = [
   },
   {
     id: 'fundednext', nombre: 'FundedNext', mercados: ['Futuros'],
-    url: 'https://fundednext.com/es/futures',
-    codigos: [{ codigo: 'REF82VX1N' }], logo: 'assets/firmas/fundednext.png', fondo: '#ffffff',
+    url: 'https://fundednext.com/?fpr=INVERSO',
+    codigos: [{ codigo: 'INVERSO' }], logo: 'assets/firmas/fundednext.png', fondo: '#ffffff',
   },
   {
     id: 'tradingpit', nombre: 'The Trading Pit', mercados: ['Futuros', 'CFD'],
