@@ -1,7 +1,7 @@
 // Columna "Hoy" (antes "Mesa"; el código conserva ese nombre): columna
 // izquierda sticky (260 px) con lo que hay que tener a mano mientras se opera.
 // Cada cosa en su propia caja: checklist · noticias de alto impacto · próximos
-// directos · cuentas activas · regla del día · Formación.
+// directos · cuentas activas · Formación · Prop firms · regla del día.
 // Se recoge en una barrita de 58 px con indicadores (mini-pastilla por cuenta,
 // anillo del checklist, directo en curso, hora de la próxima noticia).
 // El estado abierto/recogido se guarda en las preferencias (appearance.mesa).
@@ -228,15 +228,6 @@ export function renderMesa(container) {
           </div>`).join('')
         : `<div class="mesa-empty">Sin cuentas activas. <a href="#/cuentas">Añade una →</a></div>`}
       </section>
-      <section class="card mesa-box">
-        ${leccion ? `
-        <div class="mesa-block-head"><div class="mesa-label">Una lección tuya</div></div>
-        <div class="mesa-rule">${escapeHtml(leccion.texto)}</div>
-        <div class="mesa-rule-sub">La escribiste el ${leccion.dia.split('-').reverse().join('/')}.</div>` : `
-        <div class="mesa-block-head"><div class="mesa-label">Regla del día</div></div>
-        <div class="mesa-rule">${escapeHtml(regla.main)}</div>
-        <div class="mesa-rule-sub">${escapeHtml(regla.sub)}</div>`}
-      </section>
       <a class="card mesa-cta" href="${FORMACION_URL}" target="_blank" rel="noopener noreferrer" title="Cursos y directos de Tradinverso">
         <span class="mesa-cta-ic">${icon('formacion')}</span>
         <span class="mesa-cta-text"><b>Formación</b><small>Cursos · directos</small></span>
@@ -252,6 +243,15 @@ export function renderMesa(container) {
         <span class="mesa-cta-text"><b>Noticias</b><small>Calendario económico</small></span>
         <span class="mesa-cta-arrow">↗</span>
       </a>`}
+      <section class="card mesa-box">
+        ${leccion ? `
+        <div class="mesa-block-head"><div class="mesa-label">Una lección tuya</div></div>
+        <div class="mesa-rule">${escapeHtml(leccion.texto)}</div>
+        <div class="mesa-rule-sub">La escribiste el ${leccion.dia.split('-').reverse().join('/')}.</div>` : `
+        <div class="mesa-block-head"><div class="mesa-label">Regla del día</div></div>
+        <div class="mesa-rule">${escapeHtml(regla.main)}</div>
+        <div class="mesa-rule-sub">${escapeHtml(regla.sub)}</div>`}
+      </section>
     `;
     container.querySelectorAll('[data-news-scope]').forEach(b => b.addEventListener('click', () => {
       newsScope = b.dataset.newsScope;
