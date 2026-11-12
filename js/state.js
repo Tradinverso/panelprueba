@@ -375,18 +375,48 @@ function sanitizeTradingPlan(p) {
   return { ...sanitizeDocText(p), protocolos: sanitizeProtocolosList(p.protocolos) };
 }
 
+// Diario del día (utils/diario.js): la reflexión diaria puede llevar, además
+// del texto libre, el plan de antes de operar y la revisión del final. Son
+// campos opcionales: las reflexiones antiguas (solo `content`) siguen igual.
+const corto = (v, n) => String(v ?? '').slice(0, n);
+function sanitizeDiaPlan(p) {
+  if (!p || typeof p !== 'object') return null;
+  const out = {
+    sesgo: corto(p.sesgo, 20), niveles: corto(p.niveles, 2000), regla: corto(p.regla, 300), estado: corto(p.estado, 30),
+    at: typeof p.at === 'number' ? p.at : Date.now(), antes: p.antes === true,
+  };
+  return (out.sesgo || out.niveles.trim() || out.regla.trim() || out.estado) ? out : null;
+}
+function sanitizeDiaReview(r) {
+  if (!r || typeof r !== 'object') return null;
+  const out = {
+    plan: corto(r.plan, 20), estado: corto(r.estado, 40), error: corto(r.error, 30),
+    limites: r.limites === true ? true : r.limites === false ? false : null,
+    bien: corto(r.bien, 600), mejorar: corto(r.mejorar, 600), leccion: corto(r.leccion, 300),
+    at: typeof r.at === 'number' ? r.at : Date.now(),
+  };
+  const algo = out.plan || out.estado || out.error || out.limites !== null || out.bien.trim() || out.mejorar.trim() || out.leccion.trim();
+  return algo ? out : null;
+}
+
 function sanitizeReflection(r) {
   if (!r) return null;
   if (!VALID_REFL_TYPE.has(r.type)) return null;
   const period = String(r.period || '').trim();
   if (!period) return null;
-  return {
+  const out = {
     id: r.id || `${r.type}-${period}`,
     type: r.type,
     period,
     content: String(r.content || ''),
     updatedAt: typeof r.updatedAt === 'number' ? r.updatedAt : Date.now(),
   };
+  if (r.type === 'daily') {
+    const plan = sanitizeDiaPlan(r.plan), review = sanitizeDiaReview(r.review);
+    if (plan) out.plan = plan;
+    if (review) out.review = review;
+  }
+  return out;
 }
 
 const listeners = new Set();
@@ -1041,10 +1071,17 @@ export const state = {
   },
 
   // ── Reflexiones de psicología ────────────────────────────
-  saveReflection(type, period, content) {
+  // `extra` (solo diarias): { plan, review }. Lo que no se pasa se conserva,
+  // así que guardar el texto libre no borra el plan ni la revisión del día.
+  saveReflection(type, period, content, extra) {
     if (!VALID_REFL_TYPE.has(type) || !period) return null;
     const id = `${type}-${period}`;
-    const r = sanitizeReflection({ id, type, period, content, updatedAt: Date.now() });
+    const prev = this.reflections.find(x => x.id === id) || {};
+    const r = sanitizeReflection({
+      id, type, period, content, updatedAt: Date.now(),
+      plan: extra && 'plan' in extra ? extra.plan : prev.plan,
+      review: extra && 'review' in extra ? extra.review : prev.review,
+    });
     if (!r) return null;
     const i = this.reflections.findIndex(x => x.id === id);
     if (i >= 0) this.reflections[i] = r;

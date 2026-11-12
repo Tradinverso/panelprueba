@@ -16,6 +16,8 @@ import { fmtPct } from '../utils/number-format-es.js';
 import { psicotradingTabs } from '../components/psicotrading-tabs.js';
 import { attachDictation } from '../utils/dictation.js';
 import { showToast } from '../components/toast.js';
+import { openDiarioModal } from '../components/diario-modal.js';
+import { hoy as hoyDiario, estadoDia, tradesDe, racha, lecciones, diaDe } from '../utils/diario.js';
 
 let tab = 'daily'; // 'daily' | 'weekly' | 'monthly'
 let calYear = null;
@@ -79,8 +81,61 @@ function render(container) {
 
 // ─── DIARIA ──────────────────────────────────────────────────
 
+// Tarjeta de HOY (los tres pasos) + racha de días con diario + una lección tuya.
+function diarioHoyHtml() {
+  const h = hoyDiario();
+  const e = estadoDia(h);
+  const ts = tradesDe(h);
+  const st = periodStats(state.trades, state.cuentas, h, h);
+  const r = racha();
+  const ls = lecciones();
+  const d = new Date(h + 'T12:00:00');
+  const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  const paso = (id, n, t, sub, hecho) => `
+    <button type="button" class="dia-step ${hecho ? 'done' : ''}" data-diario="${id}">
+      <span class="dia-step-n">${hecho ? '✓' : n}</span><span><b>${t}</b><small>${sub}</small></span>
+    </button>`;
+  const cta = !e.plan ? ['plan', 'Añadir el plan de hoy'] : !e.review ? ['review', 'Revisar el día'] : ['review', 'Ver el diario de hoy'];
+  const color = st.pnlSistema > 0 ? 'var(--green)' : st.pnlSistema < 0 ? 'var(--red)' : 'var(--muted)';
+  const leccion = ls[0];
+  return `
+    <div class="dia-panel">
+      <div class="card dia-hoy">
+        <div class="dia-hoy-head">
+          <div>
+            <div class="dia-eyebrow">Hoy · ${dias[d.getDay()]}</div>
+            <div class="dia-fecha">${d.getDate()} de ${MONTHS_ES[d.getMonth()].toLowerCase()}</div>
+          </div>
+          <div class="dia-res">${st.count
+            ? `<b class="pnl-value" style="color:${color}">${fmtPct(st.pnlSistema, 1)}</b><span>${st.count} trade${st.count === 1 ? '' : 's'} hoy</span>`
+            : `<b>–</b><span>sin trades hoy</span>`}</div>
+        </div>
+        <div class="dia-steps">
+          ${paso('plan', 1, 'Plan', 'Sesgo, niveles y una regla', e.plan)}
+          ${paso('trades', 2, 'Trades', ts.length ? `${ts.length} registrado${ts.length === 1 ? '' : 's'}` : 'Aparecen solos', ts.length > 0)}
+          ${paso('review', 3, 'Revisión', 'Cuatro toques y tres líneas', e.review)}
+        </div>
+        <div class="dia-foot"><span class="dia-hint">${e.plan && e.review ? 'Diario de hoy completo.' : !e.plan ? 'Apunta el plan antes de abrir la plataforma.' : 'Cuando acabes la sesión, revisa el día.'}</span>
+          <button type="button" class="btn primary" data-diario="${cta[0]}">${cta[1]}</button></div>
+      </div>
+      <div class="dia-side">
+        <div class="card dia-racha">
+          <div class="dia-racha-n"><b>${r.dias}</b><span>día${r.dias === 1 ? '' : 's'} seguido${r.dias === 1 ? '' : 's'} con diario</span></div>
+          <div class="dia-dots" title="Últimos 14 días laborables">${r.ultimos.map(x => `<i class="${x.plan && x.review ? 'full' : (x.plan || x.review) ? 'half' : ''} ${x.hoy ? 'hoy' : ''}" title="${x.dia}${x.plan ? ' · plan' : ''}${x.review ? ' · revisión' : ''}"></i>`).join('')}</div>
+        </div>
+        <div class="card dia-leccion">
+          <div class="dia-eyebrow">Una lección tuya</div>
+          ${leccion
+            ? `<div class="dia-leccion-t">«${escapeHtml(leccion.texto)}»</div><div class="dia-leccion-f">${formatLongDate(leccion.dia)} · ${ls.length} lección${ls.length === 1 ? '' : 'es'} guardada${ls.length === 1 ? '' : 's'}</div>`
+            : `<div class="dia-leccion-f">Escribe una lección al revisar un día. Te volverá otro día, antes de operar.</div>`}
+        </div>
+      </div>
+    </div>`;
+}
+
 function renderDaily(body) {
   body.innerHTML = `
+    ${diarioHoyHtml()}
     <div class="psico-nav">
       <button class="cal-btn" id="prevMonth">‹</button>
       <span class="cal-month-label">${MONTHS_ES[calMonth]} ${calYear}</span>
@@ -111,6 +166,7 @@ function renderDaily(body) {
     render(body.parentElement);
   });
 
+  body.querySelectorAll('[data-diario]').forEach(b => b.addEventListener('click', () => openDiarioModal(hoyDiario(), b.dataset.diario)));
   paintDailyGrid(body);
 }
 
@@ -128,7 +184,8 @@ function paintDailyGrid(body) {
   for (let d = 1; d <= daysInMonth; d++) {
     const ds = `${calYear}-${pad(calMonth + 1)}-${pad(d)}`;
     const stats = periodStats(state.trades, state.cuentas, ds, ds);
-    const hasReflex = !!findReflection('daily', ds);
+    const diaEst = estadoDia(ds);
+    const hasReflex = diaEst.algo;
     const isToday = ds === today;
 
     let cls = 'cal-cell psico-day';
@@ -178,7 +235,7 @@ function paintDailyGrid(body) {
 }
 
 function openDailyModal(ds) {
-  openReflectionModal('daily', ds);
+  openDiarioModal(ds);
 }
 
 // Punto de entrada: abre el modal en modo LECTURA si ya hay una reflexión
@@ -186,6 +243,8 @@ function openDailyModal(ds) {
 // el modo lectura sobre un texto inexistente). Exportado para que otras
 // vistas (ej. calendario operativo) puedan reusarlo.
 export function openReflectionModal(type, period) {
+  // La diaria ya no es un texto libre: es el diario del día (plan, trades y revisión).
+  if (type === 'daily') { openDiarioModal(period); return; }
   const existing = findReflection(type, period);
   const content = existing && existing.content ? existing.content : '';
   const initialMode = content.trim() ? 'read' : 'edit';

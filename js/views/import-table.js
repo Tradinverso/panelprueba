@@ -447,8 +447,8 @@ function showBackupV2Selector(resultEl, parsed) {
       if (wantReflections && reflections.length) {
         let n = 0;
         for (const r of reflections) {
-          if (!r || !r.type || !r.period) continue;
-          state.saveReflection(r.type, r.period, r.content || '');
+          if (!r || !r.type || !r.period) continue;   // (con su plan y revisión del diario, si los trae)
+          state.saveReflection(r.type, r.period, r.content || '', { plan: r.plan, review: r.review });
           n++;
         }
         parts.push(`${n} reflexiones`);

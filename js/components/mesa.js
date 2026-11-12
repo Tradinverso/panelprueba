@@ -19,6 +19,8 @@ import { clockParts } from './topbar.js';
 import { icon } from './icons.js';
 import { getHoyData, onHoyData, noticiasDeHoy, noticiasDeLaSemana, proximosDirectos, horaEn, diaCortoEn } from '../utils/hoy-data.js';
 import { tituloEs } from '../utils/noticias-es.js';
+import { openDiarioModal } from './diario-modal.js';
+import { hoy as hoyDiario, estadoDia, tradesDe, leccionDeHoy } from '../utils/diario.js';
 
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
 // Calendario económico completo (la lista de la caja sale de Forex Factory).
@@ -120,6 +122,9 @@ export function renderMesa(container) {
 
   const accs = accountsData();
   const regla = reglaDelDia();
+  const diaEst = estadoDia(hoyDiario());
+  const diaTrades = tradesDe(hoyDiario()).length;
+  const leccion = leccionDeHoy();
   const chk = checklistProgress();
   const clock = clockParts();
   const colorOf = v => v > 0 ? 'var(--green)' : (v < 0 ? 'var(--red)' : 'var(--muted)');
@@ -201,6 +206,12 @@ export function renderMesa(container) {
           <span class="mesa-bar"><span style="width:${chk.total ? chk.done / chk.total * 100 : 0}%" class="${chk.done === chk.total ? 'ok' : ''}"></span></span>
         </button>
       </section>
+      <section class="card mesa-box">
+        <button type="button" class="mesa-chk mesa-dia" id="mesaDiario" title="Abrir el diario de hoy: plan, trades y revisión">
+          <span class="mesa-chk-head"><b>Diario de hoy</b><span class="${diaEst.plan && diaEst.review ? 'ok' : ''}">${diaEst.plan && diaEst.review ? '✓ completo' : !diaEst.plan ? 'falta el plan' : 'falta revisar'}</span></span>
+          <span class="mesa-dia-steps"><i class="${diaEst.plan ? 'ok' : ''}">Plan</i><i class="${diaTrades ? 'ok' : ''}">${diaTrades} trade${diaTrades === 1 ? '' : 's'}</i><i class="${diaEst.review ? 'ok' : ''}">Revisión</i></span>
+        </button>
+      </section>
       ${newsBox}
       ${directosBox}
       <section class="card mesa-box">
@@ -217,9 +228,13 @@ export function renderMesa(container) {
         : `<div class="mesa-empty">Sin cuentas activas. <a href="#/cuentas">Añade una →</a></div>`}
       </section>
       <section class="card mesa-box">
+        ${leccion ? `
+        <div class="mesa-block-head"><div class="mesa-label">Una lección tuya</div></div>
+        <div class="mesa-rule">${escapeHtml(leccion.texto)}</div>
+        <div class="mesa-rule-sub">La escribiste el ${leccion.dia.split('-').reverse().join('/')}.</div>` : `
         <div class="mesa-block-head"><div class="mesa-label">Regla del día</div></div>
         <div class="mesa-rule">${escapeHtml(regla.main)}</div>
-        <div class="mesa-rule-sub">${escapeHtml(regla.sub)}</div>
+        <div class="mesa-rule-sub">${escapeHtml(regla.sub)}</div>`}
       </section>
       <a class="card mesa-cta" href="${FORMACION_URL}" target="_blank" rel="noopener noreferrer" title="Cursos y directos de Tradinverso">
         <span class="mesa-cta-ic">${icon('formacion')}</span>
@@ -254,6 +269,7 @@ export function renderMesa(container) {
           </div>`).join('')}
         <span class="mesa-sep"></span>
         <button type="button" class="mesa-ring" id="mesaChecklist" title="Checklist pre-sesión · ${chk.done}/${chk.total}" style="background:conic-gradient(${chk.done === chk.total ? 'var(--green)' : 'var(--accent)'} ${deg}deg, var(--line) ${deg}deg 360deg)"><span>${chk.done}/${chk.total}</span></button>
+        <button type="button" class="mesa-rail-link mesa-rail-dia ${diaEst.plan && diaEst.review ? 'ok' : diaEst.plan ? 'half' : ''}" id="mesaDiario" title="Diario de hoy · ${!diaEst.plan ? 'falta el plan' : !diaEst.review ? 'falta revisar' : 'completo'}" aria-label="Diario de hoy">${icon('nota')}</button>
         <span class="mesa-sep"></span>
         <a class="mesa-rail-link" href="${FORMACION_URL}" target="_blank" rel="noopener noreferrer" title="Formación · cursos y directos" aria-label="Formación">${icon('formacion')}</a>
         ${sigHoy
@@ -265,6 +281,8 @@ export function renderMesa(container) {
   // Checklist: anillo (columna recogida) o fila con barra (abierta)
   const chkBtn = container.querySelector('#mesaChecklist');
   if (chkBtn) chkBtn.addEventListener('click', () => openChecklistModal(() => renderMesa(container)));
+  const diaBtn = container.querySelector('#mesaDiario');
+  if (diaBtn) diaBtn.addEventListener('click', () => openDiarioModal());
 
   container.querySelector('#mesaToggle').addEventListener('click', () => {
     appearance.set({ mesa: !open });

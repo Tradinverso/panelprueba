@@ -106,6 +106,7 @@ tradinverso/
       account-modal.js    pop-up de la cuenta (sustituye a la página Ajustes): Perfil, Trofeos, Módulos,
                           Apps Script, Preferencias, Datos y privacidad, Mantenimiento y Sobre
       trophies.js         Trofeos: certificados de prop firms (imagen o PDF), galería y visor
+      diario-modal.js     diario del día: Plan (antes de operar) → Trades → Revisión
       appearance-panel.js panel Apariencia (tema, acento, TP/SL, letra, densidad)
       toast.js            toast de confirmación
       pills.js            selector de pills
@@ -131,6 +132,7 @@ tradinverso/
       noticias-es.js      titulares de Forex Factory en español
       export-trades.js    exportar una selección de trades (estrategia y periodo) en Excel, CSV o PDF
       breaker.js          cortacircuitos: pausa de 5 min tras el primer SL del día en una cuenta
+      diario.js           datos del diario del día, racha de días con diario y lecciones propias
       pnl-mask.js         "Ocultar P&L": tapa importes y porcentajes con •••
 ```
 
@@ -236,4 +238,23 @@ Importar (`#/importar`) y Tabla (`#/tabla`) siguen siendo pantallas, enlazadas d
   alumno (reglas): queda vacío y marcado como eliminado. El admin no puede eliminarse desde aquí.
 - En "Ver como" (admin mirando a un alumno) solo salen Trofeos (lectura), Datos y Mantenimiento, y
   actúan sobre la cuenta del alumno.
+
+---
+
+## Diario del día
+
+Psicotrading → Reflexiones → Diaria ya no es un texto libre por día: es un diario en tres pasos
+(`js/components/diario-modal.js`, datos en `js/utils/diario.js`). Se abre también desde la columna
+Hoy, desde el chip del Dashboard y desde el Calendario.
+
+- **Plan** (antes de operar): sesgo, niveles, una regla y cómo llegas. **Trades**: los del día,
+  solos. **Revisión**: si seguiste el plan, límites, sensación, error principal y tres líneas
+  (qué hice bien, qué mejoro, la lección).
+- Se guarda en el mismo documento de la reflexión diaria (`users/{uid}/reflections/daily-AAAA-MM-DD`)
+  con dos bloques opcionales, `plan` y `review`. `content` sigue siendo el texto libre (ahora
+  "Notas libres"), así que las reflexiones antiguas se conservan sin migrar.
+- `plan.antes` marca si el plan se escribió antes del primer trade del día: es lo que permitirá
+  comparar días con plan y sin plan sin el sesgo de apuntarlo a posteriori.
+- La racha cuenta días laborables seguidos con plan o revisión. La lección escrita al revisar un día
+  vuelve en la columna Hoy en días alternos, en lugar de la regla del día.
 

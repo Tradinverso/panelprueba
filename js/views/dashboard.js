@@ -14,6 +14,8 @@ import {
 import { kpiCard, kpiCardComposite } from '../components/kpi-card.js';
 import { createEquity, createBar, createHourBar, createDayBar } from '../components/charts.js';
 import { renderHeatmap } from '../components/heatmap.js';
+import { openDiarioModal } from '../components/diario-modal.js';
+import { hoy as hoyDiario, estadoDia } from '../utils/diario.js';
 import { buildAlerts } from '../utils/diagnostics.js';
 import { renderPills } from '../components/pills.js';
 import { todayStatus } from '../utils/diagnostics.js';
@@ -62,6 +64,9 @@ function render(container) {
     if (b) b.outerHTML = checklistChip();
     container.querySelector('#semaforoChk')?.addEventListener('click', () => chkBtn.click());
   }));
+
+  // Chip del diario de hoy: abre el pop-up (plan, trades y revisión).
+  container.querySelector('#diarioChip')?.addEventListener('click', () => openDiarioModal());
 
   wirePeriod(container, dashPeriod, () => render(container), { idFrom: 'dashFrom', idTo: 'dashTo' });
 
@@ -218,6 +223,7 @@ function renderShell(allTrades, filtered) {
       <div class="page-actions">
         ${periodHtml(months, dashPeriod, { idFrom: 'dashFrom', idTo: 'dashTo' })}
         ${checklistChip()}
+        ${diarioChip()}
         ${semaforoPill(allTrades)}
         <a class="btn primary" href="#/nuevo">+ Nuevo trade</a>
       </div>
@@ -449,6 +455,16 @@ function checklistChip() {
             title="${hecho ? 'Checklist de esta sesión completado — pulsa para verlo' : 'Pulsa para abrir el checklist pre-sesión'}">
             ${hecho ? '✓ Checklist completo' : `☐ Checklist ${p.done}/${p.total}`}
           </button>`;
+}
+
+// Diario de hoy: naranja si falta el plan, verde cuando plan y revisión están.
+// En "Ver como" no sale: el diario es del alumno, no de quien mira.
+function diarioChip() {
+  if (state.viewAsUid) return '';
+  const e = estadoDia(hoyDiario());
+  const hecho = e.plan && e.review;
+  const txt = hecho ? '✓ Diario de hoy' : !e.plan ? '✎ Plan de hoy' : '✎ Revisar el día';
+  return `<button class="chk-chip ${hecho ? 'done' : !e.plan ? 'pending' : 'mid'}" id="diarioChip" title="Diario del día: plan antes de operar, trades y revisión">${txt}</button>`;
 }
 
 // ── Franja "Pulso" ───────────────────────────────────────────

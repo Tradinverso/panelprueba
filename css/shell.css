@@ -658,3 +658,98 @@ body.mesa-closed #mesa { flex: 0 0 98px; min-width: 98px; }
 .sdot.mid { background: #eab308; }
 .sdot.warn { background: var(--orange); }
 .sdot.bad { background: var(--alerta, var(--red)); }
+
+
+/* ════════════════════════════════════════════════════════════════
+   Diario del día (components/diario-modal.js, Psicotrading → Diaria):
+   Plan → Trades → Revisión, racha de días con diario y la lección propia.
+   ════════════════════════════════════════════════════════════════ */
+#modal-root .modal-body:has(> .dia) { white-space: normal; }
+.dia-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.dia-step { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; border: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer; transition: background .15s, border-color .15s; }
+.dia-step:hover { border-color: var(--border-strong); }
+.dia-step.on { background: color-mix(in srgb, var(--accent) 12%, transparent); border-color: var(--accent); }
+.dia-step-n { flex: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--muted); }
+.dia-step.done .dia-step-n { background: var(--green-bg); color: var(--green); }
+.dia-step b { display: block; font-size: 13px; font-weight: 600; line-height: 1.2; }
+.dia-step small { display: block; font-size: 11px; color: var(--muted); }
+.dia-top { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.dia-top .dia-steps { flex: 1; }
+.dia-res { flex: none; text-align: right; display: grid; gap: 2px; }
+.dia-res b { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.dia-res span { font-size: 11px; color: var(--muted); }
+.dia-q { display: block; margin: 16px 0 6px; font-size: 13px; font-weight: 600; color: var(--text); }
+.dia-q small { font-weight: 400; color: var(--muted); margin-left: 6px; }
+.dia-body > .dia-q:first-child, .dia-grid2 .dia-q { margin-top: 0; }
+.dia-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.dia-chips .pill.active.warn { border-color: var(--orange); background: var(--orange-bg); color: var(--orange); }
+.dia-chips .pill.active.bad { border-color: var(--red); background: var(--red-bg); color: var(--red); }
+.dia-chips .pill.active.ok { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+.dia-field { position: relative; }
+.dia-field textarea, .dia-row .form-input { width: 100%; box-sizing: border-box; }
+.dia-row { display: flex; gap: 8px; }
+.dia-row .form-input { flex: 1; min-width: 0; }
+.dia-row .btn { flex: none; white-space: nowrap; }
+.dia-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.dia-sello { margin-top: 14px; font-size: 12px; color: var(--muted); }
+.dia-sello.ok { color: var(--green); }
+.dia-recuerda { padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--text) 5%, transparent); font-size: 12.5px; margin-bottom: 14px; }
+.dia-recuerda span { color: var(--muted); white-space: pre-wrap; }
+.dia-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+.dia-hint { font-size: 12px; color: var(--muted); flex: 1 1 220px; }
+.dia-bottom { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 12.5px; }
+.dia-link { background: none; border: 0; padding: 0; font: inherit; font-size: 12px; color: var(--muted); cursor: pointer; text-decoration: underline; }
+.dia-link:hover { color: var(--red); }
+.dia-notas { margin-top: 16px; }
+.dia-notas summary { cursor: pointer; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.dia-vacio { padding: 34px 16px; text-align: center; color: var(--muted); font-size: 13px; line-height: 1.7; }
+.dia-trades { display: grid; gap: 6px; }
+.dia-trade { display: grid; grid-template-columns: 52px minmax(0, 1.4fr) 70px minmax(0, 1fr) auto 70px; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--line); font-size: 12.5px; }
+.dia-t-hora { color: var(--muted); font-variant-numeric: tabular-nums; }
+.dia-t-que, .dia-t-sens { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dia-t-sens { color: var(--muted); font-size: 11.5px; }
+.dia-t-plan { font-size: 11.5px; }
+.dia-t-pnl { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Psicotrading → Diaria: tarjeta de hoy, racha y lección */
+.dia-panel { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--gap, 14px); margin-bottom: 20px; }
+.dia-hoy { display: grid; gap: 16px; margin: 0 !important; }
+.dia-hoy-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
+.dia-eyebrow { font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.dia-fecha { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.15; margin-top: 2px; }
+.dia-hoy .dia-foot { margin-top: 0; }
+.dia-side { display: grid; gap: var(--gap, 14px); align-content: start; }
+.dia-side .card { margin: 0 !important; }
+.dia-racha-n { display: flex; align-items: baseline; gap: 8px; }
+.dia-racha-n b { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; }
+.dia-racha-n span { font-size: 12px; color: var(--muted); }
+.dia-dots { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; margin-top: 12px; }
+.dia-dots i { height: 16px; border-radius: 5px; background: color-mix(in srgb, var(--text) 8%, transparent); }
+.dia-dots i.half { background: color-mix(in srgb, var(--accent) 45%, transparent); }
+.dia-dots i.full { background: var(--accent); }
+.dia-dots i.hoy { outline: 2px solid var(--border-strong); outline-offset: 1px; }
+.dia-leccion-t { margin-top: 8px; font-size: 14px; font-weight: 600; line-height: 1.45; }
+.dia-leccion-f { margin-top: 6px; font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+
+/* Columna Hoy y Dashboard */
+.mesa-dia-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.mesa-dia-steps i { font-style: normal; text-align: center; font-size: 10.5px; font-weight: 600; padding: 4px 2px; border-radius: 8px; color: var(--muted); background: color-mix(in srgb, var(--text) 7%, transparent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mesa-dia-steps i.ok { color: var(--green); background: var(--green-bg); }
+.mesa-chk-head span.ok { color: var(--green); }
+button.mesa-rail-link { cursor: pointer; font: inherit; padding: 0; }
+.mesa-rail-dia.half { color: var(--accent); }
+.mesa-rail-dia.ok { color: var(--green); }
+.chk-chip.mid { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+@media (max-width: 1100px) {
+  .dia-panel { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .dia-top { flex-direction: column; align-items: stretch; }
+  .dia-res { text-align: left; }
+  .dia-steps { grid-template-columns: 1fr; }
+  .dia-grid2 { grid-template-columns: 1fr; }
+  .dia-row { flex-direction: column; }
+  .dia-trade { grid-template-columns: 46px minmax(0, 1fr) auto 62px; }
+  .dia-t-plan, .dia-t-sens { display: none; }
+}
