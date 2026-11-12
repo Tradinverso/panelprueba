@@ -26,7 +26,7 @@ export const FIRMAS = [
   {
     id: 'wsfunded', nombre: 'WSFunded', mercados: ['CFD'],
     url: 'https://purchase.wsfunded.com/?sp_rid=694ba5a115299b253517eb53',
-    codigos: [], logo: 'assets/firmas/wsfunded.png', fondo: '#ffffff',
+    codigos: [{ codigo: 'TRADINVERSO' }], logo: 'assets/firmas/wsfunded.png', fondo: '#ffffff',
   },
   {
     id: 'nys', nombre: 'NYS Markets', mercados: ['Futuros', 'CFD'],
