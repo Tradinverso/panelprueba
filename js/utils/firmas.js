@@ -51,7 +51,7 @@ export const FIRMAS = [
   {
     id: 'alpha', nombre: 'Alpha Futures', mercados: ['Futuros'],
     url: 'https://app.alpha-futures.com/signup/Jose_David021098/',
-    codigos: [], logo: 'assets/firmas/alpha.png', lleno: true, fondo: '#06231a',
+    codigos: [{ codigo: 'Jose_David021098' }], logo: 'assets/firmas/alpha.png', lleno: true, fondo: '#06231a',
   },
   {
     id: 'tradecopia', nombre: 'Tradecopia', tipo: 'herramienta', descripcion: 'Copiador de cuentas', mercados: ['Futuros'],
