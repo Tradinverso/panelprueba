@@ -364,6 +364,7 @@ function showBackupV2Selector(resultEl, parsed) {
   const cuentas = Array.isArray(parsed.cuentas) ? parsed.cuentas : [];
   const reflections = Array.isArray(parsed.reflections) ? parsed.reflections : [];
   const perfiles = Array.isArray(parsed.perfiles) ? parsed.perfiles : [];
+  const backtests = Array.isArray(parsed.backtests) ? parsed.backtests : [];
   const tradingPlan = (parsed.tradingPlan && typeof parsed.tradingPlan === 'object') ? parsed.tradingPlan : null;
   const proto = tradingPlan && tradingPlan.protocolos;
   const hasProto = Array.isArray(proto) ? proto.length > 0 : !!(proto && (proto.content || proto.docUrl));
@@ -395,6 +396,10 @@ function showBackupV2Selector(resultEl, parsed) {
           <input type="checkbox" id="bkPerfiles" ${perfiles.length ? '' : 'disabled'}>
           <span><strong>Perfiles de riesgo</strong> (${perfiles.length}) — los existentes con mismo ID se sobrescriben</span>
         </label>
+        <label style="display:flex;gap:8px;align-items:center;cursor:${backtests.length ? 'pointer' : 'not-allowed'};opacity:${backtests.length ? 1 : 0.5};">
+          <input type="checkbox" id="bkBacktests" ${backtests.length ? '' : 'disabled'}>
+          <span><strong>Backtests</strong> (${backtests.length}), incluidos los no tomados — los duplicados se ignoran</span>
+        </label>
         <label style="display:flex;gap:8px;align-items:center;cursor:${hasPlan ? 'pointer' : 'not-allowed'};opacity:${hasPlan ? 1 : 0.5};">
           <input type="checkbox" id="bkPlan" ${hasPlan ? '' : 'disabled'}>
           <span><strong>Plan de trading y protocolos</strong> — sobrescribe el plan y los protocolos actuales</span>
@@ -418,7 +423,8 @@ function showBackupV2Selector(resultEl, parsed) {
     const wantReflections = resultEl.querySelector('#bkReflections').checked;
     const wantPerfiles = resultEl.querySelector('#bkPerfiles').checked;
     const wantPlan = resultEl.querySelector('#bkPlan').checked;
-    if (!wantTrades && !wantCuentas && !wantReflections && !wantPerfiles && !wantPlan) {
+    const wantBacktests = resultEl.querySelector('#bkBacktests').checked;
+    if (!wantTrades && !wantCuentas && !wantReflections && !wantPerfiles && !wantPlan && !wantBacktests) {
       resultEl.querySelector('#bkResult').innerHTML = '<div class="import-result err">Selecciona al menos una sección a importar.</div>';
       return;
     }
@@ -463,6 +469,10 @@ function showBackupV2Selector(resultEl, parsed) {
           n++;
         }
         parts.push(`${n} perfiles`);
+      }
+      if (wantBacktests && backtests.length) {
+        const r = state.addBacktestsMany(backtests) || {};
+        parts.push(`${r.added ?? backtests.length} backtests${r.dup ? ` (${r.dup} duplicados ignorados)` : ''}`);
       }
       if (wantPlan && hasPlan) {
         state.saveTradingPlan(tradingPlan);
