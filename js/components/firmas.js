@@ -9,6 +9,18 @@ import { firmasDe, mercadoLabel } from '../utils/firmas.js';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 let filtro = 'all';          // 'all' | 'Futuros' | 'CFD' — propio del bloque
+let irAlBloque = false;      // lo pide el botón "Prop firms" de la columna Hoy
+
+// Botón "Prop firms": lleva a Cuentas y baja hasta el bloque.
+export function irAFirmas() {
+  const el = document.getElementById('firmas');
+  if (el && location.hash.startsWith('#/cuentas') && !location.hash.startsWith('#/cuentas/')) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+  irAlBloque = true;
+  location.hash = '#/cuentas';
+}
 
 function codigosHtml(f) {
   if (!f.codigos || !f.codigos.length) return '';
@@ -22,18 +34,31 @@ function codigosHtml(f) {
 
 function tarjeta(f) {
   const tags = f.mercados.map(m => `<span class="firma-tag">${mercadoLabel(m)}</span>`).join('');
+  if (f.destacada) return `
+    <div class="firma destacada">
+      <span class="firma-logo" style="background:${f.fondo || '#fff'}"><img src="${esc(f.logo)}" alt=""></span>
+      <div class="firma-id">
+        ${f.insignia ? `<span class="firma-badge">${ic('ok')} ${esc(f.insignia)}</span>` : ''}
+        <div class="firma-name">${esc(f.nombre)}</div>
+        <div class="firma-lema">${esc(f.lema || 'La que recomendamos')}</div>
+        <div class="firma-tags">${tags}</div>
+      </div>
+      <div class="firma-side">
+        ${codigosHtml(f)}
+        <a class="btn primary firma-go" href="${esc(f.url)}" target="_blank" rel="noopener sponsored">Ir a ${esc(f.nombre)} ${ic('enlace')}</a>
+      </div>
+    </div>`;
   return `
-    <div class="firma${f.destacada ? ' destacada' : ''}">
+    <div class="firma">
       <div class="firma-top">
         <span class="firma-logo" style="background:${f.fondo || '#fff'}"><img src="${esc(f.logo)}" alt="" loading="lazy"></span>
         <div class="firma-id">
-          ${f.destacada ? '<span class="firma-badge">La que recomendamos</span>' : ''}
           <div class="firma-name">${esc(f.nombre)}</div>
           <div class="firma-tags">${f.descripcion ? `<span class="firma-desc">${esc(f.descripcion)}</span>` : ''}${tags}</div>
         </div>
       </div>
       ${codigosHtml(f)}
-      <a class="btn ${f.destacada ? 'primary' : ''} firma-go" href="${esc(f.url)}" target="_blank" rel="noopener sponsored">Ir a la web ${ic('enlace')}</a>
+      <a class="btn firma-go" href="${esc(f.url)}" target="_blank" rel="noopener sponsored">Ir a la web ${ic('enlace')}</a>
     </div>`;
 }
 
@@ -58,6 +83,14 @@ export function firmasHtml() {
 
 // `repintar` vuelve a pintar la vista que contiene el bloque.
 export function wireFirmas(container, repintar) {
+  if (irAlBloque) {
+    irAlBloque = false;
+    // El router sube arriba al cambiar de vista y la vista puede repintarse al
+    // llegar: se baja al bloque después, y otra vez por si algo lo ha movido.
+    const bajar = () => document.getElementById('firmas')?.scrollIntoView({ block: 'start' });
+    setTimeout(bajar, 60);
+    setTimeout(bajar, 450);
+  }
   const tabs = container.querySelector('#firmasTabs');
   if (tabs) {
     renderPills(tabs, {

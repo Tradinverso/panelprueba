@@ -21,6 +21,7 @@ import { getHoyData, onHoyData, noticiasDeHoy, noticiasDeLaSemana, proximosDirec
 import { tituloEs } from '../utils/noticias-es.js';
 import { openDiarioModal } from './diario-modal.js';
 import { hoy as hoyDiario, estadoDia, tradesDe, leccionDeHoy } from '../utils/diario.js';
+import { irAFirmas } from './firmas.js';
 
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
 // Calendario económico completo (la lista de la caja sale de Forex Factory).
@@ -241,6 +242,11 @@ export function renderMesa(container) {
         <span class="mesa-cta-text"><b>Formación</b><small>Cursos · directos</small></span>
         <span class="mesa-cta-arrow">↗</span>
       </a>
+      ${state.viewAsUid ? '' : `<a class="card mesa-cta" href="#/cuentas" data-firmas title="Las firmas de fondeo que usamos en Tradinverso">
+        <span class="mesa-cta-ic alt">${icon('edificio')}</span>
+        <span class="mesa-cta-text"><b>Prop firms</b><small>Las que usamos · códigos</small></span>
+        <span class="mesa-cta-arrow">→</span>
+      </a>`}
       ${hoyData ? '' : `<a class="card mesa-cta" href="${newsUrl}" target="_blank" rel="noopener noreferrer" title="Calendario económico de Investing">
         <span class="mesa-cta-ic alt">${icon('noticias')}</span>
         <span class="mesa-cta-text"><b>Noticias</b><small>Calendario económico</small></span>
@@ -272,6 +278,7 @@ export function renderMesa(container) {
         <button type="button" class="mesa-rail-link mesa-rail-dia ${diaEst.plan && diaEst.review ? 'ok' : diaEst.plan ? 'half' : ''}" id="mesaDiario" title="Diario de hoy · ${!diaEst.plan ? 'falta el diario inverso' : !diaEst.review ? 'falta el diario del trader' : 'completo'}" aria-label="Diario de hoy">${icon('nota')}</button>
         <span class="mesa-sep"></span>
         <a class="mesa-rail-link" href="${FORMACION_URL}" target="_blank" rel="noopener noreferrer" title="Formación · cursos y directos" aria-label="Formación">${icon('formacion')}</a>
+        ${state.viewAsUid ? '' : `<a class="mesa-rail-link" href="#/cuentas" data-firmas title="Prop firms · las que usamos y sus códigos" aria-label="Prop firms">${icon('edificio')}</a>`}
         ${sigHoy
           ? `<a class="mesa-rail-news" href="${newsUrl}" target="_blank" rel="noopener noreferrer" title="Noticia de alto impacto hoy a las ${horaEn(sigHoy.t, tz)}: ${escapeHtml(sigHoy.cur + ' ' + tituloEs(sigHoy.title))}">${horaEn(sigHoy.t, tz)}</a>`
           : `<a class="mesa-rail-link" href="${newsUrl}" target="_blank" rel="noopener noreferrer" title="${hoyData ? (noticias.length ? 'Las noticias de alto impacto de hoy ya han salido' : 'Hoy no hay noticias de alto impacto') : 'Noticias · calendario económico'}" aria-label="Noticias">${icon('noticias')}</a>`}
@@ -281,6 +288,7 @@ export function renderMesa(container) {
   // Checklist: anillo (columna recogida) o fila con barra (abierta)
   const chkBtn = container.querySelector('#mesaChecklist');
   if (chkBtn) chkBtn.addEventListener('click', () => openChecklistModal(() => renderMesa(container)));
+  container.querySelectorAll('[data-firmas]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); irAFirmas(); }));
   const diaBtn = container.querySelector('#mesaDiario');
   if (diaBtn) diaBtn.addEventListener('click', () => openDiarioModal());
 

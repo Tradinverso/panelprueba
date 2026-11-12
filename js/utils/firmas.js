@@ -4,13 +4,15 @@
 // Para añadir, quitar o cambiar una: editar esta lista. El orden es el de aquí.
 //   mercados   'Futuros' y/o 'CFD' (los mismos valores que el tipo de cuenta)
 //   codigos    [{ codigo, nota }] — sin descuentos: cambian a menudo
-//   destacada  la que recomendamos primero (tarjeta grande); solo una
+//   destacada  la que recomendamos primero (tarjeta grande); solo una.
+//              `insignia` y `lema` son los dos textos de esa tarjeta
 //   tipo       'firma' (por defecto) o 'herramienta'
 //   logo       icono cuadrado en assets/firmas; `fondo` es el color de su baldosa
 
 export const FIRMAS = [
   {
     id: 'earn2trade', nombre: 'Earn2Trade', mercados: ['Futuros'], destacada: true,
+    insignia: 'Empresa colaboradora oficial', lema: 'La que recomendamos para escalar',
     url: 'https://www.earn2trade.com/?a_pid=davidrosellfx',
     codigos: [], logo: 'assets/firmas/earn2trade.png', fondo: '#ffffff',
   },
@@ -31,7 +33,7 @@ export const FIRMAS = [
     codigos: [{ codigo: 'TRADINVERSO' }], logo: 'assets/firmas/nys.png', fondo: '#ffffff',
   },
   {
-    id: 'fundednext', nombre: 'FundedNext', mercados: ['Futuros'],
+    id: 'fundednext', nombre: 'FundedNext', mercados: ['Futuros', 'CFD'],
     url: 'https://fundednext.com/?fpr=INVERSO',
     codigos: [{ codigo: 'INVERSO' }], logo: 'assets/firmas/fundednext.png', fondo: '#ffffff',
   },

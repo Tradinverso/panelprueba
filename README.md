@@ -281,5 +281,6 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   enlace de afiliado y su código, con filtro Futuros / CFDs. La lista está en `js/utils/firmas.js`
   (añadir, quitar o cambiar una es editar una entrada) y los logos en `assets/firmas/`. No guarda
   nada en la cuenta del alumno y no se muestra cuando el admin está viendo a un alumno. No lleva
-  descuentos a propósito: cambian a menudo.
+  descuentos a propósito: cambian a menudo. La columna Hoy tiene un botón "Prop firms" debajo de
+  Formación que lleva a Cuentas y baja hasta el bloque.
 
