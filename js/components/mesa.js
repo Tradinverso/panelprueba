@@ -296,6 +296,36 @@ export function renderMesa(container) {
     appearance.set({ mesa: !open });
     renderMesa(container);
   });
+
+  ajustarMesa(container);
+  if (!conResize) {
+    conResize = true;
+    let t = null;
+    window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => ajustarMesa(container), 120); });
+  }
+}
+
+// La columna abierta tiene que verse entera sin scroll. Si el contenido no cabe
+// en el alto de la ventana se reduce un poco a escala (mismo contenido, más
+// pequeño), con un tope para que siga leyéndose; por debajo de ese tope vuelve
+// el scroll de siempre. En móvil la columna no tiene alto fijo y no se toca.
+const ESCALA_MIN = 0.8;
+let conResize = false;
+function ajustarMesa(container) {
+  container.style.removeProperty('--mesa-zoom');
+  // Dónde empieza la columna con la página sin bajar (debajo de la barra de
+  // arriba): el alto disponible se cuenta desde ahí, no desde el borde.
+  const fila = container.parentElement;
+  if (fila) container.style.setProperty('--mesa-top', Math.max(14, Math.round(fila.getBoundingClientRect().top + window.scrollY)) + 'px');
+  if (document.body.classList.contains('mesa-closed')) return;
+  let z = 1;
+  for (let i = 0; i < 3; i++) {
+    const cabe = container.clientHeight, pide = container.scrollHeight;
+    if (!cabe || pide <= cabe + 1) break;
+    z = Math.max(ESCALA_MIN, z * cabe / pide - 0.005);
+    container.style.setProperty('--mesa-zoom', z.toFixed(3));
+    if (z === ESCALA_MIN) break;
+  }
 }
 
 function escapeHtml(s) {

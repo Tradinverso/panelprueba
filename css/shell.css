@@ -17,7 +17,8 @@ body {
 }
 #topbar, #shell, #footer { position: relative; z-index: 1; }
 #shell { display: flex; gap: 14px; align-items: flex-start; flex: 1; }
-#mesa { flex: 0 0 260px; min-width: 240px; position: sticky; top: 14px; max-height: calc(100vh - 28px); overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+/* --mesa-top = donde empieza la columna sin haber bajado (lo pone mesa.js): asi cabe entera tambien arriba del todo */
+#mesa { flex: 0 0 260px; min-width: 240px; position: sticky; top: 14px; max-height: calc(100vh - var(--mesa-top, 71px) - 14px); overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
 body.mesa-closed #mesa { flex: 0 0 58px; min-width: 58px; }
 #view {
   flex: 1 1 560px; min-width: 0;
@@ -818,4 +819,64 @@ button.mesa-rail-link { cursor: pointer; font: inherit; padding: 0; }
 
 @media (max-width: 640px) {
   .pulse-disc { flex: 1 1 100%; border-left: 0; border-top: 1px solid var(--line); padding: 12px 14px; }
+}
+
+/* ── Columna Hoy más compacta y a escala (js/components/mesa.js → ajustarMesa) ──
+   Mismo contenido: menos aire entre cajas y, si aun así no cabe en el alto de
+   la ventana, una escala un poco menor. */
+#mesa { gap: 8px; }
+#mesa > * { zoom: var(--mesa-zoom, 1); }
+#mesa .mesa-box { padding: 11px 14px; gap: 7px; }
+#mesa .mesa-cta { padding: 8px 12px !important; gap: 10px; }
+#mesa .mesa-cta-ic { width: 30px; height: 30px; border-radius: 10px; }
+#mesa .mesa-acc { gap: 3px; }
+#mesa .mesa-news { padding: 2px 0; }
+
+/* ── Psicotrading → Diaria: el mes entero a la vista ──────────────────────
+   Filas de alto fijo (como en Calendario) y, en pantalla ancha, el panel de
+   hoy pasa a la derecha y el alto de las filas se reparte con la ventana. */
+.psico-daily { display: flex; flex-direction: column; }
+.psico-daily > .dia-panel { order: -1; }
+.psico-cal-wrap .cal-grid { --psico-row: 88px; grid-auto-rows: var(--psico-row); }
+:root[data-skin] .psico-cal-wrap .cal-cell, :root[data-skin] .psico-day { min-height: 0; overflow: hidden; }
+.psico-day { padding: 7px 9px; }
+.psico-day-marks { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.psico-day-plan { display: inline-flex; gap: 5px; font-size: 10.5px; white-space: nowrap; }
+.psico-day-body { margin-top: 0; gap: 1px; min-height: 0; }
+.psico-day-pnl { font-size: 17px; }
+.psico-day-meta { font-size: 10.5px; line-height: 1.2; }
+:root[data-skin] .psico-day .psico-reflex-dot { width: 20px; height: 20px; border-radius: 7px; font-size: 11px; }
+:root[data-skin] .psico-day .psico-reflex-dot svg { width: 12px; height: 12px; }
+
+@media (min-width: 1280px) {
+  .psico-daily { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--gap, 14px); align-items: start; }
+  .psico-daily > .dia-panel { order: 0; grid-template-columns: 1fr; margin-bottom: 0; }
+  .psico-daily .psico-nav { margin-top: 0; }
+  .psico-daily .dia-steps { grid-template-columns: 1fr; gap: 6px; }
+  .psico-daily .dia-step { padding: 8px 10px; }
+  .psico-daily .dia-fecha { font-size: 22px; }
+  .psico-daily .dia-hoy { gap: 12px; }
+  .psico-daily .dia-foot .btn { flex: 1 1 100%; }
+  /* alto de fila = lo que queda de ventana bajo la cabecera, entre las semanas del mes */
+  .psico-cal-wrap .cal-grid {
+    --psico-row: clamp(58px, calc((100vh - var(--psico-top, 392px) - (var(--psico-rows, 6) - 1) * 8px) / var(--psico-rows, 6)), 132px);
+  }
+}
+@media (min-width: 1280px) and (max-height: 840px) {
+  /* ventana baja: filas mas cortas, se aprieta el interior del dia */
+  .psico-day { padding: 5px 8px; }
+  .psico-day-pnl { font-size: 15px; }
+  .psico-day .cal-num { font-size: 13px; }
+}
+
+@media (max-width: 640px) {
+  /* móvil: celdas de 40 px de ancho. Solo el número, el resultado y la marca
+     de reflexión; el detalle del día se ve al tocarlo. */
+  .psico-cal-wrap .cal-grid { --psico-row: 64px; }
+  .psico-day { padding: 5px 3px; }
+  .psico-day-pnl { font-size: 11px; letter-spacing: -.4px; }
+  .psico-day-meta, .psico-day-plan { display: none; }
+  .psico-day .cal-num { font-size: 12px; }
+  :root[data-skin] .psico-day .psico-reflex-dot { width: 14px; height: 14px; border-radius: 5px; }
+  :root[data-skin] .psico-day .psico-reflex-dot svg { width: 9px; height: 9px; }
 }

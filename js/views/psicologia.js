@@ -134,24 +134,30 @@ function diarioHoyHtml() {
 }
 
 function renderDaily(body) {
+  // En pantalla ancha el calendario va a la izquierda y el panel de hoy a la
+  // derecha, para que el mes entero quepa sin bajar. En estrecha, el panel arriba.
   body.innerHTML = `
-    ${diarioHoyHtml()}
-    <div class="psico-nav">
-      <button class="cal-btn" id="prevMonth">‹</button>
-      <span class="cal-month-label">${MONTHS_ES[calMonth]} ${calYear}</span>
-      <button class="cal-btn" id="nextMonth">›</button>
-    </div>
-    <div class="psico-cal-wrap">
-      <div class="cal-dow-row">
-        <div class="cal-dow">LUN</div>
-        <div class="cal-dow">MAR</div>
-        <div class="cal-dow">MIÉ</div>
-        <div class="cal-dow">JUE</div>
-        <div class="cal-dow">VIE</div>
-        <div class="cal-dow">SÁB</div>
-        <div class="cal-dow">DOM</div>
+    <div class="psico-daily">
+      <div class="psico-daily-cal">
+        <div class="psico-nav">
+          <button class="cal-btn" id="prevMonth">‹</button>
+          <span class="cal-month-label">${MONTHS_ES[calMonth]} ${calYear}</span>
+          <button class="cal-btn" id="nextMonth">›</button>
+        </div>
+        <div class="psico-cal-wrap">
+          <div class="cal-dow-row">
+            <div class="cal-dow">LUN</div>
+            <div class="cal-dow">MAR</div>
+            <div class="cal-dow">MIÉ</div>
+            <div class="cal-dow">JUE</div>
+            <div class="cal-dow">VIE</div>
+            <div class="cal-dow">SÁB</div>
+            <div class="cal-dow">DOM</div>
+          </div>
+          <div class="cal-grid" id="psicoGrid"></div>
+        </div>
       </div>
-      <div class="cal-grid" id="psicoGrid"></div>
+      ${diarioHoyHtml()}
     </div>
   `;
 
@@ -204,21 +210,21 @@ function paintDailyGrid(body) {
     const planParts = [];
     if (inPlanDay > 0) planParts.push(`<span style="color:var(--green);">✓ ${inPlanDay}</span>`);
     if (outOfPlanDay > 0) planParts.push(`<span style="color:var(--red);">✗ ${outOfPlanDay}</span>`);
+    // Va en la cabecera del día, junto al número: así no gasta una línea.
     const planLine = planParts.length
-      ? `<div class="psico-day-plan">${planParts.join(' · ')}</div>`
+      ? `<span class="psico-day-plan" title="Trades dentro y fuera del plan">${planParts.join(' ')}</span>`
       : '';
 
     html += `
       <div class="${cls}" data-day="${ds}">
         <div class="psico-day-head">
           <span class="cal-num">${d}</span>
-          ${hasReflex ? '<span class="psico-reflex-dot" title="Reflexión guardada">' + ic('nota') + '</span>' : ''}
+          <span class="psico-day-marks">${planLine}${hasReflex ? '<span class="psico-reflex-dot" title="Reflexión guardada">' + ic('nota') + '</span>' : ''}</span>
         </div>
         ${stats.count ? `
           <div class="psico-day-body">
             <div class="psico-day-pnl">${fmtPct(stats.pnlSistema, 1)}</div>
             <div class="psico-day-meta">${stats.count} trade${stats.count > 1 ? 's' : ''}${breakdown ? ' · ' + breakdown : ''}</div>
-            ${planLine}
           </div>
         ` : `<div class="psico-day-body empty">${diaEst.sinOperar ? 'sin operar' : '–'}</div>`}
       </div>
@@ -228,6 +234,8 @@ function paintDailyGrid(body) {
   for (let i = 1; i <= rem; i++) html += `<div class="cal-cell other"><span class="cal-num">${i}</span></div>`;
 
   grid.innerHTML = html;
+  // Nº de semanas del mes (5 o 6): el alto de cada fila se reparte con él.
+  grid.style.setProperty('--psico-rows', Math.ceil((firstDow + daysInMonth) / 7));
 
   grid.querySelectorAll('[data-day]').forEach(el => {
     el.addEventListener('click', () => openDailyModal(el.dataset.day));
