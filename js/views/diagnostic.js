@@ -14,7 +14,7 @@ function render(container) {
     return;
   }
 
-  const a = buildAlerts(trades, { cuentas: state.cuentas });
+  const a = buildAlerts(trades, { cuentas: state.cuentas, reflections: state.reflections });
   container.innerHTML = `
     <div class="page-header">
       <div>

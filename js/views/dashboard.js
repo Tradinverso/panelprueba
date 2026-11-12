@@ -583,7 +583,7 @@ function paintTiming(container, trades) {
 function paintDiagMini(container, trades) {
   const el = container.querySelector('#diagMini');
   if (!el) return;
-  const a = buildAlerts(trades, { cuentas: state.cuentas });
+  const a = buildAlerts(trades, { cuentas: state.cuentas, reflections: state.reflections });
   const rank = { danger: 0, warning: 1, success: 2 };
   const all = [...a.tecAlertas, ...a.emoAlertas, ...a.planAlertas, ...a.tecInsights, ...a.emoInsights, ...a.planInsights]
     .sort((x, y) => (rank[x.type] ?? 9) - (rank[y.type] ?? 9))

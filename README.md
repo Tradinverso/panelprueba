@@ -264,6 +264,10 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
 - **Campos del trade añadidos** (opcionales; los trades antiguos no cambian): `exit_reason`, el
   motivo de salida (`tp`/`sl`/`be` se deducen del resultado; `miedo`/`noticia`/`tiempo` son cierres
   manuales que marca el trader), y `post_loss`, si fue una entrada tras una pérdida.
+- **Diagnósticos que salen de aquí** (`js/utils/diagnostics.js`, como frases en sus cajas): días con
+  diario inverso frente a días sin él, días en que el trader dice no haber respetado su plan, hábito
+  de hacer el diario, días sin operar, cierres a mano por motivo y entradas tras una pérdida. Además:
+  "con y sin" por zona y tipo de entrada, y duración de ganadores frente a perdedores.
 - La racha cuenta días laborables seguidos con plan o revisión. La lección escrita al revisar un día
   vuelve en la columna Hoy en días alternos, en lugar de la regla del día.
 

@@ -31,7 +31,7 @@ import {
   withSensacion, sensacionStats,
   NEGATIVAS, POSITIVAS,
 } from './sensaciones.js';
-import { STRATEGIES, TP_RANGE, R_MAXIMO, tpRangeLabel } from './strategy-config.js';
+import { STRATEGIES, TP_RANGE, R_MAXIMO, tpRangeLabel, esMotivoManual } from './strategy-config.js';
 import { fmtPct } from './number-format-es.js';
 import { tzHourDiff, todayLocal } from './timezone.js';
 import { auth } from '../auth.js';
@@ -93,6 +93,18 @@ const UMBRALES = {
     diasPositivos: { min: 8, bien: 60 },
     sensacion: { min: 8, dif: 5 },
     sinNegativas: { dias: 30, min: 10 },
+    // "Con y sin": una zona o tipo de entrada frente a los trades sin ella
+    // Exigente a propósito: con 10 trades y 10 puntos saltaba el 78 % de los días a
+    // todos los alumnos (medido). Hace falta muestra en los dos lados, una
+    // diferencia clara y que el azar la explique menos del 5 % de las veces (z).
+    conSin: { min: 20, dif: 12, z: 1.64 },
+    // Duración de ganadores frente a perdedores (mediana, en minutos)
+    duracion: { min: 15, slRapido: 5, factorRapido: 0.25, factorLargo: 1.25 },
+    // Diario del día: días con diario inverso frente a sin él
+    diario: { minDias: 5, minPlan: 3, ultimos: 10, pocos: 4, difDia: 0.25 },   // difDia: % de P&L por día para decir que rinden más
+    // Cierres manuales y entradas tras una pérdida
+    motivo: { min: 3 },
+    trasPerdida: { min: 5, resto: 10, dif: 8 },
   },
 };
 
@@ -237,6 +249,8 @@ function ventana(ts, filtro, min) {
 // ── Punto de entrada ───────────────────────────────────────
 // `ctx.cuentas` (opcional): las cuentas del alumno, para comparar la ejecución
 // en cuentas fondeadas frente a las de prueba.
+// `ctx.reflections` (opcional): sus reflexiones, de donde sale el diario del día
+// (diario inverso por la mañana y diario del trader al cerrar).
 export function buildAlerts(trades, ctx = {}) {
   const tecAlertas = [];
   const tecInsights = [];
@@ -684,6 +698,130 @@ export function buildAlerts(trades, ctx = {}) {
     tecInsights.push(success('↕',
       `${etiqueta(sheet)}: aciertas más en ${mejor.key} — ${mejor.wr.toFixed(0)}% frente a ${peor.wr.toFixed(0)}%`,
       `${mejor.key} ${fmtPct(mejor.r, 1)} en ${mejor.n} trades; ${peor.key} ${fmtPct(peor.r, 1)} en ${peor.n}.`));
+  }
+
+  // ── Con y sin: zonas y tipos de entrada, dentro de cada estrategia ──
+  // "Con esta zona aciertas X puntos más que sin ella": una comparación más
+  // justa que buscar "la peor", porque enfrenta dos grupos con muestra.
+  const escTxt = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const conSin = campo => {
+    const out = [];
+    for (const sheet of SHEETS) {
+      const sub = limpios.filter(t => t.sheet === sheet);
+      const lista = t => Array.isArray(t[campo]) ? t[campo] : (t[campo] ? [t[campo]] : []);
+      for (const v of new Set(sub.flatMap(lista))) {
+        const con = resumenR(sub.filter(t => lista(t).includes(v)));
+        const sin = resumenR(sub.filter(t => !lista(t).includes(v)));
+        if (con.dec < P.conSin.min || sin.dec < P.conSin.min) continue;
+        const pTot = (con.tp + sin.tp) / (con.dec + sin.dec);
+        const ee = Math.sqrt(pTot * (1 - pTot) * (1 / con.dec + 1 / sin.dec));
+        const z = ee ? (con.tp / con.dec - sin.tp / sin.dec) / ee : 0;
+        out.push({ sheet, v, con, sin, dif: con.wr - sin.wr, z });
+      }
+    }
+    return out;
+  };
+  for (const [campo, nombre] of [['zone', 'zona'], ['entry', 'entrada']]) {
+    const lista = conSin(campo);
+    if (!lista.length) continue;
+    const mejor = [...lista].sort((a, b) => b.dif - a.dif)[0];
+    const peor = [...lista].sort((a, b) => a.dif - b.dif)[0];
+    if (mejor.dif >= P.conSin.dif && mejor.z >= P.conSin.z) tecInsights.push(success('✓',
+      `Con ${nombre} «${escTxt(mejor.v)}» aciertas ${mejor.dif.toFixed(0)} puntos más`,
+      `${mejor.con.wr.toFixed(0)}% con ella (${fmtPct(mejor.con.r, 1)} en ${mejor.con.n} trades) frente a ${mejor.sin.wr.toFixed(0)}% sin ella, en ${etiqueta(mejor.sheet)}. ${muestra(mejor.con.n)}`));
+    if (peor.dif <= -P.conSin.dif && peor.z <= -P.conSin.z) tecAlertas.push(warn('🚫',
+      `Con ${nombre} «${escTxt(peor.v)}» aciertas ${Math.abs(peor.dif).toFixed(0)} puntos menos`,
+      `${peor.con.wr.toFixed(0)}% con ella (${fmtPct(peor.con.r, 1)} en ${peor.con.n} trades) frente a ${peor.sin.wr.toFixed(0)}% sin ella, en ${etiqueta(peor.sheet)}. ${muestra(peor.con.n)}`));
+  }
+
+  // ── Duración: ganadores frente a perdedores (mediana) ──
+  const durOk = t => typeof t.dur === 'number' && t.dur > 0 && t.dur < 720;
+  const mediana = arr => { const o = [...arr].sort((a, b) => a - b); return o.length ? o[Math.floor(o.length / 2)] : 0; };
+  const minTxt = m => m < 90 ? `${Math.round(m)} min` : `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, '0')}`;
+  const durTP = limpios.filter(t => t.result === 'TP' && durOk(t)).map(t => t.dur);
+  const durSL = limpios.filter(t => t.result === 'SL' && durOk(t)).map(t => t.dur);
+  if (durTP.length >= P.duracion.min && durSL.length >= P.duracion.min) {
+    const mT = mediana(durTP), mS = mediana(durSL);
+    if (mS > mT * P.duracion.factorLargo) {
+      tecAlertas.push(warn('⏳',
+        `Aguantas más los trades que pierden: ${minTxt(mS)} frente a ${minTxt(mT)}`,
+        `Duración mediana de tus ${durSL.length} SL y de tus ${durTP.length} TP. Suele pasar al alargar el SL o al cerrar pronto los ganadores.`));
+    } else if (mS <= P.duracion.slRapido && mS < mT * P.duracion.factorRapido) {
+      tecAlertas.push(warn('⏳',
+        `Tus SL saltan muy rápido: ${minTxt(mS)} de mediana`,
+        `Frente a ${minTxt(mT)} en los TP. Revisa si entras antes de la confirmación o con el stop demasiado ajustado.`));
+    } else if (mS < mT) {
+      tecInsights.push(success('✓',
+        `Duración: tus TP duran ${minTxt(mT)} y tus SL ${minTxt(mS)}`,
+        `Mediana de ${durTP.length} TP y ${durSL.length} SL. Lo que no funciona sale pronto y lo que funciona corre.`));
+    }
+  }
+
+  // ── Diario del día: días con diario inverso frente a días sin él ──
+  const diarios = (Array.isArray(ctx.reflections) ? ctx.reflections : []).filter(r => r && r.type === 'daily');
+  const conDiario = diarios.filter(r => r.plan || r.review).map(r => r.period).sort();
+  if (conDiario.length) {
+    const porDia = new Map(diarios.map(r => [r.period, r]));
+    const media = arr => arr.reduce((a, b) => a + b, 0) / (arr.length || 1);
+    // Solo cuentan los días operados desde que se empezó el diario.
+    const diasOp = operatedDays.filter(d => d >= conDiario[0]);
+    const conInv = diasOp.filter(d => porDia.get(d) && porDia.get(d).plan);
+    const sinInv = diasOp.filter(d => !(porDia.get(d) && porDia.get(d).plan));
+    if (conInv.length >= P.diario.minDias && sinInv.length >= P.diario.minDias) {
+      const mCon = media(conInv.map(d => dayPnl[d])), mSin = media(sinInv.map(d => dayPnl[d]));
+      if (mCon - mSin >= P.diario.difDia) planInsights.push(success('✓',
+        `Los días con diario inverso rinden más: ${fmtPct(mCon, 2)} de media`,
+        `${conInv.length} días con diario frente a ${fmtPct(mSin, 2)} en los ${sinInv.length} días sin él.`));
+    }
+    // Lo que el propio trader dice al cerrar el día
+    const resp = v => diasOp.filter(d => porDia.get(d) && porDia.get(d).review && porDia.get(d).review.plan === v);
+    const siResp = resp('si'), noResp = [...resp('no'), ...resp('parcial')];
+    if (siResp.length >= P.diario.minPlan && noResp.length >= P.diario.minPlan) {
+      const mSi = media(siResp.map(d => dayPnl[d])), mNo = media(noResp.map(d => dayPnl[d]));
+      if (mNo < mSi) planAlertas.push((mNo < 0 ? danger : warn)('📋',
+        `Los días que no respetas tu plan: ${fmtPct(mNo, 2)} de media`,
+        `${noResp.length} días, según tu diario del trader, frente a ${fmtPct(mSi, 2)} en los ${siResp.length} que sí lo respetas.`));
+    }
+    // Hábito: operar sin haber hecho el diario inverso
+    const ultimos = diasOp.slice(-P.diario.ultimos);
+    const hechos = ultimos.filter(d => porDia.get(d) && porDia.get(d).plan).length;
+    if (ultimos.length >= P.diario.ultimos && hechos <= P.diario.pocos && isActiveTrader) {
+      planAlertas.push(warn('📋',
+        `Diario inverso: solo ${hechos} de tus últimos ${ultimos.length} días operados`,
+        `Operas la mayoría de los días sin escribirlo. Son dos minutos antes de abrir la plataforma.`));
+    }
+    // Días sin operar apuntados en los últimos 30 días
+    const dLim = new Date(today + 'T12:00:00'); dLim.setDate(dLim.getDate() - 30);
+    const limite = `${dLim.getFullYear()}-${pad(dLim.getMonth() + 1)}-${pad(dLim.getDate())}`;
+    const sinOp = diarios.filter(r => r.sinOperar && r.period >= limite && r.period <= today && !operatedDays.includes(r.period)).length;
+    if (sinOp) planInsights.push(success('✓',
+      `${sinOp} día${sinOp === 1 ? '' : 's'} sin operar apuntado${sinOp === 1 ? '' : 's'} este mes`,
+      `No operar cuando no toca también es seguir el plan.`));
+  }
+
+  // ── Cierres a mano, por motivo ──
+  const vMot = ventana(limpios, t => esMotivoManual(t.exit_reason), P.motivo.min);
+  for (const [m, txt] of [['miedo', 'por miedo'], ['noticia', 'por noticia'], ['tiempo', 'por tiempo']]) {
+    const g = vMot.ts.filter(t => t.exit_reason === m);
+    if (g.length < P.motivo.min) continue;
+    const mediaG = g.reduce((a, t) => a + (t.pnl_pct || 0), 0) / g.length;
+    const cortos = g.filter(esTpCorto).length;
+    (m === 'miedo' ? emoAlertas : tecAlertas).push(warn('✂',
+      `Cierres a mano ${txt}: ${g.length} trades, ${fmtPct(mediaG, 2)} de media`,
+      `${cortos ? `${cortos} acabaron en TP por debajo del objetivo. ` : ''}${vMot.nota}`));
+  }
+
+  // ── Entradas tras una pérdida ──
+  const tras = resumenR(limpios.filter(t => t.post_loss === true));
+  const restoTP = resumenR(limpios.filter(t => t.post_loss !== true));
+  if (tras.dec >= P.trasPerdida.min && restoTP.dec >= P.trasPerdida.resto) {
+    const dif = tras.wr - restoTP.wr;
+    if (dif <= -P.trasPerdida.dif) emoAlertas.push(warn('🔥',
+      `Tras una pérdida aciertas menos: ${tras.wr.toFixed(0)}% en ${tras.n} entradas`,
+      `Frente a ${restoTP.wr.toFixed(0)}% en el resto, P&L ${fmtPct(tras.r, 1)}. Después de un SL, para antes de volver a entrar.`));
+    else if (dif >= 0) emoInsights.push(success('✓',
+      `Tras una pérdida mantienes el nivel: ${tras.wr.toFixed(0)}% en ${tras.n} entradas`,
+      `Frente a ${restoTP.wr.toFixed(0)}% en el resto, P&L ${fmtPct(tras.r, 1)}.`));
   }
 
   // Estrategia: la que mejor rinde por trade, y aviso si alguna está en pérdidas
