@@ -46,7 +46,7 @@ export const FIRMAS = [
   {
     id: 'the5ers', nombre: 'The5ers', mercados: ['Futuros', 'CFD'],
     url: 'https://www.the5ers.com/?afmc=8p8',
-    codigos: [], logo: 'assets/firmas/the5ers.png', fondo: '#ffffff',
+    codigos: [{ codigo: 'PMSME1K9' }], logo: 'assets/firmas/the5ers.png', fondo: '#ffffff',
   },
   {
     id: 'alpha', nombre: 'Alpha Futures', mercados: ['Futuros'],
