@@ -8,6 +8,7 @@
 //              `insignia` y `lema` son los dos textos de esa tarjeta
 //   tipo       'firma' (por defecto) o 'herramienta'
 //   logo       icono cuadrado en assets/firmas; `fondo` es el color de su baldosa
+//              y `lleno` marca los que ya traen fondo propio (sin margen)
 
 export const FIRMAS = [
   {
@@ -20,7 +21,7 @@ export const FIRMAS = [
     id: 'orion', nombre: 'Orion Funded', mercados: ['CFD'],
     url: 'https://shop.orionfunded.com/?ref=10713',
     codigos: [{ codigo: 'TRADINVERSO50', nota: 'primera compra' }, { codigo: 'TRADINVERSO', nota: 'siguientes' }],
-    logo: 'assets/firmas/orion.png', fondo: '#000000',
+    logo: 'assets/firmas/orion.png', lleno: true, fondo: '#000000',
   },
   {
     id: 'wsfunded', nombre: 'WSFunded', mercados: ['CFD'],
@@ -35,12 +36,12 @@ export const FIRMAS = [
   {
     id: 'fundednext', nombre: 'FundedNext', mercados: ['Futuros', 'CFD'],
     url: 'https://fundednext.com/?fpr=INVERSO',
-    codigos: [{ codigo: 'INVERSO' }], logo: 'assets/firmas/fundednext.png', fondo: '#ffffff',
+    codigos: [{ codigo: 'INVERSO' }], logo: 'assets/firmas/fundednext.png', lleno: true, fondo: '#ffffff',
   },
   {
     id: 'tradingpit', nombre: 'The Trading Pit', mercados: ['Futuros', 'CFD'],
     url: 'https://affiliate.thetradingpit.com/visit/?bta=37192&brand=thetradingpit',
-    codigos: [{ codigo: 'TRADINVERSO' }], logo: 'assets/firmas/tradingpit.png', fondo: '#000000',
+    codigos: [{ codigo: 'TRADINVERSO' }], logo: 'assets/firmas/tradingpit.png', lleno: true, fondo: '#000000',
   },
   {
     id: 'the5ers', nombre: 'The5ers', mercados: ['Futuros', 'CFD'],
@@ -50,12 +51,12 @@ export const FIRMAS = [
   {
     id: 'alpha', nombre: 'Alpha Futures', mercados: ['Futuros'],
     url: 'https://app.alpha-futures.com/signup/Jose_David021098/',
-    codigos: [], logo: 'assets/firmas/alpha.png', fondo: '#06231a',
+    codigos: [], logo: 'assets/firmas/alpha.png', lleno: true, fondo: '#06231a',
   },
   {
     id: 'tradecopia', nombre: 'Tradecopia', tipo: 'herramienta', descripcion: 'Copiador de cuentas', mercados: ['Futuros'],
     url: 'https://tradecopia.com/',
-    codigos: [{ codigo: 'jRcv2Grv' }], logo: 'assets/firmas/tradecopia.png', fondo: '#ffffff',
+    codigos: [{ codigo: 'jRcv2Grv' }], logo: 'assets/firmas/tradecopia.png', lleno: true, fondo: '#ffffff',
   },
 ];
 

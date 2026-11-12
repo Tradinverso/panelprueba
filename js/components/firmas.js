@@ -22,8 +22,18 @@ export function irAFirmas() {
   location.hash = '#/cuentas';
 }
 
+// Logo y nombre también llevan al enlace de la firma.
+const enlace = f => `href="${esc(f.url)}" target="_blank" rel="noopener sponsored"`;
+const logoHtml = (f, lazy) => `<a class="firma-logo${f.lleno ? ' lleno' : ''}" ${enlace(f)} style="background:${f.fondo || '#fff'}" title="Ir a ${esc(f.nombre)}"><img src="${esc(f.logo)}" alt="${esc(f.nombre)}"${lazy ? ' loading="lazy"' : ''}></a>`;
+const nombreHtml = f => `<a class="firma-name" ${enlace(f)}>${esc(f.nombre)}</a>`;
+
 function codigosHtml(f) {
-  if (!f.codigos || !f.codigos.length) return '';
+  // Sin código: se dice, para que la tarjeta no quede con un hueco.
+  if (!f.codigos || !f.codigos.length) return f.destacada ? '' : `
+    <div class="firma-codes"><div class="firma-code vacio">
+      <span class="firma-code-l">Sin código</span>
+      <span class="firma-code-v">Entra desde el enlace</span>
+    </div></div>`;
   return `<div class="firma-codes">${f.codigos.map(c => `
     <button type="button" class="firma-code" data-copiar="${esc(c.codigo)}" title="Copiar el código">
       <span class="firma-code-l">Código${c.nota ? ` · ${esc(c.nota)}` : ''}</span>
@@ -36,29 +46,29 @@ function tarjeta(f) {
   const tags = f.mercados.map(m => `<span class="firma-tag">${mercadoLabel(m)}</span>`).join('');
   if (f.destacada) return `
     <div class="firma destacada">
-      <span class="firma-logo" style="background:${f.fondo || '#fff'}"><img src="${esc(f.logo)}" alt=""></span>
+      ${logoHtml(f, false)}
       <div class="firma-id">
         ${f.insignia ? `<span class="firma-badge">${ic('ok')} ${esc(f.insignia)}</span>` : ''}
-        <div class="firma-name">${esc(f.nombre)}</div>
+        ${nombreHtml(f)}
         <div class="firma-lema">${esc(f.lema || 'La que recomendamos')}</div>
         <div class="firma-tags">${tags}</div>
       </div>
       <div class="firma-side">
         ${codigosHtml(f)}
-        <a class="btn primary firma-go" href="${esc(f.url)}" target="_blank" rel="noopener sponsored">Ir a ${esc(f.nombre)} ${ic('enlace')}</a>
+        <a class="btn primary firma-go" ${enlace(f)}>Ir a ${esc(f.nombre)} ${ic('enlace')}</a>
       </div>
     </div>`;
   return `
     <div class="firma">
       <div class="firma-top">
-        <span class="firma-logo" style="background:${f.fondo || '#fff'}"><img src="${esc(f.logo)}" alt="" loading="lazy"></span>
+        ${logoHtml(f, true)}
         <div class="firma-id">
-          <div class="firma-name">${esc(f.nombre)}</div>
+          ${nombreHtml(f)}
           <div class="firma-tags">${f.descripcion ? `<span class="firma-desc">${esc(f.descripcion)}</span>` : ''}${tags}</div>
         </div>
       </div>
       ${codigosHtml(f)}
-      <a class="btn firma-go" href="${esc(f.url)}" target="_blank" rel="noopener sponsored">Ir a la web ${ic('enlace')}</a>
+      <a class="btn firma-go" ${enlace(f)}>Ir a la web ${ic('enlace')}</a>
     </div>`;
 }
 

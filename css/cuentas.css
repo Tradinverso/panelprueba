@@ -174,12 +174,16 @@
 }
 .firma-top { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .firma-logo {
-  flex: none; width: 44px; height: 44px; border-radius: 12px; overflow: hidden;
+  flex: none; width: 64px; height: 64px; border-radius: 16px; overflow: hidden;
   display: flex; align-items: center; justify-content: center; border: 1px solid var(--border);
+  transition: transform .2s ease, box-shadow .2s ease;
 }
-.firma-logo img { width: 100%; height: 100%; object-fit: contain; padding: 5px; box-sizing: border-box; }
+.firma-logo:hover { transform: translateY(-2px); box-shadow: 0 8px 18px -10px rgba(0,0,0,.6); }
+.firma-logo img { width: 100%; height: 100%; object-fit: contain; padding: 7px; box-sizing: border-box; }
+.firma-logo.lleno img { padding: 0; }
 .firma-id { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.firma-name { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
+.firma-name { font-size: 15.5px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); text-decoration: none; }
+a.firma-name:hover { color: var(--accent); }
 .firma-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
 .firma-tag { font-size: 10px; font-weight: 600; color: var(--muted); border: 1px solid var(--border); border-radius: 99px; padding: 1px 8px; }
 .firma-desc { font-size: 11px; color: var(--muted); margin-right: 2px; }
@@ -196,6 +200,9 @@
 .firma-code-a { grid-column: 2; grid-row: 1 / span 2; font-size: 11px; color: var(--accent); font-weight: 600; }
 .firma-code.ok { border-style: solid; border-color: var(--green); }
 .firma-code.ok .firma-code-a { color: var(--green); }
+.firma-code.vacio { cursor: default; border-style: solid; background: transparent; }
+.firma-code.vacio:hover { border-color: var(--border); }
+.firma-code.vacio .firma-code-v { font-family: inherit; font-size: 12.5px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
 
 .firma-go { margin-top: auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; font-size: 12px; }
 .firma-go svg { width: 13px; height: 13px; }
@@ -210,8 +217,8 @@
     linear-gradient(120deg, color-mix(in srgb, var(--accent) 9%, var(--card2)), var(--card2) 65%);
   box-shadow: 0 18px 40px -28px color-mix(in srgb, var(--accent) 80%, transparent);
 }
-.firma.destacada .firma-logo { width: 88px; height: 88px; border-radius: 22px; }
-.firma.destacada .firma-logo img { padding: 10px; }
+.firma.destacada .firma-logo { width: 104px; height: 104px; border-radius: 26px; }
+.firma.destacada .firma-logo img { padding: 12px; }
 .firma.destacada .firma-id { flex: 1; gap: 6px; }
 .firma.destacada .firma-name { font-size: 26px; letter-spacing: -0.02em; line-height: 1.1; }
 .firma-lema { font-size: 14px; color: var(--text); opacity: .85; }
@@ -223,15 +230,18 @@
   border-radius: 99px; padding: 4px 11px 4px 9px; margin-bottom: 2px;
 }
 .firma-badge svg { width: 12px; height: 12px; }
-.firma-side { flex: none; display: flex; flex-direction: column; gap: 10px; min-width: 200px; }
-.firma.destacada .firma-go { margin-top: 0; padding: 12px 22px; font-size: 13.5px; font-weight: 600; }
+.firma-side { flex: none; display: flex; flex-direction: column; gap: 10px; min-width: 300px; }
+/* :root delante para ganar a ":root[data-skin] .btn" de skins.css */
+:root .firma.destacada .firma-go { margin-top: 0; padding: 20px 36px; font-size: 17px; font-weight: 700; border-radius: 16px; gap: 10px; box-shadow: 0 14px 30px -14px color-mix(in srgb, var(--accent) 90%, transparent); }
+.firma.destacada .firma-go svg { width: 17px; height: 17px; }
+.firma.destacada .firma-go:hover { transform: translateY(-2px); }
 
 @media (max-width: 1100px) {
   .firmas-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
   .firma.destacada { flex-direction: column; align-items: flex-start; padding: 20px; gap: 16px; }
-  .firma.destacada .firma-logo { width: 64px; height: 64px; border-radius: 18px; }
+  .firma.destacada .firma-logo { width: 76px; height: 76px; border-radius: 20px; }
   .firma.destacada .firma-name { font-size: 22px; }
   .firma-side { align-self: stretch; min-width: 0; }
   .firmas-grid { grid-template-columns: 1fr; }
