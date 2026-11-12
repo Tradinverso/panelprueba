@@ -112,7 +112,7 @@ function diarioHoyHtml() {
         </div>
         <div class="dia-steps">
           ${paso('plan', 1, 'Diario inverso', 'Antes de empezar el día', e.plan)}
-          ${paso('trades', 2, 'Trades', ts.length ? `${ts.length} registrado${ts.length === 1 ? '' : 's'}` : 'Aparecen solos', ts.length > 0)}
+          ${paso('trades', 2, 'Trades', ts.length ? `${ts.length} registrado${ts.length === 1 ? '' : 's'}` : e.sinOperar ? 'Día sin operar' : 'Aparecen solos', ts.length > 0 || e.sinOperar)}
           ${paso('review', 3, 'Diario del trader', 'Al cerrar el día', e.review)}
         </div>
         <div class="dia-foot"><span class="dia-hint">${e.plan && e.review ? 'Diario de hoy completo.' : !e.plan ? 'Haz el diario inverso antes de abrir la plataforma.' : 'Cuando acabes la sesión, cierra el día con el diario del trader.'}</span>
@@ -220,7 +220,7 @@ function paintDailyGrid(body) {
             <div class="psico-day-meta">${stats.count} trade${stats.count > 1 ? 's' : ''}${breakdown ? ' · ' + breakdown : ''}</div>
             ${planLine}
           </div>
-        ` : '<div class="psico-day-body empty">–</div>'}
+        ` : `<div class="psico-day-body empty">${diaEst.sinOperar ? 'sin operar' : '–'}</div>`}
       </div>
     `;
   }

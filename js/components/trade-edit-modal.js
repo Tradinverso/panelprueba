@@ -2,6 +2,7 @@
 // Reusa la misma estructura de pills + inputs que el formulario de Nuevo Trade,
 // pero compacto en un modal. Al guardar, llama a state.update(id, patch).
 
+import { MOTIVOS_SALIDA, esMotivoManual, motivoPorResultado } from '../utils/strategy-config.js';
 import { state } from '../state.js';
 import { showToast } from './toast.js';
 import { renderPills } from './pills.js';
@@ -32,6 +33,8 @@ export function openEditTradeModal(trade) {
     pnl_pct: trade.pnl_pct != null ? String(trade.pnl_pct) : '',
     risk_real_pct: trade.risk_real_pct != null ? String(trade.risk_real_pct) : '1',
     plan_followed: trade.plan_followed === true || trade.plan_followed === false ? trade.plan_followed : null,
+    exit_reason: trade.exit_reason || '',
+    post_loss: trade.post_loss === true || trade.post_loss === false ? trade.post_loss : null,
     sensacion: trade.sensacion || '',
     url1: trade.url1 || '',
     url2: trade.url2 || '',
@@ -145,6 +148,16 @@ export function openEditTradeModal(trade) {
         <div class="form-field">
           <label class="form-label">¿Has seguido el plan? <span class="required">*</span></label>
           <div data-field="plan_followed"></div>
+        </div>
+
+        <div class="form-field">
+          <label class="form-label">Motivo de salida <span style="color:var(--muted);font-size:11px;">(TP, SL y BE salen del resultado)</span></label>
+          <div data-field="exit_reason"></div>
+        </div>
+
+        <div class="form-field">
+          <label class="form-label">¿Entrada tras una pérdida?</label>
+          <div data-field="post_loss"></div>
         </div>
 
         <div class="form-field">
@@ -262,6 +275,17 @@ export function openEditTradeModal(trade) {
       onChange: v => { data.plan_followed = v === 'yes' ? true : v === 'no' ? false : null; },
     });
 
+    renderPills(root.querySelector('[data-field="exit_reason"]'), {
+      name: 'exit_reason', options: MOTIVOS_SALIDA, value: data.exit_reason,
+      onChange: v => { data.exit_reason = v || ''; },
+    });
+    renderPills(root.querySelector('[data-field="post_loss"]'), {
+      name: 'post_loss',
+      options: [{ value: 'yes', label: 'Sí' }, { value: 'no', label: 'No' }],
+      value: data.post_loss === true ? 'yes' : data.post_loss === false ? 'no' : '',
+      onChange: v => { data.post_loss = v === 'yes' ? true : v === 'no' ? false : null; },
+    });
+
     // Inputs (sincronización bidireccional con `data`)
     root.querySelectorAll('[data-input]').forEach(el => {
       el.addEventListener('input', () => {
@@ -339,6 +363,9 @@ function doSave(trade, data, close) {
     pips: data.pips ? parseFloat(data.pips) : null,
     sensacion: data.sensacion || '',
     plan_followed: data.plan_followed === true || data.plan_followed === false ? data.plan_followed : null,
+    // Un cierre manual se respeta; TP / SL / BE siguen al resultado.
+    exit_reason: esMotivoManual(data.exit_reason) ? data.exit_reason : motivoPorResultado(pnl_pct),
+    post_loss: data.post_loss === true || data.post_loss === false ? data.post_loss : null,
     url1: data.url1 || '',
     url2: data.url2 || '',
     reflexion: data.reflexion || '',

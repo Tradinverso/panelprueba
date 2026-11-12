@@ -6,7 +6,7 @@
 
 import { exportXlsx, stampNow, slug } from './sheet-export.js';
 import { downloadFile } from './csv.js';
-import { STRATEGIES } from './strategy-config.js';
+import { STRATEGIES, motivoLabel } from './strategy-config.js';
 import { winrate, pnlPct } from './calculations.js';
 import { todayLocal } from './timezone.js';
 import { auth } from '../auth.js';
@@ -67,11 +67,12 @@ function filas(trades) {
     lista(t.zone), lista(t.entry), t.open_str || '', t.close_str || '', t.result || '',
     num(t.pnl_pct), num(t.risk_real_pct), num((t.pnl_pct || 0) * (t.risk_real_pct ?? 1)),
     t.sensacion || '', t.plan_followed === true ? 'Sí' : t.plan_followed === false ? 'No' : '',
+    motivoLabel(t.exit_reason), t.post_loss === true ? 'Sí' : t.post_loss === false ? 'No' : '',
     String(t.reflexion || '').replace(/\s+/g, ' ').trim(),
   ]);
 }
 const CABECERA = ['Fecha', 'Estrategia', 'Par', 'Setup', 'Modelo', 'Zona', 'Entrada', 'Apertura', 'Cierre', 'Resultado',
-  '% P&L sistema', 'Riesgo real %', '% P&L real', 'Sensación', 'Plan', 'Reflexión'];
+  '% P&L sistema', 'Riesgo real %', '% P&L real', 'Sensación', 'Plan', 'Motivo de salida', 'Tras pérdida', 'Reflexión'];
 
 function nombreArchivo(nombre, ext) {
   return `tradinverso-${slug(nombre || 'trades')}-${stampNow()}.${ext}`;

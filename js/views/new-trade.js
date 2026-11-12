@@ -9,7 +9,7 @@ import { auth } from '../auth.js';
 import { todayLocal } from '../utils/timezone.js';
 import { fmtPct } from '../utils/number-format-es.js';
 import { fmtUsd } from '../utils/account-stats.js';
-import { STRATEGIES as STRAT_META, modelLabel, errorModeloEntrada, TP_RANGE, R_MAXIMO, tpRangeLabel } from '../utils/strategy-config.js';
+import { STRATEGIES as STRAT_META, modelLabel, errorModeloEntrada, TP_RANGE, R_MAXIMO, tpRangeLabel, MOTIVOS_SALIDA, esMotivoManual, motivoLabel, motivoPorResultado } from '../utils/strategy-config.js';
 import { resumenR } from '../utils/diagnostics.js';
 import { aplicarReglasModelo } from '../components/model-rules.js';
 import { attachDictation } from '../utils/dictation.js';
@@ -74,7 +74,7 @@ export function newTradeView(container) {
         date: prev.date, open_str: prev.open_str, close_str: prev.close_str,
         pnl_pct: prev.pnl_pct, risk_real_pct: prev.risk_real_pct,
         rr: prev.rr, pips: prev.pips,
-        sensacion: prev.sensacion, plan_followed: prev.plan_followed,
+        sensacion: prev.sensacion, plan_followed: prev.plan_followed, exit_reason: prev.exit_reason, post_loss: prev.post_loss,
         url1: prev.url1, url2: prev.url2, reflexion: prev.reflexion,
         accounts: prev.accounts,
       };
@@ -115,6 +115,8 @@ function init(sheet) {
     pnl_pct: '',
     risk_real_pct: '1',
     plan_followed: null,
+    exit_reason: '',   // motivo de salida (se deduce del resultado salvo cierre manual)
+    post_loss: null,   // ¿entrada tras una pérdida?
     sensacion: '',
     url1: '',
     url2: '',
@@ -170,6 +172,8 @@ function renderForm(wrap, side, sheet, data, onSaved) {
         <div class="nt-section-title">Ejecución y psicología</div>
         ${row('¿Has seguido el plan?', '<div data-field="plan_followed"></div>', { required: true })}
         ${row('Sensación al ejecutar', '<div data-field="sensacion"></div>', { required: true })}
+        ${row('Motivo de salida', '<div data-field="exit_reason"></div>', { hint: 'se marca solo; cámbialo si cerraste a mano' })}
+        ${row('¿Entrada tras una pérdida?', '<div data-field="post_loss"></div>', { hint: 'opcional' })}
       </div>
 
       <div class="card nt-section">
@@ -205,6 +209,7 @@ function renderForm(wrap, side, sheet, data, onSaved) {
     const c = state.cuentas.find(x => x.id === a.accountId);
     return c ? `${c.empresa} ${capShort(c.capital)}` : 'Cuenta';
   };
+  let motivoPills = null;
   function update() {
     const pnl = parseFloat(data.pnl_pct);
     const hasPnl = data.pnl_pct !== '' && isFinite(pnl);
@@ -216,6 +221,13 @@ function renderForm(wrap, side, sheet, data, onSaved) {
     // (con dos atajos de TP, solo el que coincide con la cifra)
     wrap.querySelectorAll('#resultChips [data-res]').forEach(b => b.classList.toggle('active',
       b.dataset.res === res && (res !== 'TP' || Math.abs(parseFloat(b.dataset.pnl) - pnl) < 0.005)));
+
+    // Motivo de salida: TP / SL / BE siguen al resultado; un cierre manual
+    // (miedo, noticia, tiempo) elegido por el trader no se toca.
+    if (!esMotivoManual(data.exit_reason)) {
+      const auto = hasPnl ? motivoPorResultado(pnl) : '';
+      if (auto !== data.exit_reason) { data.exit_reason = auto; if (motivoPills) motivoPills.set(auto); }
+    }
 
     const accs = Array.isArray(data.accounts) ? data.accounts : [];
     const kv = (k, v) => `<div class="nt-kv"><span>${k}</span><b>${v || '—'}</b></div>`;
@@ -235,7 +247,11 @@ function renderForm(wrap, side, sheet, data, onSaved) {
       const r = propio(t => t.plan_followed === false);
       avisos.push(['bad', r ? `⚠ Tus trades fuera del plan: ${frase(r)}.` : '⚠ Fuera del plan: contará en Diagnóstico como trade fuera de plan.']);
     }
-    if (res === 'TP' && pnl < tpMin - 0.15) avisos.push(['info', `TP por debajo del objetivo de ${meta.label} (${tpRangeLabel(sheet)}).`]);
+    if (res === 'TP' && pnl < tpMin - 0.15) avisos.push(['info', `TP por debajo del objetivo de ${meta.label} (${tpRangeLabel(sheet)}).${esMotivoManual(data.exit_reason) ? '' : ' Si lo cerraste a mano, marca el motivo de salida.'}`]);
+    // Hay un SL anterior ese mismo día y no se ha dicho si esta es una entrada tras pérdida
+    if (data.post_loss === null && data.date && state.trades.some(t => t.date === data.date && t.result === 'SL' && (!data.open_str || !t.open_str || t.open_str < data.open_str))) {
+      avisos.push(['info', 'Ese día ya tienes un SL: marca si esta es una entrada tras una pérdida.']);
+    }
     if (hasPnl && Math.abs(pnl) > R_MAXIMO) avisos.push(['bad', `⚠ El % P&L va en R (${tpMin} = TP de ${tpMin}R, −1 = SL). ${pnl} no parece correcto.`]);
     if (res === 'SL' && accs.length) avisos.push(['bad', `→ SL en ${esc(accs.map(cuentaNombre).join(', '))}: con SL la rotación pasa a la siguiente cuenta.`]);
     const faltan = validate(sheet, data).length;
@@ -253,6 +269,7 @@ function renderForm(wrap, side, sheet, data, onSaved) {
         ${kv('Zona', esc((data.zone || []).join(' · ')))}
         ${meta.showEntry ? kv('Entrada', esc((data.entry || []).join(' · '))) : ''}
         ${kv('Cuenta', accs.length ? esc(accs.map(cuentaNombre).join(', ')) : 'Sin asignar')}
+        ${esMotivoManual(data.exit_reason) ? kv('Salida', esc(motivoLabel(data.exit_reason))) : ''}
         ${kv('Fecha', data.date ? `${formatDateEs(data.date)}${data.open_str ? ' · ' + esc(data.open_str) : ''}` : '')}
       </div>
       <div class="nt-avisos">${avisos.map(([t, m]) => `<div class="nt-aviso ${t}">${m}</div>`).join('')}</div>`;
@@ -306,6 +323,16 @@ function renderForm(wrap, side, sheet, data, onSaved) {
     ],
     value: data.plan_followed === true ? 'yes' : data.plan_followed === false ? 'no' : '',
     onChange: v => { data.plan_followed = v === 'yes' ? true : v === 'no' ? false : null; update(); },
+  });
+  motivoPills = renderPills(wrap.querySelector('[data-field="exit_reason"]'), {
+    name: 'exit_reason', options: MOTIVOS_SALIDA, value: data.exit_reason,
+    onChange: v => { data.exit_reason = v || ''; update(); },
+  });
+  renderPills(wrap.querySelector('[data-field="post_loss"]'), {
+    name: 'post_loss',
+    options: [{ value: 'yes', label: 'Sí' }, { value: 'no', label: 'No' }],
+    value: data.post_loss === true ? 'yes' : data.post_loss === false ? 'no' : '',
+    onChange: v => { data.post_loss = v === 'yes' ? true : v === 'no' ? false : null; update(); },
   });
 
   // Inputs
@@ -456,6 +483,8 @@ function buildTrade(sheet, data) {
     pips: data.pips ? parseFloat(data.pips) : null,
     sensacion: data.sensacion,
     plan_followed: data.plan_followed === true || data.plan_followed === false ? data.plan_followed : null,
+    exit_reason: esMotivoManual(data.exit_reason) ? data.exit_reason : motivoPorResultado(pnl_pct),
+    post_loss: data.post_loss === true || data.post_loss === false ? data.post_loss : null,
     url1: data.url1 || '',
     url2: data.url2 || '',
     reflexion: data.reflexion || '',
@@ -496,6 +525,8 @@ function confirmBody(t) {
       <dt>% P&L real</dt><dd><strong style="color:${t.result === 'TP' ? 'var(--green)' : t.result === 'SL' ? 'var(--red)' : 'var(--orange)'};">${fmtPct(t.pnl_pct * t.risk_real_pct)}</strong></dd>
       <dt>Sensación al ejecutar</dt><dd><span class="sens-pill" data-s="${esc(t.sensacion)}">${esc(t.sensacion)}</span></dd>
       ${t.plan_followed === true ? '<dt>Plan</dt><dd><span style="color:var(--green);">✓ Seguido</span></dd>' : t.plan_followed === false ? '<dt>Plan</dt><dd><span style="color:var(--red);">✗ Fuera de plan</span></dd>' : ''}
+      ${esMotivoManual(t.exit_reason) ? `<dt>Salida</dt><dd>${esc(motivoLabel(t.exit_reason))}</dd>` : ''}
+      ${t.post_loss === true ? '<dt>Tras pérdida</dt><dd>Sí</dd>' : ''}
       ${cuentasLine}
       ${t.reflexion ? `<dt>Reflexión</dt><dd style="white-space:pre-wrap;">${esc(t.reflexion)}</dd>` : ''}
     </dl>

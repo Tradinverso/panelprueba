@@ -1,6 +1,7 @@
 // Modal de SOLO LECTURA: muestra todos los datos del trade como texto plano.
 // No hay inputs; un botón "Editar" delega al modal de edición existente.
 
+import { motivoLabel } from '../utils/strategy-config.js';
 import { openModal } from './modal.js';
 import { openEditTradeModal } from './trade-edit-modal.js';
 import { tradeRealPnl } from '../utils/calculations.js';
@@ -74,6 +75,8 @@ export function openViewTradeModal(trade, opts = {}) {
         <dt>% P&L real</dt><dd><strong style="color:${resColor};">${fmtPct(realPnl)}</strong></dd>
         <dt>Sensación al ejecutar</dt><dd>${sensHtml}</dd>
         <dt>Plan seguido</dt><dd>${trade.plan_followed === true ? '<span style="color:var(--green);font-weight:600;">✓ Sí</span>' : trade.plan_followed === false ? '<span style="color:var(--red);font-weight:600;">✗ No</span>' : '<span style="color:var(--muted);">— no registrado</span>'}</dd>
+        ${trade.exit_reason ? `<dt>Motivo de salida</dt><dd>${escapeHtml(motivoLabel(trade.exit_reason) || trade.exit_reason)}</dd>` : ''}
+        ${trade.post_loss === true || trade.post_loss === false ? `<dt>Entrada tras pérdida</dt><dd>${trade.post_loss ? 'Sí' : 'No'}</dd>` : ''}
         <dt>Cuentas</dt><dd>${cuentasHtml}</dd>`}
         <dt>Links</dt><dd>${linksHtml}</dd>
         <dt>${isBacktest ? 'Notas' : 'Reflexión'}</dt><dd>${reflexionHtml}</dd>

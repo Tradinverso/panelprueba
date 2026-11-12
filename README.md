@@ -259,6 +259,11 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   (ahora "Notas libres"), así que las reflexiones antiguas se conservan sin migrar.
 - `plan.antes` marca si el plan se escribió antes del primer trade del día: es lo que permitirá
   comparar días con plan y sin plan sin el sesgo de apuntarlo a posteriori.
+- **Día sin operar**: en el paso Trades, si no hay trades, se puede apuntar que ese día no se opera
+  y por qué (`sinOperar` {motivo, at} en el mismo documento).
+- **Campos del trade añadidos** (opcionales; los trades antiguos no cambian): `exit_reason`, el
+  motivo de salida (`tp`/`sl`/`be` se deducen del resultado; `miedo`/`noticia`/`tiempo` son cierres
+  manuales que marca el trader), y `post_loss`, si fue una entrada tras una pérdida.
 - La racha cuenta días laborables seguidos con plan o revisión. La lección escrita al revisar un día
   vuelve en la columna Hoy en días alternos, en lugar de la regla del día.
 

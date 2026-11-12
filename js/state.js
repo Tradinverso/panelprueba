@@ -130,6 +130,10 @@ function sanitizeTrade(t) {
     risk_real_pct,
     // ¿Se ha seguido el trading plan? true / false / null (no registrado)
     plan_followed: (t.plan_followed === true || t.plan_followed === false) ? t.plan_followed : null,
+    // Motivo de salida ('' = sin indicar) y si fue una entrada tras una pérdida
+    // (true / false / null). Opcionales: los trades anteriores quedan como estaban.
+    exit_reason: typeof t.exit_reason === 'string' ? t.exit_reason.slice(0, 20) : '',
+    post_loss: (t.post_loss === true || t.post_loss === false) ? t.post_loss : null,
     open_hour: t.open_hour != null ? t.open_hour : parseTime(open_str),
     open_str,
     close_str,
@@ -419,6 +423,10 @@ function sanitizeReflection(r) {
     const plan = sanitizeDiaPlan(r.plan), review = sanitizeDiaReview(r.review);
     if (plan) out.plan = plan;
     if (review) out.review = review;
+    // Día sin operar (decisión consciente de no abrir ningún trade)
+    if (r.sinOperar && typeof r.sinOperar === 'object') {
+      out.sinOperar = { motivo: corto(r.sinOperar.motivo, 30), at: typeof r.sinOperar.at === 'number' ? r.sinOperar.at : Date.now() };
+    }
   }
   return out;
 }
@@ -1075,7 +1083,7 @@ export const state = {
   },
 
   // ── Reflexiones de psicología ────────────────────────────
-  // `extra` (solo diarias): { plan, review }. Lo que no se pasa se conserva,
+  // `extra` (solo diarias): { plan, review, sinOperar }. Lo que no se pasa se conserva,
   // así que guardar el texto libre no borra el plan ni la revisión del día.
   saveReflection(type, period, content, extra) {
     if (!VALID_REFL_TYPE.has(type) || !period) return null;
@@ -1085,6 +1093,7 @@ export const state = {
       id, type, period, content, updatedAt: Date.now(),
       plan: extra && 'plan' in extra ? extra.plan : prev.plan,
       review: extra && 'review' in extra ? extra.review : prev.review,
+      sinOperar: extra && 'sinOperar' in extra ? extra.sinOperar : prev.sinOperar,
     });
     if (!r) return null;
     const i = this.reflections.findIndex(x => x.id === id);

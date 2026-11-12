@@ -209,7 +209,7 @@ export function renderMesa(container) {
       <section class="card mesa-box">
         <button type="button" class="mesa-chk mesa-dia" id="mesaDiario" title="Abrir el diario de hoy: diario inverso, trades y diario del trader">
           <span class="mesa-chk-head"><b>Diario de hoy</b><span class="${diaEst.plan && diaEst.review ? 'ok' : ''}">${diaEst.plan && diaEst.review ? '✓ completo' : !diaEst.plan ? 'falta el inverso' : 'falta cerrar'}</span></span>
-          <span class="mesa-dia-steps"><i class="${diaEst.plan ? 'ok' : ''}">Inverso</i><i class="${diaTrades ? 'ok' : ''}">${diaTrades} trade${diaTrades === 1 ? '' : 's'}</i><i class="${diaEst.review ? 'ok' : ''}">Cierre</i></span>
+          <span class="mesa-dia-steps"><i class="${diaEst.plan ? 'ok' : ''}">Inverso</i><i class="${diaTrades || diaEst.sinOperar ? 'ok' : ''}">${!diaTrades && diaEst.sinOperar ? 'Sin operar' : `${diaTrades} trade${diaTrades === 1 ? '' : 's'}`}</i><i class="${diaEst.review ? 'ok' : ''}">Cierre</i></span>
         </button>
       </section>
       ${newsBox}

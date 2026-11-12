@@ -113,6 +113,21 @@ export function tpRangeLabel(sheet) {
   return r[0] === r[1] ? `${fmtR(r[0])}R` : `${fmtR(r[0])}–${fmtR(r[1])}R`;
 }
 
+// Motivo de salida de un trade (campo opcional `exit_reason`).
+//   tp / sl / be        → salió donde estaba previsto (se deduce del resultado)
+//   miedo / noticia / tiempo → lo cerró el trader a mano antes de tiempo
+// Sirve para saber POR QUÉ se cierran trades antes del objetivo.
+export const MOTIVOS_SALIDA = [
+  { value: 'tp', label: 'TP' }, { value: 'sl', label: 'SL' }, { value: 'be', label: 'Break even' },
+  { value: 'miedo', label: 'Manual · miedo' }, { value: 'noticia', label: 'Manual · noticia' }, { value: 'tiempo', label: 'Manual · tiempo' },
+];
+export const esMotivoManual = v => v === 'miedo' || v === 'noticia' || v === 'tiempo';
+export const motivoLabel = v => { const m = MOTIVOS_SALIDA.find(x => x.value === v); return m ? m.label : ''; };
+export function motivoPorResultado(pnl) {
+  if (typeof pnl !== 'number' || !isFinite(pnl)) return '';
+  return pnl > 0.2 ? 'tp' : pnl < -0.2 ? 'sl' : 'be';
+}
+
 export const STRATEGIES = {
   ZONAS: {
     label: 'Zonas',

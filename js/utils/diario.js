@@ -8,6 +8,7 @@
 // (users/{uid}/reflections/daily-YYYY-MM-DD), añadiéndole dos bloques:
 //   plan   → { noHare, mejorare, siPasa, hare, regla, estado, at, antes }
 //   review → { plan, bien, sabotaje, mejorar, leccion, at }
+// y, si ese día se decidió no operar, sinOperar → { motivo, at }.
 // `content` sigue siendo el texto libre de las reflexiones antiguas (ahora
 // "Notas"). Las reflexiones semanales y mensuales no cambian.
 //
@@ -25,6 +26,11 @@ export const ESTADOS = [
   { id: 'cansado', label: 'Cansado', tono: 'warn' },
   { id: 'presion', label: 'Con prisa o presión', tono: 'warn' },
   { id: 'alterado', label: 'Alterado', tono: 'bad' },
+];
+// Día sin operar: una decisión, no un hueco. Se apunta en el paso "Trades".
+export const SIN_OPERAR = [
+  ['sin-setup', 'No hubo setup'], ['noticias', 'Noticias'], ['no-estaba-bien', 'No estaba bien'],
+  ['limite', 'Ya había llegado a mi límite'], ['libre', 'Día libre'],
 ];
 export const CUMPLIDO = [['si', 'Sí'], ['parcial', 'En parte'], ['no', 'No']];
 export const etiqueta = (lista, id) => { const x = lista.find(e => (e.id || e[0]) === id); return x ? (x.label || x[1]) : ''; };
@@ -45,11 +51,11 @@ const ref = dia => state.reflections.find(r => r.type === 'daily' && r.period ==
 // Lo que hay apuntado un día: { plan, review, content } (nulos si no hay nada).
 export function diaDe(dia) {
   const r = ref(dia);
-  return { plan: (r && r.plan) || null, review: (r && r.review) || null, content: (r && r.content) || '' };
+  return { plan: (r && r.plan) || null, review: (r && r.review) || null, sinOperar: (r && r.sinOperar) || null, content: (r && r.content) || '' };
 }
 export function estadoDia(dia) {
   const d = diaDe(dia);
-  return { plan: !!d.plan, review: !!d.review, notas: !!d.content.trim(), algo: !!(d.plan || d.review || d.content.trim()) };
+  return { plan: !!d.plan, review: !!d.review, sinOperar: !!d.sinOperar, notas: !!d.content.trim(), algo: !!(d.plan || d.review || d.sinOperar || d.content.trim()) };
 }
 export const tradesDe = dia => state.trades.filter(t => t.date === dia).sort((a, b) => (a.open_str || '').localeCompare(b.open_str || ''));
 
@@ -68,6 +74,11 @@ export function guardarPlan(dia, plan) {
 
 export function guardarRevision(dia, review, notas) {
   state.saveReflection('daily', dia, notas, { review: { ...review, at: Date.now() } });
+}
+
+// Marca (o desmarca, con motivo null) el día como "sin operar".
+export function marcarSinOperar(dia, motivo) {
+  state.saveReflection('daily', dia, diaDe(dia).content, { sinOperar: motivo ? { motivo, at: Date.now() } : null });
 }
 
 export function borrarDia(dia) {

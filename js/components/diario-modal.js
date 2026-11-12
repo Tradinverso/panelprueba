@@ -19,8 +19,8 @@ import { reglaDelDia } from '../utils/reglas-del-dia.js';
 import { STRATEGIES } from '../utils/strategy-config.js';
 import { PROTOCOLOS_FIJOS } from '../utils/protocolos-fijos.js';
 import {
-  ESTADOS, CUMPLIDO, hoy, diaDe, estadoDia, tradesDe, mejorarPendiente,
-  guardarPlan, guardarRevision, borrarDia,
+  ESTADOS, CUMPLIDO, SIN_OPERAR, etiqueta, hoy, diaDe, estadoDia, tradesDe, mejorarPendiente,
+  guardarPlan, guardarRevision, marcarSinOperar, borrarDia,
 } from '../utils/diario.js';
 
 const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
@@ -124,7 +124,13 @@ export function openDiarioModal(dia = hoy(), paso = null) {
           ${dia === hoy() ? `<button type="button" class="btn" data-acc="nuevo">+ Nuevo trade</button>` : ''}
           <button type="button" class="btn primary" data-paso="review">Cerrar el día →</button></div>`
         : `<div class="dia-vacio">${dia === hoy() ? 'Hoy todavía no has registrado ningún trade.' : 'Ese día no hay trades registrados.'}<br><small>Los trades que registras aparecen aquí solos.</small></div>
-        <div class="dia-foot"><span></span>${dia === hoy() ? `<button type="button" class="btn primary" data-acc="nuevo">+ Nuevo trade</button>` : `<button type="button" class="btn primary" data-paso="review">Cerrar el día →</button>`}</div>`;
+        <div class="dia-sinop">
+          ${guardado.sinOperar
+            ? `<div class="dia-sinop-ok"><b>✓ Día sin operar</b>${etiqueta(SIN_OPERAR, guardado.sinOperar.motivo) ? ' · ' + esc(etiqueta(SIN_OPERAR, guardado.sinOperar.motivo)) : ''} <button type="button" class="dia-link" data-acc="quitar-sinop">Quitar</button></div>`
+            : `<div class="dia-q">¿No operas ${dia === hoy() ? 'hoy' : 'ese día'}? Apúntalo: no operar también es seguir el plan.</div>
+               <div class="pill-group dia-sinop-chips">${SIN_OPERAR.map(([id, l]) => `<button type="button" class="pill" data-sinop="${id}">${l}</button>`).join('')}</div>`}
+        </div>
+        <div class="dia-foot"><span></span>${dia === hoy() ? `<button type="button" class="btn" data-acc="nuevo">+ Nuevo trade</button>` : ''}<button type="button" class="btn primary" data-paso="review">Cerrar el día →</button></div>`;
     } else {
       const p = guardado.plan;
       const recuerdo = p ? [
@@ -152,7 +158,7 @@ export function openDiarioModal(dia = hoy(), paso = null) {
       <div class="dia-top">
         <div class="dia-steps">
           ${pasoBtn('plan', 1, 'Diario inverso', 'Antes de empezar', est.plan)}
-          ${pasoBtn('trades', 2, 'Trades', ts.length ? `${ts.length} registrado${ts.length === 1 ? '' : 's'}` : 'Salen solos', ts.length > 0)}
+          ${pasoBtn('trades', 2, 'Trades', ts.length ? `${ts.length} registrado${ts.length === 1 ? '' : 's'}` : est.sinOperar ? 'Día sin operar' : 'Salen solos', ts.length > 0 || est.sinOperar)}
           ${pasoBtn('review', 3, 'Diario del trader', 'Al cerrar el día', est.review)}
         </div>
         <div class="dia-res">${st.count
@@ -178,6 +184,8 @@ export function openDiarioModal(dia = hoy(), paso = null) {
       destino[g] = destino[g] === v ? '' : v;
       pintar(); return;
     }
+    const so = e.target.closest('[data-sinop]');
+    if (so) { leer(); marcarSinOperar(dia, so.dataset.sinop); showToast('Día sin operar apuntado'); pintar(); return; }
     const p = e.target.closest('[data-paso]');
     if (p) { leer(); actual = p.dataset.paso; borrar = false; pintar(); return; }
     const a = e.target.closest('[data-acc]');
@@ -186,6 +194,7 @@ export function openDiarioModal(dia = hoy(), paso = null) {
     leer();
     if (acc === 'cerrar') closeModal();
     else if (acc === 'regla') { plan.regla = reglaDelDia().main; pintar(); }
+    else if (acc === 'quitar-sinop') { marcarSinOperar(dia, null); pintar(); }
     else if (acc === 'usar-ayer') { const y = mejorarPendiente(dia); if (y) plan.mejorare = y.texto; pintar(); }
     else if (acc === 'nuevo') { closeModal(); router.go('#/nuevo'); }
     else if (acc === 'borrar') { borrar = true; pintar(); }
