@@ -463,8 +463,9 @@ function diarioChip() {
   if (state.viewAsUid) return '';
   const e = estadoDia(hoyDiario());
   const hecho = e.plan && e.review;
-  const txt = hecho ? '✓ Diario de hoy' : !e.plan ? '✎ Diario inverso' : '✎ Cerrar el día';
-  return `<button class="chk-chip ${hecho ? 'done' : !e.plan ? 'pending' : 'mid'}" id="diarioChip" title="Diario del día: diario inverso antes de operar, trades y diario del trader al cerrar">${txt}</button>`;
+  // Un solo nombre, "Diario": dentro están el diario inverso y el diario del trader.
+  const txt = hecho ? '✓ Diario' : `✎ Diario ${e.plan ? 1 : 0}/2`;
+  return `<button class="chk-chip ${hecho ? 'done' : !e.plan ? 'pending' : 'mid'}" id="diarioChip" title="${hecho ? 'Diario de hoy completo' : !e.plan ? 'Falta el diario inverso (antes de operar)' : 'Falta el diario del trader (al cerrar)'} · pulsa para abrirlo">${txt}</button>`;
 }
 
 // ── Franja "Pulso" ───────────────────────────────────────────
