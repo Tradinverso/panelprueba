@@ -775,3 +775,47 @@ button.mesa-rail-link { cursor: pointer; font: inherit; padding: 0; }
 .dia-sinop-ok b { color: var(--green); }
 .dia-sinop-ok .dia-link { margin-left: 8px; }
 
+/* ── Puntuación de disciplina (franja del Dashboard, Mis Alumnos y desglose) ── */
+.disc-ring { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; --disc: var(--muted); }
+.disc-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.disc-ring circle { fill: none; stroke-width: 3.4; }
+.disc-ring-bg { stroke: var(--line); }
+.disc-ring-fg { stroke: var(--disc); stroke-linecap: round; transition: stroke-dasharray .5s ease; }
+.disc-ring b { position: relative; font-size: 1em; font-weight: 700; letter-spacing: -0.02em; color: var(--text); font-variant-numeric: tabular-nums; }
+.disc-alta { --disc: var(--green); } .disc-buena { --disc: var(--blue-txt); }
+.disc-media { --disc: var(--orange); } .disc-baja { --disc: var(--red); }
+.disc-txt-alta { color: var(--green); } .disc-txt-buena { color: var(--blue-txt); }
+.disc-txt-media { color: var(--orange); } .disc-txt-baja { color: var(--red); } .disc-txt-sin { color: var(--muted); }
+
+.pulse-disc { flex: 0 0 auto; flex-direction: row; align-items: center; gap: 12px; background: transparent; border-top: 0; border-right: 0; border-bottom: 0; font-family: inherit; text-align: left; cursor: pointer; border-radius: 0; color: inherit; }
+.pulse-disc:hover .pulse-sub { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+.pulse-disc .disc-ring { font-size: 15px; }
+.pulse-disc-txt { display: flex; flex-direction: column; gap: 3px; }
+.pulse-disc-niv { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
+
+#modal-root .modal-body:has(> .disc) { white-space: normal; }
+.disc { display: flex; flex-direction: column; gap: 14px; }
+.disc-head { display: flex; align-items: center; gap: 18px; padding-bottom: 4px; }
+.disc-head .disc-ring { font-size: 24px; }
+.disc-nivel { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+.disc-nota { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 0; }
+.disc-row { display: flex; flex-direction: column; gap: 5px; }
+.disc-row-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.disc-row-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.disc-row-pts { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.disc-row-pts b { color: var(--text); font-size: 13px; }
+.disc-bar { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.disc-bar i { display: block; height: 100%; border-radius: 99px; background: var(--muted); }
+.disc-bar i.ok { background: var(--green); } .disc-bar i.mid { background: var(--orange); } .disc-bar i.low { background: var(--red); }
+.disc-row-det { font-size: 12px; color: var(--muted); line-height: 1.4; }
+.disc-row.sin .disc-row-name { color: var(--muted); }
+.disc-tip { font-size: 12.5px; line-height: 1.5; color: var(--text); background: rgba(59,130,246,.1); border-radius: 10px; padding: 10px 12px; }
+
+.disc-pill { min-width: 38px; padding: 4px 9px; border-radius: 99px; border: 1px solid var(--disc); background: transparent; color: var(--disc); font-family: inherit; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; }
+.disc-pill:hover { background: color-mix(in srgb, var(--disc) 18%, transparent); }
+.th-sort { border: 0; background: transparent; padding: 0; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; cursor: pointer; white-space: nowrap; }
+.th-sort:hover, .th-sort.on { color: var(--text); }
+
+@media (max-width: 640px) {
+  .pulse-disc { flex: 1 1 100%; border-left: 0; border-top: 1px solid var(--line); padding: 12px 14px; }
+}

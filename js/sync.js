@@ -370,9 +370,15 @@ export const sync = {
         const profile = profileSnap.data();
         if (profile.role !== 'student') continue;
         if (profile.blocked === true && !includePaused) continue;
-        const tradesSnap = await getDocs(collection(db, 'users', userDoc.id, 'trades'));
+        // Las reflexiones (diario del día) hacen falta para la puntuación de
+        // disciplina. Si fallan, el alumno sale igual, sin esa parte.
+        const [tradesSnap, reflections] = await Promise.all([
+          getDocs(collection(db, 'users', userDoc.id, 'trades')),
+          getDocs(collection(db, 'users', userDoc.id, 'reflections'))
+            .then(snap => snap.docs.map(d => ({ id: d.id, ...d.data() }))).catch(() => []),
+        ]);
         const trades = tradesSnap.docs.map(d => d.data());
-        result.push({ uid: userDoc.id, profile, trades });
+        result.push({ uid: userDoc.id, profile, trades, reflections });
       } catch (e) {
         console.warn('Saltando usuario por reglas o error:', userDoc.id, e.message);
       }

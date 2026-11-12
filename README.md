@@ -270,4 +270,11 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   "con y sin" por zona y tipo de entrada, y duración de ganadores frente a perdedores.
 - La racha cuenta días laborables seguidos con plan o revisión. La lección escrita al revisar un día
   vuelve en la columna Hoy en días alternos, en lugar de la regla del día.
+- **Puntuación de disciplina, de 0 a 100** (`js/utils/disciplina.js`): mide cómo se ejecuta, no
+  cuánto se gana. Plan 40, sensación 20, riesgo constante 15, diario del día 15 y resultado 10,
+  sobre los últimos 90 días (o los últimos 30 trades si hay pocos; con menos de 10 no se calcula).
+  Una parte sin datos no cuenta como cero: se deja fuera y el resto se ajusta a 100. El diario sí
+  cuenta como cero si no se hace. Se ve en la franja del Dashboard y como columna ordenable en
+  Mis Alumnos; en los dos sitios abre el desglose (`js/components/disciplina-modal.js`). No guarda
+  nada: se calcula al vuelo. Para la columna, `sync.listStudents` trae también las reflexiones.
 

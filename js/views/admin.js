@@ -9,6 +9,9 @@ import { state } from '../state.js';
 import { router } from '../router.js';
 import { winrate, pnlPct, pnlPctReal, currentSlStreak, tradeCounts } from '../utils/calculations.js';
 import { countDangerAlerts } from '../utils/diagnostics.js';
+import { puntuacionDisciplina } from '../utils/disciplina.js';
+import { openDisciplinaModal } from '../components/disciplina-modal.js';
+import { todayLocal } from '../utils/timezone.js';
 import { fmtPct, fmtPctNoSign } from '../utils/number-format-es.js';
 import { openModal, closeModal } from '../components/modal.js';
 import {
@@ -20,6 +23,13 @@ import {
 let cache = null;
 let cacheUid = null;
 let searchQuery = '';
+let sortBy = 'nombre';       // 'nombre' | 'disc-asc' (peor primero) | 'disc-desc'
+
+// La disciplina de cada alumno se calcula una vez por carga del listado.
+function disciplinaDe(s) {
+  if (!s._disc) s._disc = puntuacionDisciplina(s.trades, s.reflections || [], todayLocal(auth.timezone()));
+  return s._disc;
+}
 
 // Reset de cache cuando cambia el admin que usa la app (logout o cambio de cuenta).
 auth.on(() => {
@@ -156,6 +166,17 @@ function paintStudents(container, students) {
     const nb = (b.profile?.nombre || b.profile?.email || '').toLowerCase();
     return na.localeCompare(nb, 'es');
   });
+  // Por disciplina: los que no tienen puntuación van siempre al final.
+  if (sortBy !== 'nombre') {
+    const dir = sortBy === 'disc-asc' ? 1 : -1;
+    sorted.sort((a, b) => {
+      const da = disciplinaDe(a).score, db = disciplinaDe(b).score;
+      if (da == null && db == null) return 0;
+      if (da == null) return 1;
+      if (db == null) return -1;
+      return (da - db) * dir;
+    });
+  }
 
   // Filtra por búsqueda (nombre + email, case-insensitive)
   const q = searchQuery.trim().toLowerCase();
@@ -203,6 +224,7 @@ function paintStudents(container, students) {
             <th>WR <span style="color:var(--muted);font-weight:400;">(global · estrategias)</span></th>
             <th>P&L acum. <span style="color:var(--muted);font-weight:400;">(sist · real)</span></th>
             <th>P&L mes</th>
+            <th><button type="button" class="th-sort${sortBy !== 'nombre' ? ' on' : ''}" id="sortDisc" title="Cómo ejecuta cada alumno, de 0 a 100: plan, sensación, riesgo, diario y resultado. Pulsa para ordenar.">Disciplina ${sortBy === 'disc-asc' ? '↑' : sortBy === 'disc-desc' ? '↓' : '↕'}</button></th>
             <th>SL</th>
             <th>Alertas</th>
             <th></th>
@@ -212,6 +234,19 @@ function paintStudents(container, students) {
           </tbody>
         </table>`}
   `;
+
+  // Ordenar por disciplina: peor primero → mejor primero → por nombre.
+  content.querySelector('#sortDisc')?.addEventListener('click', () => {
+    sortBy = sortBy === 'nombre' ? 'disc-asc' : sortBy === 'disc-asc' ? 'disc-desc' : 'nombre';
+    paintStudents(container, students);
+  });
+  // La puntuación abre su desglose.
+  content.querySelectorAll('[data-disc-uid]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const stu = students.find(s => s.uid === btn.dataset.discUid);
+      if (stu) openDisciplinaModal(disciplinaDe(stu), stu.profile?.nombre || '');
+    });
+  });
 
   // Búsqueda en vivo (sin re-fetch, solo re-paint)
   const searchEl = content.querySelector('#adminSearch');
@@ -325,6 +360,7 @@ function row(s) {
   // Alertas críticas del diagnóstico — s.trades ya está en memoria (listStudents),
   // así que esto no añade ninguna lectura de Firestore.
   const nAlerts = countDangerAlerts(s.trades);
+  const disc = disciplinaDe(s);
 
   // WR por estrategia (solo las que tienen trades)
   const stratBreakdown = ['ZONAS', 'LIQUIDEZ', 'NASDAQ']
@@ -386,6 +422,11 @@ function row(s) {
         ${counts.total ? `<div style="color:${pnlRealColor};font-family:var(--mono);font-size:10px;margin-top:2px;">real ${fmtPct(pnlReal, 1)}</div>` : ''}
       </td>
       <td style="color:${pnlMonthColor};font-weight:500;">${monthTrades.length ? fmtPct(pnlMonth, 1) : '–'}</td>
+      <td>
+        ${disc.score == null
+          ? `<span style="color:var(--dim);" title="${disc.faltaMarcar ? 'Faltan trades con plan y sensación apuntados' : 'Hacen falta 10 trades'}">–</span>`
+          : `<button type="button" class="disc-pill disc-${disc.nivel.id}" data-disc-uid="${s.uid}" title="${disc.nivel.label} · pulsa para ver el desglose">${disc.score}</button>`}
+      </td>
       <td style="color:${slColor};font-family:var(--mono);font-weight:500;">${streak > 0 ? streak + ' SL' : '–'}</td>
       <td>
         ${nAlerts > 0

@@ -52,7 +52,8 @@ export async function generateBackup(onProgress = () => {}) {
     onProgress(i, total);
     const [cuentas, reflections, perfiles, config, tradingPlan, backtests] = await Promise.all([
       sync.loadCuentas(s.uid).catch(() => []),
-      sync.loadReflections(s.uid).catch(() => []),
+      // listStudents ya las trae (para la disciplina): no se leen dos veces.
+      Array.isArray(s.reflections) ? s.reflections : sync.loadReflections(s.uid).catch(() => []),
       sync.loadPerfiles(s.uid).catch(() => []),
       sync.loadConfig(s.uid).catch(() => ({})),
       sync.loadTradingPlan(s.uid).catch(() => ({})),

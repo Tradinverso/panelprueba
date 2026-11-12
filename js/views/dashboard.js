@@ -16,6 +16,8 @@ import { createEquity, createBar, createHourBar, createDayBar } from '../compone
 import { renderHeatmap } from '../components/heatmap.js';
 import { openDiarioModal } from '../components/diario-modal.js';
 import { hoy as hoyDiario, estadoDia } from '../utils/diario.js';
+import { puntuacionDisciplina } from '../utils/disciplina.js';
+import { anilloDisciplina, openDisciplinaModal } from '../components/disciplina-modal.js';
 import { buildAlerts } from '../utils/diagnostics.js';
 import { renderPills } from '../components/pills.js';
 import { todayStatus } from '../utils/diagnostics.js';
@@ -80,6 +82,10 @@ function render(container) {
       onChange: v => { perfMode = v; render(container); },
     });
   }
+  // Puntuación de disciplina: abre el desglose.
+  container.querySelector('#pulseDisc')?.addEventListener('click', () => {
+    if (ultimaDisciplina) openDisciplinaModal(ultimaDisciplina, state.viewAsUid && state.viewAsProfile ? (state.viewAsProfile.nombre || '') : '');
+  });
   // Ocultar / mostrar importes de P&L (preferencia de Apariencia)
   const hideBtn = container.querySelector('#pulseHide');
   if (hideBtn) hideBtn.addEventListener('click', () => {
@@ -472,8 +478,11 @@ function diarioChip() {
 // Una sola tarjeta con 4 columnas (hoy · esta semana · mes · últimas 4
 // semanas) + selector Sistema 1R / Real + Ocultar P&L. Sustituye al número
 // hero. Siempre sobre TODOS los trades (el filtro Desde/Hasta no le afecta).
+let ultimaDisciplina = null;   // la que está pintada, para abrir su desglose
+
 function pulseStrip(allTrades) {
   const today = todayLocal(auth.timezone());
+  const disc = ultimaDisciplina = puntuacionDisciplina(allTrades, state.reflections, today);
   const monday = mondayOf(today);
   const monthStart = today.substring(0, 7) + '-01';
   const d28 = new Date(today + 'T12:00:00'); d28.setDate(d28.getDate() - 27);
@@ -504,6 +513,14 @@ function pulseStrip(allTrades) {
       ${col(mesNombre, mes.count ? fmtPct(pnlOf(mes)) : '—', mes.count ? `${nTr(mes.count)} · ${wrTxt(mes)}` : 'Sin trades este mes', tone(pnlOf(mes)))}
       ${col('Últimas 4 semanas', w4.tp + w4.sl > 0 ? `${w4.wr.toFixed(0)}% WR` : '—',
             w4Delta == null ? 'Sin trades' : `vs ${histWr.toFixed(0)}% histórico · ${w4Delta >= 1 ? 'mejorando' : (w4Delta <= -1 ? 'empeorando' : 'estable')}`, 'blue')}
+      <button type="button" class="pulse-col pulse-disc" id="pulseDisc" title="Cómo estás ejecutando, de 0 a 100. Pulsa para ver el desglose.">
+        ${anilloDisciplina(disc, 46)}
+        <span class="pulse-disc-txt">
+          <span class="pulse-label">Disciplina</span>
+          <span class="pulse-disc-niv disc-txt-${disc.nivel.id}">${disc.score == null ? (disc.faltaMarcar ? 'Sin datos' : `Faltan ${disc.falta} trades`) : disc.nivel.label}</span>
+          <span class="pulse-sub">Ver desglose</span>
+        </span>
+      </button>
       <div class="pulse-tools">
         <div class="perf-toggle" id="perfToggle"></div>
         <button type="button" class="pulse-hide" id="pulseHide">${hide ? 'Mostrar P&L' : 'Ocultar P&L'}</button>
