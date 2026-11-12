@@ -53,6 +53,18 @@ export const FIRMAS = [
     url: 'https://app.alpha-futures.com/signup/Jose_David021098/',
     codigos: [{ codigo: 'Jose_David021098' }], logo: 'assets/firmas/alpha.png', lleno: true, fondo: '#06231a',
   },
+  // PENDIENTE: Tradeify y Apex van con el enlace a su web oficial, sin referido
+  // ni código, hasta que David confirme los suyos.
+  {
+    id: 'tradeify', nombre: 'Tradeify', mercados: ['Futuros'],
+    url: 'https://tradeify.co/',
+    codigos: [], logo: 'assets/firmas/tradeify.png', lleno: true, fondo: '#22e364',
+  },
+  {
+    id: 'apex', nombre: 'Apex Trader Funding', mercados: ['Futuros'],
+    url: 'https://apextraderfunding.com/',
+    codigos: [], logo: 'assets/firmas/apex.png', lleno: true, fondo: '#050a2a',
+  },
   {
     id: 'tradecopia', nombre: 'Tradecopia', tipo: 'herramienta', descripcion: 'Copiador de cuentas', mercados: ['Futuros'],
     url: 'https://tradecopia.com/',
