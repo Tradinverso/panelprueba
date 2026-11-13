@@ -4,6 +4,7 @@
 // lateral de navegación (rediseño de nov 2026); la columna izquierda es ahora
 // la "Mesa" (mesa.js).
 
+import { avatarInner } from '../utils/avatar.js';
 import { router } from '../router.js';
 import { state } from '../state.js';
 import { auth } from '../auth.js';
@@ -165,7 +166,7 @@ export function renderTopbar(container) {
       </button>
       <button type="button" class="tb-tool tb-appearance" id="tbAppearance" title="Apariencia · tema, colores y letra" aria-label="Apariencia"><span class="tb-dot"></span><span class="tb-appearance-txt">Apariencia</span></button>
       <button type="button" class="tb-user" data-account="perfil" title="Tu cuenta y ajustes" aria-haspopup="dialog">
-        <span class="tb-user-av">${escapeHtml(initials(name))}</span>
+        <span class="tb-user-av">${avatarInner(inViewAs ? state.viewAsProfile : auth.profile, name)}</span>
         <span class="tb-user-name">${escapeHtml(name)}</span>
         <span class="tb-user-chev" aria-hidden="true">▾</span>
       </button>

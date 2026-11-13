@@ -155,6 +155,15 @@ export const auth = {
     this.emit();
   },
 
+  // Foto de perfil (texto con la imagen ya reducida, ver utils/avatar.js) o
+  // null para quitarla. Siempre en el perfil del usuario logueado.
+  async updatePhoto(foto) {
+    if (!this.currentUser) throw new Error('No hay usuario activo');
+    await sync.updateProfile(this.currentUser.uid, { foto: foto || null });
+    this.profile = { ...this.profile, foto: foto || null };
+    this.emit();
+  },
+
   // Guarda el huso SIEMPRE en el perfil del usuario logueado (nunca en el del
   // alumno que se esté viendo: no se usa targetUid a propósito).
   async updateTimezone(timezone) {

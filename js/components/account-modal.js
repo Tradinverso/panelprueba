@@ -31,6 +31,7 @@ import { stampNow, slug, exportXlsx } from '../utils/sheet-export.js';
 import { fetchAppsScript } from '../utils/apps-script-import.js';
 import { paintUrlTab, paintFileTab } from '../views/import-table.js';
 import { VERSION } from '../version.js';
+import { avatarInner, prepararFoto, fotoValida } from '../utils/avatar.js';
 import { EXPORT_SHEETS, sheetLabel, filterTrades, periodLabel, exportCsv, exportExcel, exportPdf } from '../utils/export-trades.js';
 
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
@@ -122,7 +123,7 @@ function render() {
       <div class="acc-box ${appearance.isDark() ? 'dark' : ''}" role="dialog" aria-modal="true" aria-label="Tu cuenta y ajustes">
         <div class="acc-banner">${ondas()}<button type="button" class="acc-x acc-close" aria-label="Cerrar">×</button></div>
         <div class="acc-id">
-          <div class="acc-avatar">${esc(iniciales(nombre))}</div>
+          <div class="acc-avatar">${avatarInner(inViewAs() ? state.viewAsProfile : auth.profile, nombre)}</div>
           <div class="acc-id-text">
             <div class="acc-name">${esc(nombre)}</div>
             <div class="acc-user">${esc(usuario(nombre))} · ${rol()}${inViewAs() ? ' · <b>estás viendo su cuenta</b>' : ''}</div>
@@ -210,9 +211,16 @@ function perfil(body) {
     ${card(`
       <div class="acc-pcard-banner">${ondas()}</div>
       <div class="acc-pcard">
-        <div class="acc-avatar sm">${esc(iniciales(nombre))}</div>
+        <button type="button" class="acc-avatar sm acc-avatar-btn" id="accFotoAv" title="Cambiar la foto de perfil" aria-label="Cambiar la foto de perfil">${avatarInner(p, nombre)}<span class="acc-avatar-cam">${ic('lapiz')}</span></button>
         <div class="acc-id-text"><div class="acc-name sm">${esc(nombre)}</div><div class="acc-user">${esc(usuario(nombre))}</div></div>
         <button type="button" class="btn" id="accEditName">${ic('lapiz')} Editar perfil</button>
+      </div>
+      <div class="acc-foto">
+        <input type="file" id="accFotoFile" accept="image/jpeg,image/png,image/webp,image/*" hidden>
+        <button type="button" class="btn" id="accFotoBtn">${fotoValida(p.foto) ? 'Cambiar foto' : 'Poner foto de perfil'}</button>
+        ${fotoValida(p.foto) ? '<button type="button" class="btn ghost" id="accFotoDel">Quitar foto</button>' : ''}
+        <span class="acc-foto-nota">Se recorta en cuadrado y se guarda pequeña, en tu cuenta.</span>
+        <div class="acc-err" id="accFotoErr" hidden></div>
       </div>
       <div class="acc-inline" id="accNameBox" hidden>
         <label class="acc-flabel">Nombre para mostrar
@@ -241,6 +249,27 @@ function perfil(body) {
         `<span id="accOutAsk" hidden>¿Seguro? <button type="button" class="btn" id="accOutNo">Cancelar</button> <button type="button" class="btn danger" id="accOutYes">Sí, cerrar sesión</button></span>
          <button type="button" class="btn acc-danger-outline" id="accOut">Cerrar sesión</button>`)}
     `)}`;
+
+  // Foto de perfil
+  const fotoFile = body.querySelector('#accFotoFile');
+  const elegirFoto = () => fotoFile.click();
+  on(body, '#accFotoAv', 'click', elegirFoto);
+  on(body, '#accFotoBtn', 'click', elegirFoto);
+  on(body, '#accFotoFile', 'change', async () => {
+    const f = fotoFile.files && fotoFile.files[0];
+    fotoFile.value = '';
+    if (!f) return;
+    errorEn(body, '#accFotoErr', '');
+    try {
+      await auth.updatePhoto(await prepararFoto(f));
+      showToast('Foto de perfil guardada');
+      render();
+    } catch (e) { errorEn(body, '#accFotoErr', e.message || String(e)); }
+  });
+  on(body, '#accFotoDel', 'click', async () => {
+    try { await auth.updatePhoto(null); showToast('Foto de perfil quitada'); render(); }
+    catch (e) { errorEn(body, '#accFotoErr', 'No se pudo quitar: ' + (e.message || e)); }
+  });
 
   // Nombre
   const box = body.querySelector('#accNameBox');

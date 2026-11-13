@@ -12,6 +12,7 @@ import { countDangerAlerts } from '../utils/diagnostics.js';
 import { puntuacionDisciplina } from '../utils/disciplina.js';
 import { openDisciplinaModal } from '../components/disciplina-modal.js';
 import { todayLocal } from '../utils/timezone.js';
+import { avatarInner } from '../utils/avatar.js';
 import { fmtPct, fmtPctNoSign } from '../utils/number-format-es.js';
 import { openModal, closeModal } from '../components/modal.js';
 import {
@@ -408,7 +409,7 @@ function row(s) {
 
   return `
     <tr${trClass}>
-      <td>${nameCell}</td>
+      <td><span class="al-nombre"><span class="al-av">${avatarInner(s.profile, s.profile.nombre || s.profile.email)}</span><span>${nameCell}</span></span></td>
       <td style="font-family:var(--mono);font-size:11px;color:var(--muted);">${escapeHtml(s.profile.email)}</td>
       <td>${levelSel}</td>
       <td style="text-align:center;"><input type="checkbox" data-gestor-uid="${s.uid}" ${s.profile?.gestor === true ? 'checked' : ''} title="Puede dar de alta alumnos y ver el listado (sin ver resultados)"></td>
