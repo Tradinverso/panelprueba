@@ -290,4 +290,7 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   siempre, por posición: al guardar una lista nueva se recolocan (`guardarChecklist`).
 - **Nuevo trade** va a un ancho máximo de 1060 px, centrado: a todo el ancho los botones quedaban
   demasiado alargados. El resto de vistas sigue usando todo el ancho.
+- **Versión 3.0.** El número vive en `js/version.js` y lo leen el inicio de sesión, el pie y el
+  pop-up de la cuenta; el `<title>` de `index.html` se cambia a mano. El inicio de sesión y la
+  pantalla de carga usan `assets/logo-oscuro.png` (el logo blanco, `assets/logo.png`, se conserva).
 

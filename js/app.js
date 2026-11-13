@@ -173,7 +173,7 @@ function showSplash() {
   el.id = 'boot-splash';
   el.className = 'boot-splash';
   el.innerHTML = `
-    <img src="assets/logo.png" alt="Tradinverso" class="splash-logo"
+    <img src="assets/logo-oscuro.png" alt="Tradinverso" class="splash-logo oscuro"
          onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'brand-logo',textContent:'T'}))">
     <div class="boot-splash-text">Cargando…</div>
   `;

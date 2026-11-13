@@ -36,6 +36,10 @@ body[data-auth="false"] #view {
   padding: 12px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.25);
 }
+/* Logo de fondo oscuro: sin marco blanco, como un icono de aplicación */
+.auth-logo-img.oscuro { max-width: 190px; padding: 0; background: #0a0a0f; border-radius: 28px; border: 1px solid rgba(255,255,255,.08); box-shadow: 0 18px 40px -18px rgba(59,130,246,.55), 0 8px 24px rgba(0,0,0,.35); }
+.auth-ver { letter-spacing: .08em; opacity: .7; text-transform: none; margin-left: 4px; }
+.auth-sub { font-size: 12px; font-weight: 600; letter-spacing: .28em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
 .auth-title { font-family: var(--font-display); font-size: 22px; font-weight: 600; letter-spacing: -0.4px; color: var(--text-strong); }
 
 .auth-form { display: flex; flex-direction: column; gap: 14px; margin-top: 8px; }
@@ -104,6 +108,7 @@ body[data-auth="false"] #view {
 }
 .boot-splash .brand-logo { width: 56px; height: 56px; border-radius: 14px; font-size: 24px; }
 .boot-splash .splash-logo { width: 140px; height: auto; border-radius: 14px; background: #fff; padding: 10px; }
+.boot-splash .splash-logo.oscuro { background: #0a0a0f; padding: 0; border-radius: 26px; border: 1px solid rgba(255,255,255,.08); }
 .boot-splash-text { font-family: var(--mono); font-size: 12px; color: var(--muted); }
 
 /* ── Banner de impersonation (admin viendo como alumno) ──── */

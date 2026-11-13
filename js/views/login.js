@@ -1,11 +1,13 @@
 import { auth, authErrorMsg } from '../auth.js';
+import { VERSION } from '../version.js';
 
 export function loginView(container) {
   container.innerHTML = `
     <div class="auth-card">
       <div class="auth-brand">
-        <img src="assets/logo.png" alt="Tradinverso" class="auth-logo-img"
-             onerror="this.style.display='none';document.getElementById('logoFallback').style.display='flex';">
+        <img src="assets/logo-oscuro.png" alt="Tradinverso" class="auth-logo-img oscuro"
+             onerror="this.style.display='none';document.getElementById('logoSub').style.display='none';document.getElementById('logoFallback').style.display='flex';">
+        <div class="auth-sub" id="logoSub">Trading Journal <span class="auth-ver">v${VERSION}</span></div>
         <div id="logoFallback" style="display:none;flex-direction:column;align-items:center;gap:12px;">
           <div class="auth-logo">T</div>
           <div class="auth-tagline">Journaling</div>

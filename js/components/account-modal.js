@@ -30,9 +30,9 @@ import { downloadFile } from '../utils/csv.js';
 import { stampNow, slug, exportXlsx } from '../utils/sheet-export.js';
 import { fetchAppsScript } from '../utils/apps-script-import.js';
 import { paintUrlTab, paintFileTab } from '../views/import-table.js';
+import { VERSION } from '../version.js';
 import { EXPORT_SHEETS, sheetLabel, filterTrades, periodLabel, exportCsv, exportExcel, exportPdf } from '../utils/export-trades.js';
 
-const VERSION = '2.5';
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
 const CALENDARIO_URL = 'https://es.investing.com/economic-calendar';
 const APPS_SCRIPT_RE = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/;

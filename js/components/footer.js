@@ -5,12 +5,13 @@
 
 import { auth } from '../auth.js';
 import { icon } from './icons.js';
+import { VERSION } from '../version.js';
 
 export function renderFooter(container) {
   if (!container) return;
   if (!auth.currentUser) { container.innerHTML = ''; return; }
   container.innerHTML = `
-    <span class="ft-ver">Trading Journal v.2.5</span>
+    <span class="ft-ver">Trading Journal v.${VERSION}</span>
     <a class="ft-link" href="https://tradinverso.thinkific.com/enrollments" target="_blank" rel="noopener noreferrer" title="Cursos y directos">${icon('formacion')} Formación ↗</a>
     <button type="button" class="ft-link" data-account="preferencias">${icon('ajustes')} Ajustes</button>
   `;
