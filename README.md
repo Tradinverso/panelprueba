@@ -101,7 +101,7 @@ tradinverso/
       topbar.js           barra superior: navegación en píldora, reloj, Apariencia, avatar
       mesa.js             columna "Hoy": checklist, noticias de alto impacto, cuentas, próximos directos, regla del día; recogible a barrita
       footer.js           pie: versión, Formación, Ajustes
-      checklist-modal.js  pop-up del checklist pre-sesión
+      checklist-modal.js  pop-up del checklist pre-sesión y editor de la lista de cada alumno
       novedades.js        aviso de novedades, una vez por cuenta (config.novedadesVista)
       account-modal.js    pop-up de la cuenta (sustituye a la página Ajustes): Perfil, Trofeos, Módulos,
                           Apps Script, Preferencias, Datos y privacidad, Mantenimiento y Sobre
@@ -283,4 +283,11 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   nada en la cuenta del alumno y no se muestra cuando el admin está viendo a un alumno. No lleva
   descuentos a propósito: cambian a menudo. La columna Hoy tiene un botón "Prop firms" debajo de
   Formación que lleva a Cuentas y baja hasta el bloque.
+- **Checklist editable**: cada alumno puede cambiar los puntos del checklist pre-sesión por los
+  suyos ("Editar mi lista" en el pop-up; hasta 12, cada uno "cada sesión" o "una vez al día").
+  Se guarda en su cuenta como `config.checklist` = [{id, text, daily}]; sin lista propia se usa
+  la de Tradinverso (`CHECKLIST_ITEMS`). Las marcas siguen en `localStorage` con el formato de
+  siempre, por posición: al guardar una lista nueva se recolocan (`guardarChecklist`).
+- **Nuevo trade** va a un ancho máximo de 1060 px, centrado: a todo el ancho los botones quedaban
+  demasiado alargados. El resto de vistas sigue usando todo el ancho.
 
