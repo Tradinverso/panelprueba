@@ -302,4 +302,12 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   vez al día por navegador (clave `tradinverso_regla_vista` en `localStorage`), y se apaga en
   Ajustes → Módulos (`config.reglaDiaria === false`). Sin esa caja la columna Hoy cabe mejor y se
   ve a mayor escala.
+- **Retiros y equity** (`js/utils/account-stats.js`): equity = saldo inicial + trades + ajustes −
+  retiros, todo de la fase actual (desde `equityBaseAt`). Los retiros anteriores a la fase siguen
+  contando como dinero retirado, pero ya no se restan del equity. El formulario de retiro pide el
+  **saldo de la cuenta tras el retiro** (relleno con lo que calcula la app, o con el capital si no
+  hay beneficio apuntado suficiente); la diferencia se guarda como un ajuste ligado al retiro
+  (`adjustments[].withdrawalId`, campo opcional) y se borra con él. `retiroSinApuntar` mide el
+  beneficio retirado que no estaba apuntado en trades: si queda algo, el detalle de la cuenta
+  avisa y ofrece corregir el saldo. La curva de cartera usa los mismos datos que cada cuenta.
 

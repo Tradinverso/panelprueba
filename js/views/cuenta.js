@@ -140,6 +140,11 @@ function render(container, cuentaId) {
       <div class="chart-wrap" style="height:200px;"><canvas id="cuenta-monthly"></canvas></div>
     </div>` : ''}
 
+    ${isFondeada && cuenta.status !== 'perdida' && s.retiroSinApuntar > 1 ? `
+      <div class="cuenta-aviso">
+        <div><b>El equity puede salir más bajo de lo real.</b> Has retirado ${fmtUsd(s.retiroSinApuntar)} de beneficio que no está apuntado en trades de esta cuenta, y la app lo ha restado igualmente. Escribe el saldo real y queda cuadrado.</div>
+        <button class="btn primary" id="cuadrarSaldoBtn">Corregir el saldo</button>
+      </div>` : ''}
     ${isFondeada ? renderWithdrawalsSection(cuenta, s) : ''}
 
     ${renderAjustesSection(cuenta)}
@@ -170,6 +175,9 @@ function render(container, cuentaId) {
   if (advBtn) advBtn.addEventListener('click', () => state.advanceFase(cuenta.id));
   const fondBtn = container.querySelector('#fondeadaBtn');
   if (fondBtn) fondBtn.addEventListener('click', () => state.markFondeada(cuenta.id));
+  container.querySelector('#cuadrarSaldoBtn')?.addEventListener('click', () => {
+    openAjusteModal(cuenta, s, () => render(container, cuentaId));
+  });
   const ajusteBtn = container.querySelector('#ajusteEquityBtn');
   if (ajusteBtn) ajusteBtn.addEventListener('click', () => {
     openAjusteModal(cuenta, s, () => render(container, cuentaId));
@@ -210,7 +218,7 @@ function render(container, cuentaId) {
       const wId = b.dataset.delW;
       openModal({
         title: 'Borrar retiro',
-        body: '¿Seguro que quieres borrar este retiro? Esta acción no se puede deshacer.',
+        body: '¿Seguro que quieres borrar este retiro? Si tenía un ajuste de cuadre, se borra con él. Esta acción no se puede deshacer.',
         actions: [
           { label: 'Cancelar', onClick: c => c() },
           { label: 'Borrar', variant: 'danger', onClick: c => {

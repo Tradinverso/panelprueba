@@ -7,7 +7,9 @@
 // se derivaba con: USD = pnl_pct × riskPct × capital / 100. Mantenemos ese
 // fallback en `accountUsd()` para que los trades históricos sigan computando.
 //
-// Equity = initialBalance + Σ trades − Σ retiros
+// Equity = initialBalance + Σ trades + Σ ajustes − Σ retiros, todo de la FASE
+// actual (desde equityBaseAt). Los retiros de fases anteriores siguen contando
+// como dinero retirado, pero no se restan del equity: sus trades tampoco suman.
 //
 // Profit total = equity − capital nominal (cubre TODO: trades + diff de
 // initialBalance vs capital + ajustes manuales del broker). Esto es lo que
@@ -94,6 +96,45 @@ export function totalWithdrawalCommissions(account) {
   return account.withdrawals.reduce((sum, w) => sum + (w.commission || 0), 0);
 }
 
+// Retiros de la FASE actual (desde equityBaseAt, como los trades y los ajustes).
+export function withdrawalsPhase(account) {
+  const base = account && account.equityBaseAt;
+  return ((account && account.withdrawals) || []).filter(w => !base || (w.date || '') >= base);
+}
+
+// Beneficio retirado que NO estaba apuntado: la parte de cada retiro que supera
+// el beneficio que la app tenía registrado en ese momento. Es lo que hace que el
+// equity salga por debajo del capital sin que la cuenta haya perdido nada. Un
+// ajuste posterior (el cuadre del propio retiro o uno manual) lo da por
+// resuelto. Devuelve USD pendientes de cuadrar.
+export function retiroSinApuntar(account, allTrades) {
+  if (!account) return 0;
+  const capital = account.capital || 0;
+  const base = account.equityBaseAt;
+  const ev = [];
+  for (const x of tradesForAccountPhase(account, allTrades)) ev.push({ d: x.trade.date || '', o: 0, v: x.usdPnl });
+  for (const w of withdrawalsPhase(account)) ev.push({ d: w.date || '', o: 1, w: w.amount || 0 });
+  for (const a of (account.adjustments || [])) {
+    if (base && (a.date || '') < base) continue;
+    ev.push({ d: a.date || '', o: 2, v: a.amount || 0 });
+  }
+  ev.sort((a, b) => a.d.localeCompare(b.d) || a.o - b.o);
+  let equity = account.initialBalance != null ? account.initialBalance : capital;
+  let pendiente = 0;
+  for (const e of ev) {
+    if (e.w != null) {
+      pendiente += Math.max(0, e.w - Math.max(0, equity - capital));
+      equity -= e.w;
+    } else {
+      // Un ajuste es el alumno diciendo cuál es el saldo real en ese momento
+      // (el cuadre del retiro o "Ajustar equity"): lo anterior queda resuelto.
+      if (e.o === 2) pendiente = 0;
+      equity += e.v;
+    }
+  }
+  return +pendiente.toFixed(2);
+}
+
 // Ajustes de equity de la FASE actual (desde equityBaseAt, como los trades).
 function totalAjustesPhase(account) {
   const base = account && account.equityBaseAt;
@@ -114,6 +155,8 @@ export function accountStats(account, allTrades) {
     maxDdUsd: emptyMaxDd,
     profitFromTrades: 0,
     totalWithdrawn: 0,
+    withdrawnPhase: 0,
+    retiroSinApuntar: 0,
     totalWithdrawnNet: 0,
     totalCommissions: 0,
     netToPocket: 0,
@@ -143,16 +186,18 @@ export function accountStats(account, allTrades) {
   const maxDdUsd = account.maxDdUsd || 0;
 
   const profitFromTrades = items.reduce((s, x) => s + x.usdPnl, 0);
-  const withdrawn = totalWithdrawn(account);           // bruto
+  const withdrawn = totalWithdrawn(account);           // bruto, de toda la vida de la cuenta
+  // Solo los de la fase actual se restan del equity.
+  const withdrawnPhase = withdrawalsPhase(account).reduce((a, w) => a + (w.amount || 0), 0);
   const withdrawnNet = totalWithdrawnNet(account);     // neto al bolsillo
   const commissionsPaid = totalWithdrawalCommissions(account);
   // Ajustes manuales de equity (± con signo), solo los de la FASE actual —
   // igual que los trades: al superar fase el equity se reinicia.
   const ajustes = totalAjustesPhase(account);
 
-  // Equity = saldo inicial + profit por trades + ajustes − retiros BRUTOS
+  // Equity = saldo inicial + profit por trades + ajustes − retiros BRUTOS de la fase
   // (el bruto es lo que el broker descontó realmente del balance)
-  const equity = initial + profitFromTrades + ajustes - withdrawn;
+  const equity = initial + profitFromTrades + ajustes - withdrawnPhase;
 
   // Profit total = TODO lo ganado vs el capital nominal (incluye diff inicial,
   // trades, ajustes broker, etc). Es lo que el usuario quiere ver.
@@ -211,7 +256,9 @@ export function accountStats(account, allTrades) {
     targetUsd,
     maxDdUsd,
     profitFromTrades,
-    totalWithdrawn: withdrawn,           // bruto (descontado del equity)
+    totalWithdrawn: withdrawn,           // bruto, todos los retiros de la cuenta
+    withdrawnPhase,                      // bruto de la fase actual (lo que se resta del equity)
+    retiroSinApuntar: retiroSinApuntar(account, allTrades),   // beneficio retirado que no estaba apuntado
     totalWithdrawnNet: withdrawnNet,     // neto al bolsillo
     totalCommissions: commissionsPaid,   // suma de comisiones broker
     netToPocket,
@@ -253,7 +300,7 @@ function buildEvents(account, items) {
       result: x.trade.result,
     });
   }
-  for (const w of (account.withdrawals || [])) {
+  for (const w of withdrawalsPhase(account)) {
     events.push({
       date: w.date,
       type: 'withdrawal',
@@ -347,12 +394,18 @@ export function portfolioEquityCurve(cuentas, allTrades) {
 
   const allEvents = [];
   for (const c of subset) {
-    const items = tradesForAccount(c, allTrades);
+    // Igual que el equity de cada cuenta: trades, retiros y ajustes de la fase
+    // actual. Así el último punto de la curva es la suma de los equities.
+    const items = tradesForAccountPhase(c, allTrades);
     for (const x of items) {
       allEvents.push({ date: x.trade.date, delta: x.usdPnl, type: 'trade' });
     }
-    for (const w of (c.withdrawals || [])) {
+    for (const w of withdrawalsPhase(c)) {
       allEvents.push({ date: w.date, delta: -(w.amount || 0), type: 'withdrawal' });
+    }
+    for (const a of (c.adjustments || [])) {
+      if (c.equityBaseAt && (a.date || '') < c.equityBaseAt) continue;
+      allEvents.push({ date: a.date, delta: a.amount || 0, type: 'adjustment' });
     }
   }
   allEvents.sort((a, b) => (a.date || '').localeCompare(b.date || ''));

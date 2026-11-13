@@ -273,6 +273,8 @@ function sanitizeCuenta(c) {
             date: a.date || new Date().toISOString().substring(0, 10),
             amount: typeof a.amount === 'number' ? a.amount : (parseFloat(a.amount) || 0),
             note: String(a.note || '').trim(),
+            // Cuadre automático de un retiro: se borra con él.
+            ...(a.withdrawalId ? { withdrawalId: String(a.withdrawalId) } : {}),
           }))
       : [],
     notes: String(c.notes || '').trim(),
@@ -976,7 +978,10 @@ export const state = {
   },
 
   // ── Retiros (siempre dentro de una cuenta) ───────────────
-  addWithdrawal(cuentaId, withdrawal) {
+  // `cuadre` (opcional, ± USD): diferencia entre el saldo real tras el retiro y
+  // el que calcula la app. Se guarda como ajuste ligado al retiro, en la misma
+  // escritura, para que el equity quede cuadrado sin el paso manual.
+  addWithdrawal(cuentaId, withdrawal, { cuadre = 0 } = {}) {
     const cuenta = this.cuentas.find(c => c.id === cuentaId);
     if (!cuenta) return null;
     const w = {
@@ -989,16 +994,23 @@ export const state = {
       note: String(withdrawal.note || '').trim(),
     };
     if (w.amount <= 0) return null;
-    return this.updateCuenta(cuentaId, {
-      withdrawals: [...(cuenta.withdrawals || []), w],
-    });
+    const patch = { withdrawals: [...(cuenta.withdrawals || []), w] };
+    const c = typeof cuadre === 'number' && isFinite(cuadre) ? +cuadre.toFixed(2) : 0;
+    if (Math.abs(c) >= 0.01) {
+      patch.adjustments = [...(cuenta.adjustments || []), {
+        id: uuid(), date: w.date, amount: c, note: 'Cuadre de saldo tras el retiro', withdrawalId: w.id,
+      }];
+    }
+    return this.updateCuenta(cuentaId, patch);
   },
 
   removeWithdrawal(cuentaId, withdrawalId) {
     const cuenta = this.cuentas.find(c => c.id === cuentaId);
     if (!cuenta) return null;
+    // Con el retiro se va también su ajuste de cuadre.
     return this.updateCuenta(cuentaId, {
       withdrawals: (cuenta.withdrawals || []).filter(w => w.id !== withdrawalId),
+      adjustments: (cuenta.adjustments || []).filter(a => a.withdrawalId !== withdrawalId),
     });
   },
 

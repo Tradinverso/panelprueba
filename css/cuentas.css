@@ -248,3 +248,22 @@ a.firma-name:hover { color: var(--accent); }
   .firma.destacada .firma-logo { width: 72px; height: 72px; border-radius: 20px; }
   .firma.destacada .firma-name { font-size: 22px; }
 }
+
+/* ── Aviso de equity descuadrado por retiros (detalle de la cuenta) ── */
+.cuenta-aviso {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;
+  padding: 14px 18px; border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--orange) 45%, var(--border));
+  background: color-mix(in srgb, var(--orange) 9%, transparent);
+  font-size: 13px; line-height: 1.55; color: var(--text);
+}
+.cuenta-aviso > div { flex: 1 1 320px; }
+.cuenta-aviso .btn { flex: none; }
+
+/* ── Formulario de retiro ── */
+.w-hint { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.45; }
+.w-hint.aviso { color: var(--orange); }
+.w-summary { padding: 8px 10px; background: var(--card2); border: 1px solid var(--border); border-radius: 10px; font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--muted); }
+.w-summary.lleno { color: var(--text); }
+.w-saldo { display: flex; gap: 8px; flex-wrap: wrap; }
+.w-saldo .form-input { flex: 1 1 160px; min-width: 0; }
