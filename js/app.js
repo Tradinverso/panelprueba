@@ -11,6 +11,7 @@ import { renderMesa } from './components/mesa.js';
 import { renderFooter } from './components/footer.js';
 import { maybeShowMigrationPrompt } from './components/migrate-modal.js';
 import { maybeShowNovedades } from './components/novedades.js';
+import { maybeShowRegla } from './components/regla-aviso.js';
 import { openAccountModal, isAccountOpen } from './components/account-modal.js';
 import { initBreaker } from './utils/breaker.js';
 
@@ -142,6 +143,8 @@ auth.on(async () => {
     maybeShowMigrationPrompt();
     // Aviso de novedades (una vez por cuenta)
     maybeShowNovedades();
+    // Regla del día (una vez al día; si ya hay otro aviso abierto, espera)
+    maybeShowRegla();
   }
 
   renderChrome();

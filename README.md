@@ -99,7 +99,8 @@ tradinverso/
       settings.js         ajustes + export/wipe
     components/
       topbar.js           barra superior: navegación en píldora, reloj, Apariencia, avatar
-      mesa.js             columna "Hoy": checklist, noticias de alto impacto, cuentas, próximos directos, regla del día; recogible a barrita
+      mesa.js             columna "Hoy": checklist, diario, noticias de alto impacto, próximos directos, cuentas, Formación y Prop firms; recogible a barrita
+      regla-aviso.js      regla del día (o una lección propia) como aviso al abrir, una vez al día
       footer.js           pie: versión, Formación, Ajustes
       checklist-modal.js  pop-up del checklist pre-sesión y editor de la lista de cada alumno
       novedades.js        aviso de novedades, una vez por cuenta (config.novedadesVista)
@@ -297,4 +298,8 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   archivos, así que `js/utils/avatar.js` recorta la imagen en cuadrado y la reduce a 192 px en
   JPEG en el navegador (unos pocos kB) y se guarda como texto. Se ve en la barra de arriba, en el
   pop-up de la cuenta y junto al nombre en Mis Alumnos; sin foto se siguen viendo las iniciales.
+- **Regla del día**: ya no ocupa una caja en la columna Hoy. Sale como aviso al abrir la app, una
+  vez al día por navegador (clave `tradinverso_regla_vista` en `localStorage`), y se apaga en
+  Ajustes → Módulos (`config.reglaDiaria === false`). Sin esa caja la columna Hoy cabe mejor y se
+  ve a mayor escala.
 

@@ -32,6 +32,7 @@ import { fetchAppsScript } from '../utils/apps-script-import.js';
 import { paintUrlTab, paintFileTab } from '../views/import-table.js';
 import { VERSION } from '../version.js';
 import { avatarInner, prepararFoto, fotoValida } from '../utils/avatar.js';
+import { reglaDiariaActiva, mostrarRegla } from './regla-aviso.js';
 import { EXPORT_SHEETS, sheetLabel, filterTrades, periodLabel, exportCsv, exportExcel, exportPdf } from '../utils/export-trades.js';
 
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
@@ -44,7 +45,7 @@ const MENU = [
     { id: 'trofeos', label: 'Trofeos', icon: 'trofeo', sub: 'Tu canal de logros: fases pasadas, fondeos y payouts de las prop firms', keys: 'logros certificados fase fondeada payout prop firm pdf imagen' },
   ] },
   { grupo: 'Trading', items: [
-    { id: 'modulos', label: 'Módulos', icon: 'modulos', sub: 'Herramientas extra que puedes activar en la app', keys: 'riesgo rotacion cfd futuros cortacircuitos pausa' },
+    { id: 'modulos', label: 'Módulos', icon: 'modulos', sub: 'Herramientas extra que puedes activar en la app', keys: 'riesgo rotacion cfd futuros cortacircuitos pausa regla del dia leccion aviso' },
     { id: 'apps', label: 'Conexión con Apps Script', icon: 'enlace', sub: 'La URL de tu Google Sheet para reimportar trades', keys: 'google sheet url script importar conexion' },
   ] },
   { grupo: 'App', items: [
@@ -342,12 +343,22 @@ function riskValue() {
 }
 function modulos(body) {
   const cc = state.config.cortacircuitos === true;
+  const rd = reglaDiariaActiva();
   body.innerHTML = card(`
     ${fila('Gestión de riesgo / rotación', 'Añade en <strong>Cuentas</strong> las pestañas de riesgo: <strong>CFD</strong> (escalado por niveles según el drawdown) y <strong>Futuros</strong> (gestiones de riesgo fijo y grupos de copiado), cada una con su rotación. Elige cuáles ver. Lee de tus cuentas y trades, no añade datos.',
       `<select class="select" id="accRisk">${[['ambos', 'CFD y Futuros'], ['CFD', 'Solo CFD'], ['Futuros', 'Solo Futuros'], ['off', 'Desactivado']]
         .map(([v, l]) => `<option value="${v}" ${riskValue() === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`)}
     ${fila('Cortacircuitos de riesgo', 'Al apuntar el primer SL del día en una cuenta, la app te marca una <strong>pausa de 5 minutos</strong> con cuenta atrás antes del siguiente trade.',
-      `<button type="button" class="ap-switch ${cc ? 'on' : ''}" role="switch" aria-checked="${cc}" aria-label="Cortacircuitos de riesgo" id="accBreaker"><span></span></button>`)}`);
+      `<button type="button" class="ap-switch ${cc ? 'on' : ''}" role="switch" aria-checked="${cc}" aria-label="Cortacircuitos de riesgo" id="accBreaker"><span></span></button>`)}
+    ${fila('Regla del día al abrir', 'Una vez al día, al entrar, la app te recuerda una regla. En días alternos es una lección que tú mismo escribiste en el diario del trader. <button type="button" class="acc-linkbtn" id="accReglaVer">Ver la de hoy</button>',
+      `<button type="button" class="ap-switch ${rd ? 'on' : ''}" role="switch" aria-checked="${rd}" aria-label="Regla del día al abrir" id="accRegla"><span></span></button>`)}`);
+  on(body, '#accRegla', 'click', () => {
+    const v = !reglaDiariaActiva();
+    state.setConfig({ reglaDiaria: v });
+    showToast(v ? 'Regla del día activada' : 'Regla del día desactivada');
+    refresh();
+  });
+  on(body, '#accReglaVer', 'click', () => mostrarRegla());
   on(body, '#accRisk', 'change', e => {
     const v = e.target.value;
     state.setConfig(v === 'off' ? { riskModuleEnabled: false } : { riskModuleEnabled: true, riskTipos: v });

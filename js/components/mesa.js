@@ -1,7 +1,8 @@
 // Columna "Hoy" (antes "Mesa"; el código conserva ese nombre): columna
 // izquierda sticky (260 px) con lo que hay que tener a mano mientras se opera.
 // Cada cosa en su propia caja: checklist · noticias de alto impacto · próximos
-// directos · cuentas activas · Formación · Prop firms · regla del día.
+// directos · cuentas activas · Formación · Prop firms. (La regla del día sale
+// como aviso al abrir la app: components/regla-aviso.js.)
 // Se recoge en una barrita de 58 px con indicadores (mini-pastilla por cuenta,
 // anillo del checklist, directo en curso, hora de la próxima noticia).
 // El estado abierto/recogido se guarda en las preferencias (appearance.mesa).
@@ -11,7 +12,6 @@ import { state } from '../state.js';
 import { auth } from '../auth.js';
 import { appearance } from '../appearance.js';
 import { accountStats, fmtUsd } from '../utils/account-stats.js';
-import { reglaDelDia } from '../utils/reglas-del-dia.js';
 import { checklistProgress } from '../utils/checklist-items.js';
 import { todayLocal } from '../utils/timezone.js';
 import { openChecklistModal } from './checklist-modal.js';
@@ -20,7 +20,7 @@ import { icon } from './icons.js';
 import { getHoyData, onHoyData, noticiasDeHoy, noticiasDeLaSemana, proximosDirectos, horaEn, diaCortoEn } from '../utils/hoy-data.js';
 import { tituloEs } from '../utils/noticias-es.js';
 import { openDiarioModal } from './diario-modal.js';
-import { hoy as hoyDiario, estadoDia, tradesDe, leccionDeHoy } from '../utils/diario.js';
+import { hoy as hoyDiario, estadoDia, tradesDe } from '../utils/diario.js';
 import { irAFirmas } from './firmas.js';
 
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
@@ -122,10 +122,8 @@ export function renderMesa(container) {
   if (!auth.currentUser) { container.innerHTML = ''; return; }
 
   const accs = accountsData();
-  const regla = reglaDelDia();
   const diaEst = estadoDia(hoyDiario());
   const diaTrades = tradesDe(hoyDiario()).length;
-  const leccion = leccionDeHoy();
   const chk = checklistProgress();
   const clock = clockParts();
   const colorOf = v => v > 0 ? 'var(--green)' : (v < 0 ? 'var(--red)' : 'var(--muted)');
@@ -243,15 +241,6 @@ export function renderMesa(container) {
         <span class="mesa-cta-text"><b>Noticias</b><small>Calendario económico</small></span>
         <span class="mesa-cta-arrow">↗</span>
       </a>`}
-      <section class="card mesa-box">
-        ${leccion ? `
-        <div class="mesa-block-head"><div class="mesa-label">Una lección tuya</div></div>
-        <div class="mesa-rule">${escapeHtml(leccion.texto)}</div>
-        <div class="mesa-rule-sub">La escribiste el ${leccion.dia.split('-').reverse().join('/')}.</div>` : `
-        <div class="mesa-block-head"><div class="mesa-label">Regla del día</div></div>
-        <div class="mesa-rule">${escapeHtml(regla.main)}</div>
-        <div class="mesa-rule-sub">${escapeHtml(regla.sub)}</div>`}
-      </section>
     `;
     container.querySelectorAll('[data-news-scope]').forEach(b => b.addEventListener('click', () => {
       newsScope = b.dataset.newsScope;
