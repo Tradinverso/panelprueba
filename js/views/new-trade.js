@@ -165,7 +165,7 @@ function renderForm(wrap, side, sheet, data, onSaved) {
             ${meta.showPip ? `<label class="nt-inline-label">${sheet === 'ZONAS' ? 'Pips SL' : 'Pip SL'}
               <input class="form-input" type="number" step="0.1" data-input="pips" value="${data.pips}" placeholder="5.0"></label>` : ''}
           </div>`, { required: true })}
-        ${row('Cuentas', '<div id="cuentaAssignBox"></div>', { hint: 'opcional' })}
+        ${state.haySeguimiento() || (data.accounts || []).length ? row('Cuentas', '<div id="cuentaAssignBox"></div>', { hint: 'opcional' }) : ''}
       </div>
 
       <div class="card nt-section">

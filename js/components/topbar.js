@@ -125,7 +125,8 @@ export function renderTopbar(container) {
 
   const current = router.current();
   const inViewAs = !!state.viewAsUid;
-  let nav = NAV_BASE.slice();
+  // Contabilidad se puede apagar en Ajustes → Módulos.
+  let nav = NAV_BASE.filter(i => i.path !== '#/contabilidad' || state.contabilidadActiva());
   if (auth.isAdmin()) nav = nav.concat(NAV_ADMIN);
   else if (auth.isGestor()) nav = nav.concat(NAV_GESTOR);
 

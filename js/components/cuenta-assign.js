@@ -96,7 +96,9 @@ export function renderCuentaAssign(container, initial = [], onChange = () => {},
 
   function paint() {
     const cuentas = state.cuentas || [];
-    const activas = cuentas.filter(c => c.status === 'activa');
+    // Solo las cuentas de un tipo con seguimiento (Ajustes → Módulos). Lo ya
+    // asignado a otras se sigue viendo abajo para poder quitarlo.
+    const activas = cuentas.filter(c => c.status === 'activa' && state.cuentaConSeguimiento(c));
     const noCuentas = cuentas.length === 0;
 
     if (noCuentas) {

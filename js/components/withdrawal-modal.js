@@ -30,6 +30,8 @@ export function openWithdrawalModal(cuenta, onSaved = () => {}) {
   const capital = cuenta.capital || 0;
   const beneficio = s.equityUsd - capital;       // lo que la app tiene apuntado por encima del capital
   const base = cuenta.equityBaseAt;              // inicio de la fase actual
+  // Sin seguimiento de trades en esta cuenta no hay equity que cuadrar.
+  const seg = state.cuentaConSeguimiento(cuenta);
 
   openModal({
     title: `Nuevo retiro · ${esc(cuenta.empresa)} ${esc(cuenta.numero || '')}`,
@@ -43,7 +45,7 @@ export function openWithdrawalModal(cuenta, onSaved = () => {}) {
           <div class="form-field">
             <label class="form-label">Importe bruto ($) <span class="required">*</span></label>
             <input class="form-input" type="number" step="0.01" min="0.01" id="w-amount" placeholder="500.00">
-            <div class="w-hint">Lo que sale de la cuenta. Equity según la app: ${fmtUsd(s.equityUsd)}.</div>
+            <div class="w-hint">Lo que sale de la cuenta.${seg ? ` Equity según la app: ${fmtUsd(s.equityUsd)}.` : ''}</div>
           </div>
         </div>
         <div class="form-row">
@@ -57,7 +59,7 @@ export function openWithdrawalModal(cuenta, onSaved = () => {}) {
             <div id="w-summary" class="w-summary">Introduce el importe…</div>
           </div>
         </div>
-        <div class="form-field">
+        <div class="form-field" ${seg ? '' : 'hidden'}>
           <label class="form-label">Saldo de la cuenta tras el retiro ($)</label>
           <div class="w-saldo">
             <input class="form-input" type="number" step="0.01" min="0" id="w-saldo" placeholder="${capital.toFixed(2)}">
@@ -99,7 +101,7 @@ export function openWithdrawalModal(cuenta, onSaved = () => {}) {
 
           const commissionUsd = +(amount * commPct / 100).toFixed(2);
           // Un retiro anterior a la fase actual no cambia el equity: no se cuadra.
-          const enFase = !base || date >= base;
+          const enFase = seg && (!base || date >= base);
           const cuadre = enFase && saldo != null ? +(saldo - (s.equityUsd - amount)).toFixed(2) : 0;
           state.addWithdrawal(cuenta.id, { date, amount, commission: commissionUsd, note }, { cuadre });
           close();
@@ -123,7 +125,7 @@ export function openWithdrawalModal(cuenta, onSaved = () => {}) {
     function update() {
       const a = parseFloat(amountInp.value);
       const p = parseFloat(commInp.value);
-      const enFase = !base || !dateInp.value || dateInp.value >= base;
+      const enFase = seg && (!base || !dateInp.value || dateInp.value >= base);
       saldoInp.disabled = !enFase;
       if (!isFinite(a) || a <= 0) {
         summaryEl.textContent = 'Introduce el importe…';

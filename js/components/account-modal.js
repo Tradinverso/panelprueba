@@ -45,7 +45,7 @@ const MENU = [
     { id: 'trofeos', label: 'Trofeos', icon: 'trofeo', sub: 'Tu canal de logros: fases pasadas, fondeos y payouts de las prop firms', keys: 'logros certificados fase fondeada payout prop firm pdf imagen' },
   ] },
   { grupo: 'Trading', items: [
-    { id: 'modulos', label: 'Módulos', icon: 'modulos', sub: 'Herramientas extra que puedes activar en la app', keys: 'riesgo rotacion cfd futuros cortacircuitos pausa regla del dia leccion aviso' },
+    { id: 'modulos', label: 'Módulos', icon: 'modulos', sub: 'Herramientas extra que puedes activar en la app', keys: 'riesgo rotacion cfd futuros cortacircuitos pausa regla del dia leccion aviso seguimiento asignar trades equity contabilidad' },
     { id: 'apps', label: 'Conexión con Apps Script', icon: 'enlace', sub: 'La URL de tu Google Sheet para reimportar trades', keys: 'google sheet url script importar conexion' },
   ] },
   { grupo: 'App', items: [
@@ -344,8 +344,15 @@ function riskValue() {
 function modulos(body) {
   const cc = state.config.cortacircuitos === true;
   const rd = reglaDiariaActiva();
+  const seg = (state.config && state.config.seguimientoCuentas) || 'ambos';
+  const conta = state.contabilidadActiva();
   body.innerHTML = card(`
-    ${fila('Gestión de riesgo / rotación', 'Añade en <strong>Cuentas</strong> las pestañas de riesgo: <strong>CFD</strong> (escalado por niveles según el drawdown) y <strong>Futuros</strong> (gestiones de riesgo fijo y grupos de copiado), cada una con su rotación. Elige cuáles ver. Lee de tus cuentas y trades, no añade datos.',
+    ${fila('Seguimiento de trades en cuentas', 'Asignas cada trade a tus cuentas para ver su <strong>equity, drawdown y racha</strong> en Cuentas y en la columna Hoy. Si no lo llevas, desactívalo: las cuentas se quedan para la Contabilidad, sin equity. No se borra nada.',
+      `<select class="select" id="accSeg">${[['ambos', 'CFD y Futuros'], ['CFD', 'Solo CFD'], ['Futuros', 'Solo Futuros'], ['off', 'Desactivado']]
+        .map(([v, l]) => `<option value="${v}" ${seg === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`)}
+    ${fila('Contabilidad', 'La pestaña <strong>Contabilidad</strong>: lo que has gastado en cuentas, lo que has retirado y lo que te queda en el bolsillo.',
+      `<button type="button" class="ap-switch ${conta ? 'on' : ''}" role="switch" aria-checked="${conta}" aria-label="Contabilidad" id="accConta"><span></span></button>`)}
+    ${fila('Gestión de riesgo / rotación', 'Añade en <strong>Cuentas</strong> las pestañas de riesgo: <strong>CFD</strong> (escalado por niveles según el drawdown) y <strong>Futuros</strong> (gestiones de riesgo fijo y grupos de copiado), cada una con su rotación. Elige cuáles ver. Lee de tus cuentas y trades, no añade datos.' + (state.haySeguimiento() ? '' : ' <span class="acc-warn">Necesita el seguimiento de trades en cuentas.</span>'),
       `<select class="select" id="accRisk">${[['ambos', 'CFD y Futuros'], ['CFD', 'Solo CFD'], ['Futuros', 'Solo Futuros'], ['off', 'Desactivado']]
         .map(([v, l]) => `<option value="${v}" ${riskValue() === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`)}
     ${fila('Cortacircuitos de riesgo', 'Al apuntar el primer SL del día en una cuenta, la app te marca una <strong>pausa de 5 minutos</strong> con cuenta atrás antes del siguiente trade.',
@@ -359,6 +366,19 @@ function modulos(body) {
     refresh();
   });
   on(body, '#accReglaVer', 'click', () => mostrarRegla());
+  on(body, '#accSeg', 'change', e => {
+    const v = e.target.value;
+    state.setConfig({ seguimientoCuentas: v });
+    showToast(v === 'off' ? 'Seguimiento de trades en cuentas desactivado' : v === 'ambos' ? 'Seguimiento de trades en cuentas: CFD y Futuros' : `Seguimiento de trades en cuentas: solo ${v}`);
+    refresh();
+  });
+  on(body, '#accConta', 'click', () => {
+    const v = !state.contabilidadActiva();
+    state.setConfig({ contabilidad: v });
+    showToast(v ? 'Contabilidad activada' : 'Contabilidad desactivada');
+    if (!v && location.hash.startsWith('#/contabilidad')) location.hash = '#/cuentas';
+    refresh();
+  });
   on(body, '#accRisk', 'change', e => {
     const v = e.target.value;
     state.setConfig(v === 'off' ? { riskModuleEnabled: false } : { riskModuleEnabled: true, riskTipos: v });

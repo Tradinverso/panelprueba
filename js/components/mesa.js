@@ -78,7 +78,7 @@ function accountsData() {
   const trades = state.trades || [];
   const today = todayLocal(auth.timezone());
   return (state.cuentas || [])
-    .filter(c => c.status === 'activa')
+    .filter(c => c.status === 'activa' && state.cuentaConSeguimiento(c))
     .map(c => {
       const s = accountStats(c, trades);
       const objPct = c.targetPct > 0 ? c.targetPct : 0;
@@ -213,7 +213,7 @@ export function renderMesa(container) {
       </section>
       ${newsBox}
       ${directosBox}
-      <section class="card mesa-box">
+      ${state.haySeguimiento() ? `<section class="card mesa-box">
         <div class="mesa-block-head"><h2>Cuentas</h2><a href="#/cuentas" class="mesa-link">${accs.length} activa${accs.length === 1 ? '' : 's'} →</a></div>
         ${accs.length ? accs.map(a => `
           <div class="mesa-acc" title="${escapeHtml(a.name)} · ${fmtPct(a.pct)} · SL hoy ${a.sl}/1">
@@ -225,7 +225,7 @@ export function renderMesa(container) {
             <div class="mesa-acc-row sub"><span>${escapeHtml(a.strats)}</span><span class="pnl-value">${fmtUsd(a.balance)}</span></div>
           </div>`).join('')
         : `<div class="mesa-empty">Sin cuentas activas. <a href="#/cuentas">Añade una →</a></div>`}
-      </section>
+      </section>` : ''}
       <a class="card mesa-cta" href="${FORMACION_URL}" target="_blank" rel="noopener noreferrer" title="Cursos y directos de Tradinverso">
         <span class="mesa-cta-ic">${icon('formacion')}</span>
         <span class="mesa-cta-text"><b>Formación</b><small>Cursos · directos</small></span>

@@ -48,6 +48,11 @@ export const router = {
         window.location.hash = '#/dashboard';
         return;
       }
+      // Contabilidad desactivada en Ajustes → Módulos.
+      if (path === '#/contabilidad' && !state.contabilidadActiva()) {
+        window.location.hash = '#/cuentas';
+        return;
+      }
       // Riesgo CFD / Futuros desactivado en Ajustes → a la otra si está activa,
       // si no a Cuentas.
       if (path === '#/riesgo' && !state.riesgoActivo('CFD')) {

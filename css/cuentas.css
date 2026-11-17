@@ -267,3 +267,4 @@ a.firma-name:hover { color: var(--accent); }
 .w-summary.lleno { color: var(--text); }
 .w-saldo { display: flex; gap: 8px; flex-wrap: wrap; }
 .w-saldo .form-input { flex: 1 1 160px; min-width: 0; }
+.cuenta-aviso.info { border-color: var(--border); background: var(--card2); color: var(--muted); }

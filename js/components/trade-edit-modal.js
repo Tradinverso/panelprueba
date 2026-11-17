@@ -177,10 +177,10 @@ export function openEditTradeModal(trade) {
           <div><textarea class="form-textarea" data-input="reflexion">${escapeHtml(data.reflexion)}</textarea></div>
         </div>
 
-        <div class="form-field">
+        ${state.haySeguimiento() || (data.accounts || []).length ? `<div class="form-field">
           <label class="form-label">Asignación a cuentas</label>
           <div id="cuentaAssignBoxEdit"></div>
-        </div>
+        </div>` : ''}
 
         <div id="editErr" class="auth-error" style="display:none;"></div>
       </div>

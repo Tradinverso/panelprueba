@@ -921,8 +921,30 @@ export const state = {
   riesgoActivo(tipo) {
     const cfg = this.config || {};
     if (cfg.riskModuleEnabled === false) return false;
+    // El riesgo se calcula con los trades asignados: sin seguimiento no hay riesgo.
+    if (!this.seguimientoActivo(tipo)) return false;
     const t = cfg.riskTipos || 'ambos';
     return t === 'ambos' || t === tipo;
+  },
+
+  // Ajustes → Módulos: seguimiento de trades en cuentas ('ambos' por defecto,
+  // 'CFD', 'Futuros' u 'off'). Sin seguimiento, las cuentas de ese tipo no se
+  // ofrecen al apuntar un trade, no salen en la columna Hoy y no enseñan
+  // equity: se quedan para la Contabilidad (fase, compras y retiros). No borra
+  // nada: lo ya asignado vuelve a contar al activarlo.
+  seguimientoActivo(tipo) {
+    const t = (this.config && this.config.seguimientoCuentas) || 'ambos';
+    return t === 'ambos' || t === tipo;
+  },
+  haySeguimiento() {
+    return this.seguimientoActivo('CFD') || this.seguimientoActivo('Futuros');
+  },
+  cuentaConSeguimiento(c) {
+    return !!c && this.seguimientoActivo(c.tipo === 'Futuros' ? 'Futuros' : 'CFD');
+  },
+  // Ajustes → Módulos: la pestaña Contabilidad (activada por defecto).
+  contabilidadActiva() {
+    return !(this.config && this.config.contabilidad === false);
   },
 
   rotateAfterSL(trade) {

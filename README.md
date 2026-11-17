@@ -310,4 +310,10 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   (`adjustments[].withdrawalId`, campo opcional) y se borra con él. `retiroSinApuntar` mide el
   beneficio retirado que no estaba apuntado en trades: si queda algo, el detalle de la cuenta
   avisa y ofrece corregir el saldo. La curva de cartera usa los mismos datos que cada cuenta.
+- **Módulos de cuentas** (Ajustes → Módulos): `config.seguimientoCuentas` ('ambos' por defecto,
+  'CFD', 'Futuros' u 'off') decide para qué tipo de cuenta se siguen los trades
+  (`state.cuentaConSeguimiento(c)`). Sin seguimiento, esas cuentas no se ofrecen al apuntar un
+  trade, no salen en la columna Hoy, no enseñan equity ni estadísticas en Cuentas y su gestión de
+  riesgo se apaga; se quedan para la Contabilidad. `config.contabilidad === false` quita la
+  pestaña Contabilidad del menú y de las rutas. Ninguno de los dos borra datos.
 

@@ -86,12 +86,12 @@ function render(container) {
       : `
         <div class="kpi-grid" id="portfolioKpis"></div>
 
-        <div class="section-title">Cartera</div>
+        ${byType.some(c => state.cuentaConSeguimiento(c)) ? `<div class="section-title">Cartera</div>
         <div class="card" style="margin-bottom:24px;">
           <div class="card-title">Evolución del equity</div>
           <div class="card-sub">Suma de cuentas fondeadas activas</div>
           <div class="chart-wrap" style="height:240px;"><canvas id="portfolioEquity"></canvas></div>
-        </div>
+        </div>` : ''}
 
         <div class="section-title-row">
           <div class="section-title" style="margin:0;">Cuentas</div>
@@ -159,7 +159,7 @@ function render(container) {
     requestAnimationFrame(() => {
       const equityCanvas = container.querySelector('#portfolioEquity');
       if (!equityCanvas) return;
-      const curve = portfolioEquityCurve(byType, state.trades);
+      const curve = portfolioEquityCurve(byType.filter(c => state.cuentaConSeguimiento(c)), state.trades);
       createEquity(equityCanvas, [
         { key: 'PORT', label: 'Equity cartera', data: curve },
       ], { formatter: usdAxis });
@@ -230,6 +230,10 @@ function render(container) {
 
 function paintPortfolioKpis(container, cuentas) {
   const s = portfolioStats(cuentas, state.trades);
+  // El profit sale de los trades asignados: solo cuentas con seguimiento. Sin
+  // ninguna, en su sitio va lo retirado (sale de la Contabilidad, no de trades).
+  const conSeg = cuentas.filter(c => state.cuentaConSeguimiento(c));
+  const sSeg = portfolioStats(conSeg, state.trades);
   const kpisEl = container.querySelector('#portfolioKpis');
   if (!kpisEl) return;
   kpisEl.innerHTML = [
@@ -245,11 +249,16 @@ function paintPortfolioKpis(container, cuentas) {
       sub: `${s.countActivasChallenge} challenge${s.countActivasChallenge !== 1 ? 's' : ''} activa${s.countActivasChallenge !== 1 ? 's' : ''}`,
       tone: 'purple',
     }),
-    kpiCard({
+    conSeg.length ? kpiCard({
       label: 'Profit fondeado',
-      value: fmtUsd(s.profitFondeado, true),
+      value: fmtUsd(sSeg.profitFondeado, true),
       sub: 'desde inicio · cuentas activas',
-      tone: s.profitFondeado >= 0 ? 'green' : 'red',
+      tone: sSeg.profitFondeado >= 0 ? 'green' : 'red',
+    }) : kpiCard({
+      label: 'Total retirado',
+      value: fmtUsd(s.totalWithdrawn),
+      sub: 'neto a tu bolsillo · todas las cuentas',
+      tone: 'green',
     }),
   ].join('');
 }
@@ -296,6 +305,8 @@ function card(c) {
   const s = accountStats(c, state.trades);
   const isFondeada = c.fase === 'fondeada';
   const adv = advanceInfo(c);
+  // Sin seguimiento de trades (Ajustes → Módulos): ni equity ni stats de trades.
+  const seg = state.cuentaConSeguimiento(c);
   const equityColor = s.equityPct >= 0 ? 'var(--green)' : 'var(--red)';
   const wr = s.tp + s.sl > 0 ? s.wr.toFixed(0) + '%' : '–';
   const racha = s.currentSlStreak >= 3 ? `<span class="sdot bad"></span> ${s.currentSlStreak} SL`
@@ -322,18 +333,20 @@ function card(c) {
         </div>
       </div>
 
-      <div class="cuenta-equity" style="color:${equityColor};">
+      ${seg ? `<div class="cuenta-equity" style="color:${equityColor};">
         ${fmtUsd(s.equityUsd)}
         <span class="cuenta-equity-pct">${s.equityPct >= 0 ? '+' : ''}${s.equityPct.toFixed(2)}%</span>
-      </div>
+      </div>` : ''}
 
       <div class="cuenta-stats">
         ${stat('Capital', fmtUsd(s.capital))}
-        ${inactividadStat(c)}
+        ${seg ? inactividadStat(c) : ''}
         ${(c.fase === 'challenge_1' || c.fase === 'challenge_2') ? stat('Objetivo', objText) : (objUsd > 0 ? stat('Objetivo', objText) : '')}
         ${s.ddLimitUsd > 0 ? stat('DD máx', fmtUsd(s.ddLimitUsd)) : ''}
-        ${stat('Trades', `${s.count} · ${wr} WR`)}
-        ${racha ? stat('Racha', racha) : ''}
+        ${seg ? stat('Trades', `${s.count} · ${wr} WR`) : ''}
+        ${seg && racha ? stat('Racha', racha) : ''}
+        ${!seg && s.cost > 0 ? stat('Coste', fmtUsd(s.cost)) : ''}
+        ${!seg && isFondeada ? stat('Retirado', fmtUsd(s.totalWithdrawnNet)) : ''}
       </div>
 
       ${cardFoot(c, adv)}

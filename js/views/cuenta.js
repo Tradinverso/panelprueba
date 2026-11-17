@@ -74,6 +74,8 @@ function render(container, cuentaId) {
 
   const s = accountStats(cuenta, state.trades);
   const isFondeada = cuenta.fase === 'fondeada';
+  // Sin seguimiento de trades (Ajustes → Módulos): fase, retiros y compras, sin equity.
+  const seg = state.cuentaConSeguimiento(cuenta);
   const isPropia = cuenta.fase === 'propia';
   const adv = advanceInfo(cuenta);
   const items = tradesForAccountPhase(cuenta, state.trades);
@@ -95,7 +97,7 @@ function render(container, cuentaId) {
         <a class="btn" href="#/cuentas">← Cuentas</a>
         ${adv ? `<button class="btn" id="advanceFaseBtn">${adv.toFondeada ? '★' : '✓'} ${adv.label}</button>` : ''}
         ${(adv && !adv.toFondeada) ? `<button class="btn" id="fondeadaBtn" title="Pasar a Fondeada directamente (saltando la 2ª fase)">★ A Fondeada</button>` : ''}
-        ${cuenta.status !== 'perdida' ? `<button class="btn" id="ajusteEquityBtn" title="Corregir el equity actual (trade sin asignar, varianza de cuenta antigua…)">${ic('balanza')} Ajustar equity</button>` : ''}
+        ${seg && cuenta.status !== 'perdida' ? `<button class="btn" id="ajusteEquityBtn" title="Corregir el equity actual (trade sin asignar, varianza de cuenta antigua…)">${ic('balanza')} Ajustar equity</button>` : ''}
         ${!isPropia ? `<button class="btn" id="resetCuentaBtn" title="Volver a empezar la cuenta desde el capital (reset de la prop firm)">↺ Reset</button>` : ''}
         ${cuenta.status !== 'perdida' ? `<button class="btn danger" id="quemadaBtn">✗ Quemada</button>` : ''}
         <button class="btn" id="editCuentaBtn">${ic('lapiz')} Editar</button>
@@ -109,9 +111,10 @@ function render(container, cuentaId) {
 
     <div class="kpi-grid">
       ${kpiCard({ label: 'Capital nominal', value: fmtUsd(s.capital), sub: cuenta.tipo, tone: 'blue' })}
-      ${kpiCard({ label: 'Equity actual', value: fmtUsd(s.equityUsd), sub: signedPct(s.equityPct) + ' vs capital', tone: s.equityPct >= 0 ? 'green' : 'red' })}
-      ${kpiCard({ label: 'Profit total', value: fmtUsd(s.profitTotalUsd, true), sub: signedPct(s.profitTotalPct), tone: s.profitTotalUsd >= 0 ? 'green' : 'red' })}
-      ${s.targetUsd > 0 ? kpiCard({ label: 'Target', value: fmtUsd(s.targetUsd), sub: signedPct(s.targetProgressPct, 0) + ' completado', tone: s.targetProgressPct >= 100 ? 'green' : 'orange' }) : ''}
+      ${seg ? kpiCard({ label: 'Equity actual', value: fmtUsd(s.equityUsd), sub: signedPct(s.equityPct) + ' vs capital', tone: s.equityPct >= 0 ? 'green' : 'red' }) : ''}
+      ${seg ? kpiCard({ label: 'Profit total', value: fmtUsd(s.profitTotalUsd, true), sub: signedPct(s.profitTotalPct), tone: s.profitTotalUsd >= 0 ? 'green' : 'red' }) : ''}
+      ${!seg && cuenta.cost > 0 ? kpiCard({ label: 'Coste', value: fmtUsd(cuenta.cost), sub: 'compras y reintentos', tone: 'orange' }) : ''}
+      ${seg && s.targetUsd > 0 ? kpiCard({ label: 'Target', value: fmtUsd(s.targetUsd), sub: signedPct(s.targetProgressPct, 0) + ' completado', tone: s.targetProgressPct >= 100 ? 'green' : 'orange' }) : ''}
       ${s.ddLimitUsd > 0 ? kpiCard({ label: 'DD máx (firma)', value: fmtUsd(s.ddLimitUsd), sub: s.ddLimitPctOfCapital ? s.ddLimitPctOfCapital.toFixed(1) + '% del capital nominal' : 'límite definido por la firma', tone: 'orange' }) : ''}
       ${isFondeada ? kpiCard({
         label: 'Total retirado',
@@ -119,15 +122,17 @@ function render(container, cuentaId) {
         sub: (cuenta.withdrawals || []).length + ' retiros' + (s.totalCommissions > 0 ? ' · ' + fmtUsd(s.totalCommissions) + ' comisiones' : ''),
         tone: 'purple',
       }) : ''}
-      ${kpiCard({ label: 'Trades', value: s.count, sub: `${s.tp} TP · ${s.sl} SL · ${s.be} BE`, tone: 'orange' })}
-      ${kpiCard({ label: 'Winrate', value: (s.tp + s.sl > 0 ? s.wr.toFixed(0) + '%' : '–'), sub: 'TP / (TP+SL)', tone: (s.tp + s.sl) > 0 && s.wr < 40 ? 'red' : 'blue' })}
-      ${kpiCard({ label: 'Profit Factor', value: isFinite(s.pf) ? s.pf.toFixed(2) : '∞', sub: '$ wins / |$ losses|', tone: 'green' })}
+      ${seg ? kpiCard({ label: 'Trades', value: s.count, sub: `${s.tp} TP · ${s.sl} SL · ${s.be} BE`, tone: 'orange' }) : ''}
+      ${seg ? kpiCard({ label: 'Winrate', value: (s.tp + s.sl > 0 ? s.wr.toFixed(0) + '%' : '–'), sub: 'TP / (TP+SL)', tone: (s.tp + s.sl) > 0 && s.wr < 40 ? 'red' : 'blue' }) : ''}
+      ${seg ? kpiCard({ label: 'Profit Factor', value: isFinite(s.pf) ? s.pf.toFixed(2) : '∞', sub: '$ wins / |$ losses|', tone: 'green' }) : ''}
       ${cuenta.cost > 0 && isFondeada ? kpiCard({ label: 'Net to pocket', value: fmtUsd(s.netToPocket, true), sub: 'retirado − coste', tone: s.netToPocket >= 0 ? 'green' : 'red' }) : ''}
     </div>
 
-    ${(s.targetUsd > 0 || s.maxDdUsd > 0) ? renderProgressBars(s) : ''}
+    ${!seg ? `<div class="cuenta-aviso info"><div>Esta cuenta no lleva el seguimiento de tus trades (Ajustes → Módulos), así que aquí no hay equity ni estadísticas: solo su fase, sus retiros y sus compras.</div></div>` : ''}
 
-    <div class="section-title">Curva de equity</div>
+    ${seg && (s.targetUsd > 0 || s.maxDdUsd > 0) ? renderProgressBars(s) : ''}
+
+    ${seg ? `<div class="section-title">Curva de equity</div>
     <div class="card" style="margin-bottom:20px;">
       <div class="card-title">Evolución del capital ($)</div>
       <div class="card-sub">Cada trade asignado mueve la curva. ${isFondeada ? 'Los retiros aparecen como caídas verticales.' : ''}</div>
@@ -138,22 +143,22 @@ function render(container, cuentaId) {
     <div class="card" style="margin-bottom:24px;">
       <div class="card-title">P&L mensual ($)</div>
       <div class="chart-wrap" style="height:200px;"><canvas id="cuenta-monthly"></canvas></div>
-    </div>` : ''}
+    </div>` : ''}` : ''}
 
-    ${isFondeada && cuenta.status !== 'perdida' && s.retiroSinApuntar > 1 ? `
+    ${seg && isFondeada && cuenta.status !== 'perdida' && s.retiroSinApuntar > 1 ? `
       <div class="cuenta-aviso">
         <div><b>El equity puede salir más bajo de lo real.</b> Has retirado ${fmtUsd(s.retiroSinApuntar)} de beneficio que no está apuntado en trades de esta cuenta, y la app lo ha restado igualmente. Escribe el saldo real y queda cuadrado.</div>
         <button class="btn primary" id="cuadrarSaldoBtn">Corregir el saldo</button>
       </div>` : ''}
     ${isFondeada ? renderWithdrawalsSection(cuenta, s) : ''}
 
-    ${renderAjustesSection(cuenta)}
+    ${seg ? renderAjustesSection(cuenta) : ''}
 
-    <div class="section-title">Trades asignados (${items.length})</div>
+    ${seg ? `<div class="section-title">Trades asignados (${items.length})</div>
     ${items.length === 0
       ? '<div class="card empty">Aún no hay trades asignados a esta cuenta. En Nuevo Trade, marca esta cuenta al guardar.</div>'
       : renderAccountTradesTable(items, cuenta)
-    }
+    }` : ''}
   `;
 
   // Wire up
