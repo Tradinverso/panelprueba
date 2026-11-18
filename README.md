@@ -317,10 +317,10 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   riesgo se apaga; se quedan para la Contabilidad. `config.contabilidad === false` quita la
   pestaña Contabilidad del menú y de las rutas. Ninguno de los dos borra datos.
 - **Columna Hoy**: el checklist pre-sesión ya no tiene tarjeta (se abre desde el botón del
-  Dashboard; en la columna recogida sigue el anillo). «Alto impacto» y «Próximos directos» son una
-  sola tarjeta, **Agenda de hoy**: noticias y directos en una línea de tiempo por hora, Hoy / Semana
-  (por días) y el aviso «Evita operar en la noticia» solo a 15 minutos o menos de una noticia (un
-  reloj de 30 s repinta la columna cuando entra o sale esa ventana).
+  Dashboard; en la columna recogida sigue el anillo). «Alto impacto» (noticias) y «Próximos
+  directos» van en dos tarjetas separadas: se probó a juntarlas en una «Agenda de hoy» y David
+  prefirió tenerlas aparte. El aviso «Evita operar en la noticia» sale solo a 15 minutos o menos de
+  una noticia (un reloj de 30 s repinta la columna cuando entra o sale esa ventana).
 - **Ruedas** (`js/components/ring.js`): todas en SVG con el mismo estilo (arcos separados,
   extremos redondeados, degradado de su color y anillo fino): winrate por estrategia del
   Dashboard, Disciplina, donuts de Estrategias y Stats grupales, y el anillo del checklist en la

@@ -1,8 +1,8 @@
 // Columna "Hoy" (antes "Mesa"; el código conserva ese nombre): columna
 // izquierda sticky (260 px) con lo que hay que tener a mano mientras se opera.
-// Cada cosa en su propia caja: diario de hoy · agenda (noticias de alto impacto
-// y directos en una sola línea de tiempo) · cuentas activas · Formación · Prop
-// firms. El checklist pre-sesión se abre desde el Dashboard. (La regla del día sale
+// Cada cosa en su propia caja: diario de hoy · noticias de alto impacto ·
+// próximos directos · cuentas activas · Formación · Prop firms. El checklist
+// pre-sesión se abre desde el Dashboard. (La regla del día sale
 // como aviso al abrir la app: components/regla-aviso.js.)
 // Se recoge en una barrita de 58 px con indicadores (mini-pastilla por cuenta,
 // anillo del checklist, directo en curso, hora de la próxima noticia).
@@ -20,7 +20,7 @@ import { clockParts } from './topbar.js';
 import { icon } from './icons.js';
 import { STRATEGIES, sheetLabel } from '../utils/strategy-config.js';
 import { ringSvg } from './ring.js';
-import { getHoyData, onHoyData, noticiasDeHoy, noticiasDeLaSemana, proximosDirectos, horaEn, diaCortoEn, diaEn } from '../utils/hoy-data.js';
+import { getHoyData, onHoyData, noticiasDeHoy, noticiasDeLaSemana, proximosDirectos, horaEn, diaCortoEn } from '../utils/hoy-data.js';
 import { tituloEs } from '../utils/noticias-es.js';
 import { openDiarioModal } from './diario-modal.js';
 import { hoy as hoyDiario, estadoDia, tradesDe } from '../utils/diario.js';
@@ -148,71 +148,54 @@ export function renderMesa(container) {
       <span class="mesa-news-txt"><b>${escapeHtml(n.cur)}</b> ${escapeHtml(tituloEs(n.title))}${n.forecast || n.previous ? `<small>${n.forecast ? 'prev. ' + escapeHtml(n.forecast) : ''}${n.forecast && n.previous ? ' · ' : ''}${n.previous ? 'ant. ' + escapeHtml(n.previous) : ''}</small>` : ''}</span>
     </div>`;
 
-  // Directo en la línea de tiempo: misma fila que una noticia, con la línea azul
-  // lateral en lugar del punto rojo. El enlace para entrar solo se ofrece cuando
-  // está en curso o le faltan menos de 30 min (para entrar puntual).
-  const directoRow = d => {
-    const st = estadoDirecto(d, ahora);
-    const url = (st.tipo === 'live' || st.tipo === 'soon') ? safeUrl(d.url) : '';
-    const extra = st.tipo === 'live' ? '<span class="mesa-live-badge">● En directo</span>'
-      : st.tipo === 'soon' ? `<span class="mesa-live-soon">Empieza en ${st.min} min</span>` : '';
-    const inner = `
-      <span class="mesa-news-time">${horaEn(d.t, tz)}</span>
-      <span class="mesa-ag-mark"></span>
-      <span class="mesa-news-txt">${escapeHtml(d.title)}${url ? ' <span class="mesa-live-go">↗</span>' : ''}${extra ? `<small>${extra}</small>` : ''}</span>`;
-    return url
-      ? `<a class="mesa-news mesa-ag-live ${st.tipo}" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" title="${st.tipo === 'live' ? 'Entrar al directo' : 'Abrir el enlace del directo'}">${inner}</a>`
-      : `<div class="mesa-news mesa-ag-live ${st.tipo}" title="Directo${safeUrl(d.url) ? ' · el enlace para entrar aparece 30 min antes de empezar' : ''}">${inner}</div>`;
-  };
-
-  // Agenda: noticias y directos en una sola línea de tiempo, ordenados por hora.
-  const hoyDia = diaEn(new Date(ahora).toISOString(), tz);
-  const finSemana = diaEn(new Date(ahora + 6 * 86400000).toISOString(), tz);
-  const todosDirectos = proximosDirectos(hoyData, 50);
-  const eventos = [
-    ...(newsScope === 'semana' ? semana.flatMap(g => g.items) : noticias).map(n => ({ t: n.t, html: () => newsRow(n) })),
-    ...todosDirectos
-      .filter(d => { const dia = diaEn(d.t, tz); return newsScope === 'semana' ? dia <= finSemana : dia === hoyDia; })
-      .map(d => ({ t: d.t, html: () => directoRow(d) })),
-  ].sort((a, b) => Date.parse(a.t) - Date.parse(b.t));
-
   // «Evita operar en la noticia»: solo si a una noticia de hoy le faltan 15 min o menos.
   const inminente = noticias.find(n => { const m = (Date.parse(n.t) - ahora) / 60000; return m >= 0 && m <= 15; }) || null;
   avisoActual = inminente ? inminente.t : '';
 
-  let agendaBody;
+  let newsBody;
   if (newsScope === 'semana') {
-    const grupos = new Map();
-    for (const e of eventos) {
-      const dia = diaEn(e.t, tz);
-      if (!grupos.has(dia)) grupos.set(dia, { label: diaCortoEn(e.t, tz), esHoy: dia === hoyDia, items: [] });
-      grupos.get(dia).items.push(e);
-    }
-    agendaBody = grupos.size
-      ? [...grupos.values()].map(g => `<div class="mesa-news-day ${g.esHoy ? 'hoy' : ''}">${escapeHtml(g.label)}${g.esHoy ? ' · hoy' : ''}</div>${g.items.map(e => e.html()).join('')}`).join('')
-      : `<div class="mesa-empty">Esta semana no quedan noticias de alto impacto ni directos.</div>`;
+    newsBody = semana.length
+      ? semana.map(g => `<div class="mesa-news-day ${g.esHoy ? 'hoy' : ''}">${escapeHtml(g.label)}${g.esHoy ? ' · hoy' : ''}</div>${g.items.map(newsRow).join('')}`).join('')
+      : `<div class="mesa-empty">Esta semana no quedan noticias de alto impacto.</div>`;
   } else {
-    agendaBody = eventos.length
-      ? eventos.map(e => e.html()).join('')
-      : `<div class="mesa-empty">Hoy no hay noticias de alto impacto ni directos.${proxima ? ` Próxima noticia: <b>${diaCortoEn(proxima.t, tz)} · ${horaEn(proxima.t, tz)}</b> ${escapeHtml(proxima.cur)} ${escapeHtml(tituloEs(proxima.title))}.` : ''}</div>`;
+    newsBody = noticias.length
+      ? noticias.map(newsRow).join('') + (inminente ? `<div class="mesa-news-warn">Evita operar en la noticia</div>` : '')
+      : `<div class="mesa-empty">Hoy no hay noticias de alto impacto.${proxima ? ` Próxima: <b>${diaCortoEn(proxima.t, tz)} · ${horaEn(proxima.t, tz)}</b> ${escapeHtml(proxima.cur)} ${escapeHtml(tituloEs(proxima.title))}.` : ''}</div>`;
   }
-  if (inminente) agendaBody += `<div class="mesa-news-warn">Evita operar en la noticia</div>`;
-
-  const agendaBox = !hoyData ? '' : `
-      <section class="card mesa-box ${enDirecto ? 'has-live' : ''}">
+  const newsBox = !hoyData ? '' : `
+      <section class="card mesa-box">
         <div class="mesa-block-head">
-          <h2>Agenda de hoy</h2>
-          <div class="mesa-ag-tools">
-            <div class="mesa-mini-seg" role="group" aria-label="Periodo de la agenda">
-              <button type="button" class="${newsScope === 'hoy' ? 'on' : ''}" data-news-scope="hoy">Hoy</button>
-              <button type="button" class="${newsScope === 'semana' ? 'on' : ''}" data-news-scope="semana">Semana</button>
-            </div>
-            <a class="mesa-ag-ic" href="${INVESTING_URL}" target="_blank" rel="noopener noreferrer" title="Ver calendario de Investing (3 estrellas = alto impacto)" aria-label="Ver calendario de Investing">${icon('calendario')}</a>
-            <a class="mesa-ag-ic" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer" title="Comunidad de Tradinverso en Discord" aria-label="Discord">${icon('chat')}</a>
+          <h2>Alto impacto</h2>
+          <div class="mesa-mini-seg" role="group" aria-label="Periodo de noticias">
+            <button type="button" class="${newsScope === 'hoy' ? 'on' : ''}" data-news-scope="hoy">Hoy</button>
+            <button type="button" class="${newsScope === 'semana' ? 'on' : ''}" data-news-scope="semana">Semana</button>
           </div>
         </div>
-        <div class="mesa-source" title="Noticias del calendario de Forex Factory: solo carpeta roja (alto impacto) de USD, EUR y GBP, en tu hora."><span class="mesa-news-dot"></span>Forex Factory · carpeta roja</div>
-        ${agendaBody}
+        <div class="mesa-source" title="Lista sacada del calendario de Forex Factory: solo carpeta roja (alto impacto) de USD, EUR y GBP, en tu hora."><span class="mesa-news-dot"></span>Forex Factory · carpeta roja</div>
+        ${newsBody}
+        <a class="mesa-link mesa-foot-link" href="${INVESTING_URL}" target="_blank" rel="noopener noreferrer" title="Calendario económico de Investing (3 estrellas = alto impacto)">Ver calendario de Investing ↗</a>
+      </section>`;
+
+  const directoRow = d => {
+    const st = estadoDirecto(d, ahora);
+    // El enlace para entrar solo se ofrece cuando el directo está en curso o
+    // le faltan menos de 30 min (para poder entrar puntual). Antes, la fila
+    // es solo informativa.
+    const url = (st.tipo === 'live' || st.tipo === 'soon') ? safeUrl(d.url) : '';
+    const cuando = st.tipo === 'live' ? '<span class="mesa-live-badge">● En directo</span>'
+      : st.tipo === 'soon' ? `<span class="mesa-live-soon">Empieza en ${st.min} min</span> · ${horaEn(d.t, tz)}`
+      : `${diaCortoEn(d.t, tz)} · ${horaEn(d.t, tz)}`;
+    const inner = `
+        <span class="mesa-live-when">${cuando}</span>
+        <span class="mesa-live-title">${escapeHtml(d.title)}${url ? ' <span class="mesa-live-go">↗</span>' : ''}</span>`;
+    return url
+      ? `<a class="mesa-live ${st.tipo}" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" title="${st.tipo === 'live' ? 'Entrar al directo' : 'Abrir el enlace del directo'}">${inner}</a>`
+      : `<div class="mesa-live ${st.tipo}"${safeUrl(d.url) ? ' title="El enlace para entrar aparece 30 min antes de empezar"' : ''}>${inner}</div>`;
+  };
+  const directosBox = !directos.length ? '' : `
+      <section class="card mesa-box ${enDirecto ? 'has-live' : ''}">
+        <div class="mesa-block-head"><h2>Próximos directos</h2><a class="mesa-link" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer" title="Comunidad de Tradinverso en Discord">Discord ↗</a></div>
+        ${directos.map(directoRow).join('')}
       </section>`;
 
   if (open) {
@@ -228,7 +211,8 @@ export function renderMesa(container) {
           <span class="mesa-dia-steps"><i class="${diaEst.plan ? 'ok' : ''}">Inverso</i><i class="${diaTrades || diaEst.sinOperar ? 'ok' : ''}">${!diaTrades && diaEst.sinOperar ? 'Sin operar' : `${diaTrades} trade${diaTrades === 1 ? '' : 's'}`}</i><i class="${diaEst.review ? 'ok' : ''}">Cierre</i></span>
         </button>
       </section>
-      ${agendaBox}
+      ${newsBox}
+      ${directosBox}
       ${state.haySeguimiento() ? `<section class="card mesa-box">
         <div class="mesa-block-head"><h2>Cuentas</h2><a href="#/cuentas" class="mesa-link">${accs.length} activa${accs.length === 1 ? '' : 's'} →</a></div>
         ${accs.length ? accs.map(a => `
