@@ -28,7 +28,9 @@ import { irAFirmas } from './firmas.js';
 
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
 // Curso de Thinkific donde se suben todos los diferidos de los directos.
-const DIFERIDOS_URL = 'https://tradinverso.thinkific.com/courses/mastering-directos-course';
+// Ojo: con /take/ abre el curso por dentro (el reproductor); sin /take/ abre
+// la página de presentación, que no es lo que quiere ver un alumno.
+const DIFERIDOS_URL = 'https://tradinverso.thinkific.com/courses/take/mastering-directos-course';
 // Directos que NO se graban: una vez emitidos no llevan enlace al diferido.
 const SIN_DIFERIDO = [/caf[eé] de los viernes/i];
 const tieneDiferido = d => !SIN_DIFERIDO.some(re => re.test(d.title || ''));
