@@ -75,22 +75,30 @@ setInterval(() => {
 // Encaje de la barra en UNA fila. Lo que cabe depende del rol (el admin tiene
 // más apartados), de "Ver como", de la letra elegida y del ancho de pantalla,
 // así que se mide en vez de fiarlo a un ancho fijo:
-//   1) todo en una fila;  2) si no cabe → modo compacto (reloj sin
-//   fecha, logo sin texto);  3) si aun así no cabe → el botón
-//   del usuario se queda en el avatar;  4) y si tampoco → la navegación baja
-//   a una segunda fila centrada.
+//   1) todo en una fila;  2) si no cabe → modo compacto (reloj sin fecha);
+//   3) si aun así no cabe → el botón del usuario se queda en el avatar;
+//   4) después la marca se queda en el símbolo, sin la palabra TRADINVERSO
+//   (es lo último que se sacrifica);  5) y si tampoco → la navegación baja a
+//   una segunda fila centrada.
 // En móvil (< 900 px) manda la hoja de estilos (navegación con scroll).
 function fitTopbar(el) {
   if (!el || !el.firstChild) return;
-  el.classList.remove('tb-compact', 'tb-mini', 'tb-wrap');
+  el.classList.remove('tb-compact', 'tb-mini', 'tb-solo', 'tb-wrap');
   if (window.innerWidth < 900) return;
   const noCabe = () => el.scrollWidth > el.clientWidth + 1;
   if (!noCabe()) return;
-  el.classList.add('tb-compact');          // reloj sin fecha, logo sin texto
+  el.classList.add('tb-compact');          // reloj sin fecha
   if (!noCabe()) return;
   el.classList.add('tb-mini');             // el botón del usuario se queda en el avatar
+  if (!noCabe()) return;
+  el.classList.add('tb-solo');             // la marca, solo el símbolo
   if (noCabe()) el.classList.add('tb-wrap');
 }
+// La barra es fija: al bajar se le pone fondo para que el contenido pase por
+// debajo sin verse (css/shell.css, body.con-scroll).
+window.addEventListener('scroll', () => {
+  document.body.classList.toggle('con-scroll', window.scrollY > 4);
+}, { passive: true });
 let fitTimer = null;
 const refit = () => { clearTimeout(fitTimer); fitTimer = setTimeout(() => fitTopbar(document.getElementById('topbar')), 80); };
 window.addEventListener('resize', refit);
@@ -153,8 +161,8 @@ export function renderTopbar(container) {
 
   container.innerHTML = `
     <a href="${home}" class="tb-brand" title="Tradinverso">
-      <span class="tb-logo">${icon('globo')}</span>
-      <span class="tb-brand-text">Tradinverso${IS_TEST_ENV ? ' <b class="tb-test">PRUEBAS</b>' : ''}</span>
+      <img class="tb-marca-simbolo" src="assets/marca-simbolo.png" alt="" width="172" height="132">
+      <span class="tb-brand-text"><img class="tb-marca-texto" src="assets/marca-texto.png" alt="Tradinverso" width="519" height="54">${IS_TEST_ENV ? '<b class="tb-test">PRUEBAS</b>' : ''}</span>
     </a>
     <nav class="tb-nav" aria-label="Secciones">${items}</nav>
     <div class="tb-right">

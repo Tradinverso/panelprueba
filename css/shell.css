@@ -5,7 +5,7 @@
    │ #topbar: logo · navegación en píldora · reloj · Apariencia   │
    ├──────────────┬───────────────────────────────────────────────┤
    │ #mesa 260px  │ #view (contenedor redondeado, fondo page-bg)  │
-   │ sticky       │                                               │
+   │ fija         │ (lo único que se desplaza)                    │
    ├──────────────┴───────────────────────────────────────────────┤
    │ #footer: versión · Formación · Calendario económico · Ajustes│
    └──────────────────────────────────────────────────────────────┘
@@ -31,19 +31,31 @@ body.mesa-closed #mesa { flex: 0 0 58px; min-width: 58px; }
 /* ── Barra superior ─────────────────────────────────────────── */
 #topbar { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 12px; z-index: 5; min-width: 0; }
 /* Encaje en una fila (lo decide topbar.js midiendo): compacto → segunda fila */
-#topbar.tb-compact .tb-brand-text, #topbar.tb-compact .tb-clock-fecha, #topbar.tb-compact .tb-appearance-txt { display: none; }
+#topbar.tb-solo .tb-brand-text, #topbar.tb-compact .tb-clock-fecha, #topbar.tb-compact .tb-appearance-txt { display: none; }
 #topbar.tb-compact .tb-appearance { width: 36px; height: 36px; padding: 0; justify-content: center; }
 #topbar.tb-compact .tb-viewas span { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #topbar.tb-wrap { flex-wrap: wrap; }
 #topbar.tb-wrap .tb-nav { order: 3; margin: 0 auto; flex-wrap: wrap; justify-content: center; }
 #topbar.tb-wrap .tb-brand { margin-right: auto; }
-#topbar.tb-wrap .tb-brand-text, #topbar.tb-wrap .tb-clock-fecha, #topbar.tb-wrap .tb-appearance-txt { display: revert; }
+#topbar.tb-wrap .tb-clock-fecha, #topbar.tb-wrap .tb-appearance-txt { display: revert; }
+#topbar.tb-wrap .tb-brand-text { display: flex; }
 #topbar.tb-wrap .tb-appearance { width: auto; height: auto; padding: 8px 14px; }
-.tb-brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; }
-.tb-logo { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--accent), var(--pos)); color: #fff; }
-.tb-logo svg { width: 26px; height: 26px; }
-.tb-brand-text { font-weight: 700; font-size: 17px; letter-spacing: -0.02em; white-space: nowrap; }
-.tb-test { color: var(--orange); font-size: 10px; letter-spacing: .12em; vertical-align: middle; margin-left: 4px; }
+/* La marca: el logo del inicio puesto en horizontal (símbolo + TRADINVERSO),
+   sobre su mismo fondo oscuro para que se lea igual en tema claro y oscuro.
+   Las dos piezas salen de assets/logo-oscuro.png con el fondo quitado. */
+.tb-brand {
+  display: flex; align-items: center; gap: 10px; flex: none; text-decoration: none;
+  padding: 5px 16px 5px 12px; border-radius: 999px; color: #fff;
+  background: radial-gradient(120% 160% at 30% 50%, #101d36 0%, #0a0f1c 55%, #06080f 100%);
+  border: 1px solid rgba(255,255,255,.1);
+  transition: border-color var(--dur), box-shadow var(--dur);
+}
+.tb-brand:hover { border-color: rgba(96,165,250,.45); box-shadow: 0 6px 18px -10px rgba(59,130,246,.7); }
+.tb-marca-simbolo { height: 28px; width: auto; display: block; }
+.tb-brand-text { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; letter-spacing: .08em; white-space: nowrap; }
+.tb-marca-texto { height: 11px; width: auto; display: block; }
+#topbar.tb-solo:not(.tb-wrap) .tb-brand { padding: 5px 11px; }
+.tb-test { color: var(--orange); font-size: 10px; letter-spacing: .12em; }
 
 .tb-nav { display: flex; flex-wrap: nowrap; flex: none; align-items: center; gap: 2px; padding: 4px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); }
 :root[data-nav="flat"] .tb-nav { background: transparent; border-color: transparent; }
@@ -238,7 +250,9 @@ body[data-auth="false"] #view { border: 0; background: transparent; padding: 0; 
   #topbar { gap: 8px; flex-wrap: wrap; }
   .tb-nav { flex-wrap: nowrap; flex: 0 0 100%; overflow-x: auto; max-width: 100%; scrollbar-width: none; order: 3; }
   .tb-nav::-webkit-scrollbar { display: none; }
-  .tb-brand-text { font-size: 15px; }
+  .tb-brand { padding: 4px 13px 4px 10px; }
+  .tb-marca-simbolo { height: 24px; }
+  .tb-marca-texto { height: 10px; }
   .tb-appearance { padding: 8px 10px; }
   .tb-appearance { font-size: 0; gap: 0; }
   #shell { flex-direction: column; gap: 10px; }
@@ -960,3 +974,67 @@ button.mesa-rail-link { cursor: pointer; font: inherit; padding: 0; }
 .mesa-live-rec { font-size: 10.5px; font-weight: 600; color: var(--muted); white-space: nowrap; }
 a.mesa-live.past:hover .mesa-live-when, a.mesa-live.past:hover .mesa-live-title { opacity: .8; }
 a.mesa-live.past:hover .mesa-live-rec { color: var(--accent); }
+
+/* ════════════════════════════════════════════════════════════════
+   Barra de arriba y columna Hoy FIJAS (escritorio, más de 900 px)
+
+   Solo se desplaza el contenido de la derecha. La columna no se mueve nunca:
+   ni al bajar o subir, ni al cambiar de página, ni al llegar al final. Para
+   que no tenga que subir al irse la barra de arriba, la barra se queda fija
+   también; la columna empieza siempre justo debajo (--mesa-top, lo mide
+   mesa.js) y llega hasta el borde de abajo de la pantalla, sin corte.
+   Si en una pantalla baja no cabe todo ni reducido a escala, la columna tiene
+   su propio scroll, sin barra a la vista, y se difumina por abajo.
+   En móvil no cambia nada: todo va en una sola columna que baja con la página.
+   ════════════════════════════════════════════════════════════════ */
+@media (min-width: 901px) {
+  body { --mesa-w: 260px; }
+  body.mesa-closed { --mesa-w: 58px; }
+
+  #topbar { position: sticky; top: 0; margin: -14px -14px 0; padding: 14px 14px 0; }
+  /* Fondo de la barra: el mismo de la página, para que el contenido pase por
+     debajo sin verse. Solo aparece al bajar (body.con-scroll, lo pone topbar.js). */
+  #topbar::before {
+    content: ''; position: absolute; inset: 0 0 -14px 0; z-index: -1; pointer-events: none;
+    background: var(--frame, var(--bg)); background-attachment: fixed;
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent);
+            mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent);
+    opacity: 0; transition: opacity .18s ease;
+  }
+  body.con-scroll #topbar::before { opacity: 1; }
+
+  #shell { padding-left: calc(var(--mesa-w) + 14px); }
+  #footer { margin-left: calc(var(--mesa-w) + 14px); }
+  #shell:has(> #mesa:empty), body[data-auth="false"] #shell { padding-left: 0; }
+  body:has(#mesa:empty) #footer { margin-left: 0; }
+
+  /* Los 20 px de aire a los lados (y el margen negativo que los compensa) son
+     para que el contenedor con scroll no recorte la sombra de las tarjetas. */
+  #mesa, body.mesa-closed #mesa {
+    position: fixed; left: 14px; top: var(--mesa-top, 71px); bottom: 0; z-index: 2;
+    width: calc(var(--mesa-w) + 40px); min-width: 0; max-height: none; flex: none;
+    margin: 0 -20px; padding: 0 20px 14px;
+    overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
+  }
+  /* Queda contenido por debajo (o por arriba, si se ha bajado dentro de la
+     columna): se difumina hasta el borde, nunca un corte en seco. */
+  #mesa.mesa-mas, #mesa.mesa-menos {
+    --f-arriba: 0px; --f-abajo: 0px;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--f-arriba), #000 calc(100% - var(--f-abajo)), transparent);
+            mask-image: linear-gradient(to bottom, transparent, #000 var(--f-arriba), #000 calc(100% - var(--f-abajo)), transparent);
+  }
+  #mesa.mesa-mas { --f-abajo: 48px; }
+  #mesa.mesa-menos { --f-arriba: 28px; }
+}
+
+/* ── Cuentas de la columna Hoy: la que toca y las paradas ── */
+.mesa-acc-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.mesa-acc-tag {
+  flex: none; font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; line-height: 1.5;
+  padding: 0 6px; border-radius: 999px; color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+}
+.mesa-acc-parada { color: var(--orange); font-weight: 600; }
+.mesa-acc-parada.alerta { color: var(--red); }
+.mesa-pill.turno { box-shadow: inset 0 0 0 1px var(--accent); }

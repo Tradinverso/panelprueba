@@ -20,6 +20,10 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
 
 
 http.server.ThreadingHTTPServer.allow_reuse_address = True
+# La app pide más de cien módulos a la vez al cargar. Con la cola de entrada por
+# defecto (5) el sistema rechazaba algunas conexiones, un módulo no llegaba y la
+# página se quedaba en blanco de forma aleatoria.
+http.server.ThreadingHTTPServer.request_queue_size = 256
 with http.server.ThreadingHTTPServer(('', PORT), NoCacheHandler) as httpd:
     print(f'Sirviendo en http://localhost:{PORT} (sin cache)')
     httpd.serve_forever()

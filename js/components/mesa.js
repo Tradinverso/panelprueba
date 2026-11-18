@@ -12,7 +12,8 @@
 import { state } from '../state.js';
 import { auth } from '../auth.js';
 import { appearance } from '../appearance.js';
-import { accountStats, fmtUsd } from '../utils/account-stats.js';
+import { accountStats, fmtUsd, lastActivity, daysSince } from '../utils/account-stats.js';
+import { unidadesRotacion, unidadActiva } from '../utils/futures-risk.js';
 import { checklistProgress } from '../utils/checklist-items.js';
 import { todayLocal } from '../utils/timezone.js';
 import { openChecklistModal } from './checklist-modal.js';
@@ -83,25 +84,78 @@ function stratsOf(c, trades) {
   return [...set].join(' · ') || (c.tipo === 'Futuros' ? 'Futuros' : 'CFD');
 }
 
+// Con muchas cuentas la columna no las enseña todas: solo las que importan hoy.
+// Orden: 1) la que TOCA usar según la rotación, 2) las operadas hoy, 3) las que
+// llevan días sin operar (las de fondeo caducan por inactividad; mismos
+// umbrales que en Cuentas: aviso a los 7 días, alerta a los 14), 4) el resto,
+// de la más reciente a la más parada. Se enseñan las primeras MAX_CUENTAS y el
+// resto queda a un clic, en Cuentas.
+const MAX_CUENTAS = 4;
+const DIAS_AVISO = 7;
+const DIAS_ALERTA = 14;
+
+// Cuentas a las que les toca el próximo trade según la rotación de riesgo
+// (CFD: la cuenta activa; Futuros: todas las de la unidad activa). Sin módulo
+// de riesgo, o con una sola cuenta en la rotación, no hay turno que marcar.
+function idsEnTurno() {
+  const ids = new Set();
+  const cfg = state.config || {};
+  if (state.riesgoActivo('CFD')) {
+    const rot = state.rotacionOrdenada();
+    if (rot.length >= 2) ids.add((rot.find(c => c.id === cfg.rotacionActivaId) || rot[0]).id);
+  }
+  if (state.riesgoActivo('Futuros')) {
+    const units = unidadesRotacion(state.cuentas, cfg.futRotacionOrden || []);
+    const act = units.length >= 2 ? unidadActiva(units, cfg.futRotacionActiva) : null;
+    if (act) act.cuentas.forEach(c => ids.add(c.id));
+  }
+  return ids;
+}
+
 function accountsData() {
   const trades = state.trades || [];
   const today = todayLocal(auth.timezone());
-  return (state.cuentas || [])
+  const turno = idsEnTurno();
+  const lista = (state.cuentas || [])
     .filter(c => c.status === 'activa' && state.cuentaConSeguimiento(c))
     .map(c => {
       const s = accountStats(c, trades);
       const objPct = c.targetPct > 0 ? c.targetPct : 0;
       const objUsd = objPct > 0 ? c.capital * objPct / 100 : (c.targetUsd || 0);
       const progress = objUsd > 0 ? Math.max(0, Math.min(100, s.profitTotalUsd / objUsd * 100)) : null;
+      const dias = daysSince(lastActivity(c, trades).date);
+      const opHoy = trades.some(t => t.date === today && Array.isArray(t.accounts) && t.accounts.some(a => a.accountId === c.id));
+      const enTurno = turno.has(c.id);
+      const parada = !opHoy && dias != null && dias >= DIAS_AVISO;
       return {
         c, s, progress,
         name: shortName(c), abbr: abbr(c),
         pct: s.equityPct, balance: s.equityUsd,
         sl: slToday(c, trades, today),
         strats: stratsOf(c, trades),
+        enTurno, opHoy, dias, parada,
+        alerta: parada && dias >= DIAS_ALERTA,
+        orden: enTurno ? 0 : opHoy ? 1 : parada ? 2 : 3,
       };
     });
+  // Las paradas, de más a menos días; el resto, de la más reciente a la más parada.
+  const d = a => (a.dias == null ? 1e9 : a.dias);
+  return lista.sort((a, b) => a.orden - b.orden || (a.orden === 2 ? d(b) - d(a) : d(a) - d(b)));
 }
+// Las que caben en la columna. Si las que tocan y las de hoy llenan el hueco
+// (un grupo de copiado son varias cuentas), el último sitio es para la más
+// parada: es la que puede caducar y no debe quedar escondida.
+function cuentasVisibles(accs) {
+  if (accs.length <= MAX_CUENTAS) return accs;
+  const vis = accs.slice(0, MAX_CUENTAS);
+  if (!vis.some(a => a.parada)) {
+    const masParada = accs.find(a => a.parada);
+    if (masParada) vis[MAX_CUENTAS - 1] = masParada;
+  }
+  return vis;
+}
+// "9 días sin operar"
+const sinOperar = a => `${a.dias} día${a.dias === 1 ? '' : 's'} sin operar`;
 
 function fmtPct(v) {
   const sign = v > 0 ? '+' : (v < 0 ? '−' : '');
@@ -131,6 +185,9 @@ export function renderMesa(container) {
   if (!auth.currentUser) { container.innerHTML = ''; return; }
 
   const accs = accountsData();
+  const accsVis = cuentasVisibles(accs);
+  const accsResto = accs.length - accsVis.length;
+  const paradasOcultas = accs.filter(a => a.parada && !accsVis.includes(a)).length;
   const diaEst = estadoDia(hoyDiario());
   const diaTrades = tradesDe(hoyDiario()).length;
   const chk = checklistProgress();
@@ -238,15 +295,15 @@ export function renderMesa(container) {
       ${directosBox}
       ${state.haySeguimiento() ? `<section class="card mesa-box">
         <div class="mesa-block-head"><h2>Cuentas</h2><a href="#/cuentas" class="mesa-link">${accs.length} activa${accs.length === 1 ? '' : 's'} →</a></div>
-        ${accs.length ? accs.map(a => `
-          <div class="mesa-acc" title="${escapeHtml(a.name)} · ${fmtPct(a.pct)} · SL hoy ${a.sl}/1">
+        ${accs.length ? accsVis.map(a => `
+          <div class="mesa-acc" title="${escapeHtml(a.name)} · ${fmtPct(a.pct)} · SL hoy ${a.sl}/1${a.enTurno ? ' · es la que toca usar según la rotación' : ''}${a.parada ? ' · ' + sinOperar(a) : ''}">
             <div class="mesa-acc-row">
-              <span class="mesa-acc-name"><span class="mesa-dot ${a.sl > 0 ? 'bad' : 'ok'}" title="SL hoy ${a.sl}/1"></span>${escapeHtml(a.name)}</span>
+              <span class="mesa-acc-name"><span class="mesa-dot ${a.sl > 0 ? 'bad' : 'ok'}" title="SL hoy ${a.sl}/1"></span><span class="mesa-acc-txt">${escapeHtml(a.name)}</span>${a.enTurno ? '<span class="mesa-acc-tag">Toca</span>' : ''}</span>
               <span class="mesa-acc-pct pnl-value" style="color:${colorOf(a.pct)}">${fmtPct(a.pct)}</span>
             </div>
             ${a.progress != null ? `<div class="mesa-bar" title="Progreso hacia el objetivo de la fase: ${a.progress.toFixed(0)}%"><div style="width:${a.progress}%"></div></div>` : ''}
-            <div class="mesa-acc-row sub"><span>${escapeHtml(a.strats)}</span><span class="pnl-value">${fmtUsd(a.balance)}</span></div>
-          </div>`).join('')
+            <div class="mesa-acc-row sub"><span class="${a.parada ? (a.alerta ? 'mesa-acc-parada alerta' : 'mesa-acc-parada') : ''}">${a.parada ? sinOperar(a) : escapeHtml(a.strats)}</span><span class="pnl-value">${fmtUsd(a.balance)}</span></div>
+          </div>`).join('') + (accsResto ? `<a class="mesa-link mesa-foot-link" href="#/cuentas" title="En la columna salen la que toca usar, las operadas hoy y las que llevan días paradas">y ${accsResto} más${paradasOcultas ? ` · <span class="mesa-acc-parada">${paradasOcultas} parada${paradasOcultas === 1 ? '' : 's'}</span>` : ''} →</a>` : '')
         : `<div class="mesa-empty">Sin cuentas activas. <a href="#/cuentas">Añade una →</a></div>`}
       </section>` : ''}
       <a class="card mesa-cta" href="${FORMACION_URL}" target="_blank" rel="noopener noreferrer" title="Cursos y directos de Tradinverso">
@@ -278,8 +335,8 @@ export function renderMesa(container) {
         ${enDirecto ? (liveUrl
           ? `<a class="mesa-rail-live" href="${escapeHtml(liveUrl)}" target="_blank" rel="noopener noreferrer" title="En directo ahora: ${escapeHtml(enDirecto.title)} · pulsa para entrar">LIVE</a>`
           : `<span class="mesa-rail-live" title="En directo ahora: ${escapeHtml(enDirecto.title)}">LIVE</span>`) : ''}
-        ${accs.map(a => `
-          <div class="mesa-pill" title="${escapeHtml(a.name)} · ${fmtPct(a.pct)} · SL hoy ${a.sl}/1">
+        ${accsVis.map(a => `
+          <div class="mesa-pill${a.enTurno ? ' turno' : ''}" title="${escapeHtml(a.name)} · ${fmtPct(a.pct)} · SL hoy ${a.sl}/1${a.enTurno ? ' · toca usarla' : ''}${a.parada ? ' · ' + sinOperar(a) : ''}">
             <span class="mesa-pill-abbr">${escapeHtml(a.abbr)}</span>
             <span class="mesa-pill-bar" style="background:${colorOf(a.pct)}"></span>
             <span class="mesa-pill-sl">${a.sl}/1</span>
@@ -314,13 +371,15 @@ export function renderMesa(container) {
     conResize = true;
     let t = null;
     window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => ajustarMesa(container), 120); });
+    container.addEventListener('scroll', () => marcarDesborde(container), { passive: true });
   }
 }
 
-// La columna abierta tiene que verse entera sin scroll. Si el contenido no cabe
-// en el alto de la ventana se reduce un poco a escala (mismo contenido, más
-// pequeño), con un tope para que siga leyéndose; por debajo de ese tope vuelve
-// el scroll de siempre. En móvil la columna no tiene alto fijo y no se toca.
+// La columna está FIJA en pantalla (css/shell.css) y tiene que verse entera sin
+// scroll. Si el contenido no cabe en el alto de la ventana se reduce un poco a
+// escala (mismo contenido, más pequeño), con un tope para que siga leyéndose;
+// por debajo de ese tope la columna tiene su propio scroll, sin barra a la
+// vista y difuminada por abajo. En móvil no tiene alto fijo y no se toca.
 const ESCALA_MIN = 0.8;
 let conResize = false;
 // Clave del aviso «Evita operar en la noticia» pintado ahora mismo: un reloj
@@ -338,21 +397,30 @@ function vigilarAviso(container) {
     if ((n ? n.t : '') !== avisoActual) renderMesa(container);
   }, 30000);
 }
+// ¿Queda contenido por debajo o por arriba de lo que se ve? Se difumina ese borde.
+function marcarDesborde(container) {
+  const resto = container.scrollHeight - container.clientHeight - container.scrollTop;
+  container.classList.toggle('mesa-mas', resto > 2);
+  container.classList.toggle('mesa-menos', container.scrollTop > 2);
+}
 function ajustarMesa(container) {
   container.style.removeProperty('--mesa-zoom');
-  // Dónde empieza la columna con la página sin bajar (debajo de la barra de
-  // arriba): el alto disponible se cuenta desde ahí, no desde el borde.
+  // Dónde empieza la columna: justo debajo de la barra de arriba, que también
+  // es fija. Se mide (la barra puede ocupar dos filas) y la hoja de estilos
+  // coloca la columna ahí.
   const fila = container.parentElement;
   if (fila) container.style.setProperty('--mesa-top', Math.max(14, Math.round(fila.getBoundingClientRect().top + window.scrollY)) + 'px');
-  if (document.body.classList.contains('mesa-closed')) return;
-  let z = 1;
-  for (let i = 0; i < 3; i++) {
-    const cabe = container.clientHeight, pide = container.scrollHeight;
-    if (!cabe || pide <= cabe + 1) break;
-    z = Math.max(ESCALA_MIN, z * cabe / pide - 0.005);
-    container.style.setProperty('--mesa-zoom', z.toFixed(3));
-    if (z === ESCALA_MIN) break;
+  if (!document.body.classList.contains('mesa-closed')) {
+    let z = 1;
+    for (let i = 0; i < 3; i++) {
+      const cabe = container.clientHeight, pide = container.scrollHeight;
+      if (!cabe || pide <= cabe + 1) break;
+      z = Math.max(ESCALA_MIN, z * cabe / pide - 0.005);
+      container.style.setProperty('--mesa-zoom', z.toFixed(3));
+      if (z === ESCALA_MIN) break;
+    }
   }
+  marcarDesborde(container);
 }
 
 function escapeHtml(s) {

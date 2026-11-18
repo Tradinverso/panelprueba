@@ -334,6 +334,21 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   columna recogida. `createDonut` pinta la rueda en el sitio del lienzo.
 - **Barra de arriba**: sin el botón Apariencia (la apariencia se cambia en Ajustes → Preferencias)
   y sin la flecha del botón de perfil. Los filtros de fecha llevan el texto centrado.
+  La marca es el logo del inicio puesto en horizontal, sobre su fondo oscuro en todos los temas:
+  `assets/marca-simbolo.png` y `assets/marca-texto.png` son las dos piezas de
+  `assets/logo-oscuro.png` con el fondo quitado. Si la barra no cabe en una fila se sacrifica por
+  este orden: la fecha del reloj, el nombre del usuario, la palabra TRADINVERSO y, por último, la
+  navegación baja a una segunda fila.
+- **Barra y columna Hoy fijas** (escritorio, más de 900 px; final de `css/shell.css`): solo se
+  desplaza el contenido de la derecha. La barra de arriba es `sticky` y la columna `fixed`, desde
+  debajo de la barra (`--mesa-top`, lo mide `mesa.js`) hasta el borde inferior de la pantalla; el
+  contenido deja su hueco con `--mesa-w`. Si no cabe ni a escala 0,8, la columna tiene scroll
+  propio sin barra a la vista y se difumina por el borde donde queda contenido. En móvil no cambia.
+- **Cuentas de la columna Hoy**: como mucho 4 (`MAX_CUENTAS` en `mesa.js`). Orden: la que toca
+  usar según la rotación de riesgo (etiqueta «Toca»), las operadas hoy, las que llevan 7 días o más
+  sin operar (naranja; rojo desde 14, igual que en Cuentas) y el resto. Si las primeras llenan el
+  hueco, el último sitio es para la más parada. El resto queda en «y N más», que avisa de cuántas
+  paradas hay escondidas.
 - **Estrategias** (`js/utils/strategy-config.js`): la lista y el orden salen de `SHEETS`
   (Zonas, NQ Londres, NQ Nueva York, Liquidez) y cada una lleva su etiqueta, color, rutas y texto
   corto en `STRATEGIES`; las vistas ya no las nombran a mano. **NQ Londres** (`NQ_LONDRES`) es una
