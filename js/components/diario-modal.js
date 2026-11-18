@@ -75,7 +75,7 @@ export function openDiarioModal(dia = hoy(), paso = null) {
   function pintar() {
     const est = estadoDia(dia);
     const ts = tradesDe(dia);
-    const st = periodStats(state.trades, state.cuentas, dia, dia);
+    const st = periodStats(state.tradesVista, state.cuentas, dia, dia);
     const guardado = diaDe(dia);
     const pasoBtn = (id, n, titulo, sub, hecho) => `
       <button type="button" class="dia-step ${actual === id ? 'on' : ''} ${hecho ? 'done' : ''}" data-paso="${id}">

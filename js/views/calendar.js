@@ -23,7 +23,7 @@ export function calendarView(container) {
 }
 
 function render(container) {
-  const all = state.trades;
+  const all = state.tradesVista;
   const monthTrades = all.filter(t => {
     if (stratFilter !== 'all' && t.sheet !== stratFilter) return false;
     return true;
@@ -282,7 +282,7 @@ function paintCalendar(container, dayIndex) {
   } else if (selectedWeek) {
     const monday = selectedWeek;
     const sunday = isoPlusDays(monday, 6);
-    const weekList = state.trades.filter(t =>
+    const weekList = state.tradesVista.filter(t =>
       t.date >= monday && t.date <= sunday &&
       (stratFilter === 'all' || t.sheet === stratFilter)
     );
@@ -293,7 +293,7 @@ function paintCalendar(container, dayIndex) {
     }
   } else {
     const monthStr = `${calYear}-${pad(calMonth + 1)}`;
-    const monthList = state.trades.filter(t => t.date.startsWith(monthStr) && (stratFilter === 'all' || t.sheet === stratFilter));
+    const monthList = state.tradesVista.filter(t => t.date.startsWith(monthStr) && (stratFilter === 'all' || t.sheet === stratFilter));
     if (monthList.length) {
       renderTradeTable(tradesEl, monthList, { canDelete: true });
     } else {

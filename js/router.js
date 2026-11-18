@@ -48,6 +48,11 @@ export const router = {
         window.location.hash = '#/dashboard';
         return;
       }
+      // Liquidez retirada o desactivada para este alumno: sus páginas no existen.
+      if ((path === '#/liquidez' || path === '#/bt-liquidez') && !state.liquidezActiva()) {
+        window.location.hash = path === '#/liquidez' ? '#/zonas' : '#/bt-zonas';
+        return;
+      }
       // Contabilidad desactivada en Ajustes → Módulos.
       if (path === '#/contabilidad' && !state.contabilidadActiva()) {
         window.location.hash = '#/cuentas';

@@ -145,7 +145,7 @@ export function renderTopbar(container) {
       const n = state.cuentas.filter(c => c.status === 'activa').length;
       if (n) badge = `<span class="tb-badge">${n}</span>`;
     } else if (item.dangerAlerts) {
-      const n = countDangerAlerts(state.trades);
+      const n = countDangerAlerts(state.tradesVista);
       if (n) badge = `<span class="tb-badge danger" title="${n} alerta${n > 1 ? 's' : ''} crítica${n > 1 ? 's' : ''}">${n}</span>`;
     }
     return `${sep}<a href="${item.path}" class="tb-item ${isActive ? 'active' : ''}" title="${escapeHtml(item.group)}">${escapeHtml(item.label)}${badge}</a>`;

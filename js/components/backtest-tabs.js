@@ -3,7 +3,7 @@ import { ic } from './icons.js';
 // su histórico de backtests. Mismo patrón que strategy-tabs (enlaces de
 // navegación, la activa con el color de su estrategia).
 
-import { STRATEGIES, SHEETS } from '../utils/strategy-config.js';
+import { STRATEGIES, SHEETS, sheetVisible } from '../utils/strategy-config.js';
 
 // Tras las 3 estrategias van NO TOMADOS (trades que se escaparon, aparte para
 // que no contaminen la validación de cada estrategia) e IMPORTAR (rejilla para
@@ -18,7 +18,7 @@ export const BACKTEST_ROUTES = {
 export function backtestTabs(active) {
   return `
     <div class="rg-tabs gestion-tabs strat-tabs">
-      ${Object.keys(BACKTEST_ROUTES).map(k => {
+      ${Object.keys(BACKTEST_ROUTES).filter(k => !STRATEGIES[k] || sheetVisible(k)).map(k => {
         const EXTRA = { IMPORTAR: ic('subir') + ' Importar', NO_TOMADOS: '✗ No tomados' };
         const meta = STRATEGIES[k] || { label: EXTRA[k] || k };
         const on = active === k;

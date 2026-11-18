@@ -14,6 +14,7 @@
 // y Mantenimiento, y actúan sobre la cuenta del ALUMNO, igual que hacía la
 // página Ajustes.
 
+import { sheetVisible } from '../utils/strategy-config.js';
 import { state } from '../state.js';
 import { auth, authErrorMsg } from '../auth.js';
 import { sync } from '../sync.js';
@@ -45,7 +46,7 @@ const MENU = [
     { id: 'trofeos', label: 'Trofeos', icon: 'trofeo', sub: 'Tu canal de logros: fases pasadas, fondeos y payouts de las prop firms', keys: 'logros certificados fase fondeada payout prop firm pdf imagen' },
   ] },
   { grupo: 'Trading', items: [
-    { id: 'modulos', label: 'Módulos', icon: 'modulos', sub: 'Herramientas extra que puedes activar en la app', keys: 'riesgo rotacion cfd futuros cortacircuitos pausa regla del dia leccion aviso seguimiento asignar trades equity contabilidad' },
+    { id: 'modulos', label: 'Módulos', icon: 'modulos', sub: 'Herramientas extra que puedes activar en la app', keys: 'riesgo rotacion cfd futuros cortacircuitos pausa regla del dia leccion aviso seguimiento asignar trades equity contabilidad liquidez estrategia' },
     { id: 'apps', label: 'Conexión con Apps Script', icon: 'enlace', sub: 'La URL de tu Google Sheet para reimportar trades', keys: 'google sheet url script importar conexion' },
   ] },
   { grupo: 'App', items: [
@@ -68,6 +69,9 @@ let unsubAuth = null;
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const sinTildes = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const inViewAs = () => !!state.viewAsUid;
+// Estrategias de este alumno para exportar o vaciar: las que ve y, además,
+// cualquiera de la que tenga trades guardados (para que nada quede inaccesible).
+const hojasPropias = () => EXPORT_SHEETS.filter(s => sheetVisible(s) || state.trades.some(t => t.sheet === s));
 const targetUid = () => state.viewAsUid || auth.uid();
 const quien = () => inViewAs() && state.viewAsProfile ? (state.viewAsProfile.nombre || state.viewAsProfile.email || 'alumno') : auth.displayName();
 const usuario = n => '@' + (sinTildes(n).replace(/[^a-z0-9]/g, '') || 'usuario');
@@ -367,7 +371,10 @@ function modulos(body) {
   const rd = reglaDiariaActiva();
   const seg = (state.config && state.config.seguimientoCuentas) || 'ambos';
   const conta = state.contabilidadActiva();
+  const liq = state.liquidezActiva();
   body.innerHTML = card(`
+    ${state.liquidezDisponible() ? fila('Estrategia Liquidez', 'Ya no forma parte de la formación, pero puedes seguir usándola. Desactivada, desaparece de Nuevo trade, Estrategias y Backtesting, y sus trades <strong>dejan de contar en tus resultados</strong>. No se borra nada: al activarla vuelve todo. Tus cuentas siguen contando esos trades, porque su saldo es real.',
+      `<button type="button" class="ap-switch ${liq ? 'on' : ''}" role="switch" aria-checked="${liq}" aria-label="Estrategia Liquidez" id="accLiq"><span></span></button>`) : ''}
     ${fila('Seguimiento de trades en cuentas', 'Asignas cada trade a tus cuentas para ver su <strong>equity, drawdown y racha</strong> en Cuentas y en la columna Hoy. Si no lo llevas, desactívalo: las cuentas se quedan para la Contabilidad, sin equity. No se borra nada.',
       `<select class="select" id="accSeg">${[['ambos', 'CFD y Futuros'], ['CFD', 'Solo CFD'], ['Futuros', 'Solo Futuros'], ['off', 'Desactivado']]
         .map(([v, l]) => `<option value="${v}" ${seg === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`)}
@@ -387,6 +394,16 @@ function modulos(body) {
     refresh();
   });
   on(body, '#accReglaVer', 'click', () => mostrarRegla());
+  on(body, '#accLiq', 'click', async e => {
+    const v = !state.liquidezActiva();
+    e.currentTarget.disabled = true;
+    try {
+      await auth.updateLiquidez(v);
+      showToast(v ? 'Liquidez activada: vuelve a contar en tus resultados' : 'Liquidez desactivada: ya no cuenta en tus resultados');
+      router.reload();
+    } catch (err) { showToast('No se pudo guardar: ' + (err.message || err)); }
+    refresh();
+  });
   on(body, '#accSeg', 'change', e => {
     const v = e.target.value;
     state.setConfig({ seguimientoCuentas: v });
@@ -475,7 +492,7 @@ function datos(body) {
   const nt = state.trades.length;
   const noTomados = state.backtests.filter(b => b.not_taken).length;
   const protocolos = (state.tradingPlan && Array.isArray(state.tradingPlan.protocolos)) ? state.tradingPlan.protocolos : [];
-  const exp = { sheets: [...EXPORT_SHEETS], period: 'todo', desde: '', hasta: '', formato: 'excel' };
+  const exp = { sheets: [...hojasPropias()], period: 'todo', desde: '', hasta: '', formato: 'excel' };
 
   body.innerHTML = `
     ${inViewAs() ? card(`<div class="acc-help">${ic('nota')} Estás en la cuenta de <b>${esc(quien())}</b>: las copias y exportaciones son de <b>sus</b> datos.</div>`, 'soft') : ''}
@@ -488,7 +505,7 @@ function datos(body) {
     ${card(`
       <div class="acc-card-title">Elegir y exportar</div>
       <div class="acc-flabel">Estrategias</div>
-      <div class="pill-group" id="accExpSheets">${EXPORT_SHEETS.map(s => `<button type="button" class="pill active" data-sheet="${s}">${sheetLabel(s)}</button>`).join('')}</div>
+      <div class="pill-group" id="accExpSheets">${hojasPropias().map(s => `<button type="button" class="pill active" data-sheet="${s}">${sheetLabel(s)}</button>`).join('')}</div>
       <div class="acc-flabel">Periodo</div>
       <div class="pill-group" id="accExpPeriod">${[['todo', 'Todo'], ['mes', 'Este mes'], ['semana', 'Esta semana'], ['custom', 'Personalizado']].map(([v, l]) => `<button type="button" class="pill ${v === 'todo' ? 'active' : ''}" data-period="${v}">${l}</button>`).join('')}</div>
       <div class="acc-row" id="accExpCustom" hidden>
@@ -560,7 +577,7 @@ function datos(body) {
   };
   body.querySelectorAll('#accExpSheets [data-sheet]').forEach(b => b.addEventListener('click', () => {
     const s = b.dataset.sheet;
-    exp.sheets = exp.sheets.includes(s) ? exp.sheets.filter(x => x !== s) : EXPORT_SHEETS.filter(x => x === s || exp.sheets.includes(x));
+    exp.sheets = exp.sheets.includes(s) ? exp.sheets.filter(x => x !== s) : hojasPropias().filter(x => x === s || exp.sheets.includes(x));
     b.classList.toggle('active', exp.sheets.includes(s)); pintarExp();
   }));
   const unico = (grupo, attr, clave) => body.querySelectorAll(`${grupo} [data-${attr}]`).forEach(b => b.addEventListener('click', () => {
@@ -624,7 +641,7 @@ function mantenimiento(body) {
       <div id="accReimport" class="acc-embed"></div>
       ${card(`
         ${fila('Borrar trades por estrategia', 'Elimina solo los trades de una estrategia. Útil para reimportar desde cero.',
-          `<div class="pill-group">${EXPORT_SHEETS.map(s => `<button type="button" class="pill ${pendiente === s ? 'active' : ''}" data-wipe="${s}" ${cuenta(s) ? '' : 'disabled'}>${sheetLabel(s)} (${cuenta(s)})</button>`).join('')}</div>`)}
+          `<div class="pill-group">${hojasPropias().map(s => `<button type="button" class="pill ${pendiente === s ? 'active' : ''}" data-wipe="${s}" ${cuenta(s) ? '' : 'disabled'}>${sheetLabel(s)} (${cuenta(s)})</button>`).join('')}</div>`)}
         ${pendiente ? `<div class="acc-inline"><div class="acc-confirm">¿Borrar los <b>${cuenta(pendiente)}</b> trades de <b>${sheetLabel(pendiente)}</b> ${de}? No se puede deshacer.
           <span class="acc-actions"><button type="button" class="btn" id="accWipeNo">Cancelar</button><button type="button" class="btn danger" id="accWipeYes">Sí, borrar ${cuenta(pendiente)}</button></span></div></div>` : ''}
         ${fila('Borrar todos los datos', `Elimina <strong>todos los trades</strong> (${state.trades.length}) ${de}. Esta acción no se puede deshacer. Escribe <strong>BORRAR</strong> para activarlo.`,

@@ -234,5 +234,10 @@ export const STRATEGIES = Object.fromEntries(SHEETS.map(k => [k, BASE[k]]));
 export const esNQ = sheet => sheet === 'NASDAQ' || sheet === 'NQ_LONDRES';
 export const sheetLabel = sheet => (STRATEGIES[sheet] && STRATEGIES[sheet].label) || sheet || '';
 export const sheetCls = sheet => (STRATEGIES[sheet] && STRATEGIES[sheet].cls) || '';
-// Estrategias que se enseñan. Hoy todas; aquí entrará el interruptor de Liquidez.
-export const sheetsVisibles = () => SHEETS;
+// Estrategias que se enseñan a quien está usando la app (o al alumno que el admin
+// está viendo). Liquidez solo sale si la tiene activa: lo decide `state`
+// (utils/liquidez.js), que registra aquí su respuesta para no cruzar imports.
+let liquidezActiva = () => true;
+export function setProveedorLiquidez(fn) { liquidezActiva = fn; }
+export const sheetsVisibles = () => (liquidezActiva() ? SHEETS : SHEETS.filter(k => k !== 'LIQUIDEZ'));
+export const sheetVisible = sheet => sheetsVisibles().includes(sheet);

@@ -10,6 +10,8 @@ import { sync } from './sync.js';
 import { auth } from './auth.js';
 import { convertTradesTz, DEFAULT_TZ } from './utils/timezone.js';
 import { unidadesRotacion, unidadActiva } from './utils/futures-risk.js';
+import { liquidezActivaDe, liquidezDisponible } from './utils/liquidez.js';
+import { setProveedorLiquidez } from './utils/strategy-config.js';
 
 const SENS_VALID = new Set([
   'Seguro - Confiado',
@@ -470,6 +472,7 @@ function notifySaveError() {
     setTimeout(() => { el.remove(); saveErrorVisible = false; }, 7000);
   } catch (e) { saveErrorVisible = false; }
 }
+
 
 export const state = {
   trades: [],
@@ -947,6 +950,25 @@ export const state = {
     return !(this.config && this.config.contabilidad === false);
   },
 
+  // ── Estrategia Liquidez (retirada para los nuevos, ver utils/liquidez.js) ──
+  // El perfil que manda es el del alumno que se está viendo, o el propio.
+  perfilActual() {
+    return (this.viewAsUid && this.viewAsProfile) ? this.viewAsProfile : auth.profile;
+  },
+  liquidezActiva() { return liquidezActivaDe(this.perfilActual()); },
+  liquidezDisponible() { return liquidezDisponible(this.perfilActual()); },
+  // Trades y backtests para las vistas de RESULTADOS: sin Liquidez si está
+  // desactivada. `trades` y `backtests` siguen completos: los usan guardar,
+  // importar, exportar, el backup y las cuentas (su saldo es dinero real).
+  // Se filtra en cada lectura (sin memoria): los trades se editan en su sitio y
+  // una copia guardada se quedaría vieja.
+  get tradesVista() {
+    return this.liquidezActiva() ? this.trades : this.trades.filter(t => t.sheet !== 'LIQUIDEZ');
+  },
+  get backtestsVista() {
+    return this.liquidezActiva() ? this.backtests : this.backtests.filter(t => t.sheet !== 'LIQUIDEZ');
+  },
+
   rotateAfterSL(trade) {
     if (!trade || trade.result !== 'SL') return;
     if (this.config && this.config.riskModuleEnabled === false) return;
@@ -1231,3 +1253,7 @@ export const state = {
 function dedupKey(t) {
   return `${t.sheet}|${t.date}|${t.open_str || ''}|${t.pair || ''}|${t.setup || ''}`;
 }
+
+// Las vistas preguntan a strategy-config qué estrategias enseñar; la respuesta
+// depende del perfil, que vive aquí.
+setProveedorLiquidez(() => state.liquidezActiva());

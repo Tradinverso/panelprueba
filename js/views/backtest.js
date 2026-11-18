@@ -124,7 +124,7 @@ function render(container, sheet) {
   // operativa; solo sirve para repasar lo que se escapó, y para eso está su
   // propia pestaña.
   const allSheet = esNoTomados
-    ? state.backtests.filter(t => t.not_taken === true)
+    ? state.backtestsVista.filter(t => t.not_taken === true)
     : state.backtests.filter(t => t.sheet === sheet && t.not_taken !== true);
   if (!esNoTomados) btSheetF = 'all';   // el filtro de estrategia solo vive ahí
   const all = filtro(allSheet);

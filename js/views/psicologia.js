@@ -86,7 +86,7 @@ function diarioHoyHtml() {
   const h = hoyDiario();
   const e = estadoDia(h);
   const ts = tradesDe(h);
-  const st = periodStats(state.trades, state.cuentas, h, h);
+  const st = periodStats(state.tradesVista, state.cuentas, h, h);
   const r = racha();
   const ls = lecciones();
   const d = new Date(h + 'T12:00:00');
@@ -189,7 +189,7 @@ function paintDailyGrid(body) {
   }
   for (let d = 1; d <= daysInMonth; d++) {
     const ds = `${calYear}-${pad(calMonth + 1)}-${pad(d)}`;
-    const stats = periodStats(state.trades, state.cuentas, ds, ds);
+    const stats = periodStats(state.tradesVista, state.cuentas, ds, ds);
     const diaEst = estadoDia(ds);
     const hasReflex = diaEst.algo;
     const isToday = ds === today;
@@ -301,7 +301,7 @@ function reflectionMeta(type, period) {
 // entre modos (openModal hace closeModal interno, así que reemplaza in-place).
 function renderReflectionModal(type, period, content, mode) {
   const meta = reflectionMeta(type, period);
-  const stats = periodStats(state.trades, state.cuentas, meta.dateFrom, meta.dateTo);
+  const stats = periodStats(state.tradesVista, state.cuentas, meta.dateFrom, meta.dateTo);
   const existingNow = findReflection(type, period);
   const hasExisting = !!existingNow;
 
@@ -430,7 +430,7 @@ function renderWeekly(body) {
 
 function renderWeekRow(monday) {
   const sunday = sundayOf(monday);
-  const stats = periodStats(state.trades, state.cuentas, monday, sunday);
+  const stats = periodStats(state.tradesVista, state.cuentas, monday, sunday);
   const existing = findReflection('weekly', monday);
   const isEmpty = stats.count === 0 && !existing;
 
@@ -478,7 +478,7 @@ function renderMonthly(body) {
 
 function renderMonthRow(year, monthIdx) {
   const ym = `${year}-${pad(monthIdx + 1)}`;
-  const stats = periodStats(state.trades, state.cuentas, firstDayOfMonth(ym), lastDayOfMonth(ym));
+  const stats = periodStats(state.tradesVista, state.cuentas, firstDayOfMonth(ym), lastDayOfMonth(ym));
   const existing = findReflection('monthly', ym);
   return `
     <div class="psico-row clickable" data-type="monthly" data-period="${ym}">
@@ -594,7 +594,7 @@ function findReflection(type, period) {
 function availableYears() {
   const set = new Set();
   set.add(new Date().getFullYear());
-  for (const t of state.trades) {
+  for (const t of state.tradesVista) {
     const y = +(t.date || '').substring(0, 4);
     if (y >= 2000) set.add(y);
   }

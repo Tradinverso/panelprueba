@@ -5,7 +5,7 @@ import { fmtPct, fmtPctNoSign } from '../utils/number-format-es.js';
 import { planComparisonStats } from '../utils/calculations.js';
 
 function render(container) {
-  const trades = state.trades;
+  const trades = state.tradesVista;
   if (!trades.length) {
     container.innerHTML = `
       <div class="page-header"><div><h1>Diagnóstico</h1><div class="sub">Sin datos</div></div></div>

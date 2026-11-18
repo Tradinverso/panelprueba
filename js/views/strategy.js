@@ -115,7 +115,7 @@ function headerActions(sheet) {
 function render(container, sheet) {
   const meta = STRAT_META[sheet];
   if (!meta.models) fModel = 'all';
-  const allSheet = state.trades.filter(t => t.sheet === sheet);
+  const allSheet = state.tradesVista.filter(t => t.sheet === sheet);
   const all = filtro(allSheet);
 
   if (!allSheet.length) {

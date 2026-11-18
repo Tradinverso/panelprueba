@@ -57,11 +57,11 @@ export function estadoDia(dia) {
   const d = diaDe(dia);
   return { plan: !!d.plan, review: !!d.review, sinOperar: !!d.sinOperar, notas: !!d.content.trim(), algo: !!(d.plan || d.review || d.sinOperar || d.content.trim()) };
 }
-export const tradesDe = dia => state.trades.filter(t => t.date === dia).sort((a, b) => (a.open_str || '').localeCompare(b.open_str || ''));
+export const tradesDe = dia => state.tradesVista.filter(t => t.date === dia).sort((a, b) => (a.open_str || '').localeCompare(b.open_str || ''));
 
 export function guardarPlan(dia, plan) {
   const previo = diaDe(dia).plan;
-  const sinTrades = !state.trades.some(t => t.date === dia);
+  const sinTrades = !state.tradesVista.some(t => t.date === dia);
   state.saveReflection('daily', dia, diaDe(dia).content, {
     plan: {
       ...plan,

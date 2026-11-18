@@ -164,6 +164,14 @@ export const auth = {
     this.emit();
   },
 
+  // Estrategia Liquidez activada o desactivada, en el perfil propio.
+  async updateLiquidez(activa) {
+    if (!this.currentUser) throw new Error('No hay usuario activo');
+    await sync.updateProfile(this.currentUser.uid, { liquidez: !!activa });
+    this.profile = { ...this.profile, liquidez: !!activa };
+    this.emit();
+  },
+
   // Guarda el huso SIEMPRE en el perfil del usuario logueado (nunca en el del
   // alumno que se esté viendo: no se usa targetUid a propósito).
   async updateTimezone(timezone) {

@@ -9,7 +9,7 @@ import { auth } from '../auth.js';
 import { todayLocal } from '../utils/timezone.js';
 import { fmtPct } from '../utils/number-format-es.js';
 import { fmtUsd } from '../utils/account-stats.js';
-import { STRATEGIES as STRAT_META, modelLabel, errorModeloEntrada, TP_RANGE, R_MAXIMO, tpRangeLabel, MOTIVOS_SALIDA, esMotivoManual, motivoLabel, motivoPorResultado, SHEETS } from '../utils/strategy-config.js';
+import { STRATEGIES as STRAT_META, modelLabel, errorModeloEntrada, TP_RANGE, R_MAXIMO, tpRangeLabel, MOTIVOS_SALIDA, esMotivoManual, motivoLabel, motivoPorResultado, sheetsVisibles } from '../utils/strategy-config.js';
 import { resumenR } from '../utils/diagnostics.js';
 import { aplicarReglasModelo } from '../components/model-rules.js';
 import { attachDictation } from '../utils/dictation.js';
@@ -24,7 +24,7 @@ import { armBreaker } from '../utils/breaker.js';
 function sheetFromUrl() {
   const q = (window.location.hash.split('?')[1] || '');
   const s = new URLSearchParams(q).get('s');
-  return SHEETS.includes(s) ? s : null;
+  return sheetsVisibles().includes(s) ? s : null;
 }
 
 export function newTradeView(container) {
@@ -53,7 +53,7 @@ export function newTradeView(container) {
   function paintChooser() {
     stratC.innerHTML = `
       <div class="rg-tabs gestion-tabs strat-tabs">
-        ${SHEETS.map(k => {
+        ${sheetsVisibles().map(k => {
           const meta = STRAT_META[k] || { label: k };
           const on = sheet === k;
           return `<button type="button" class="rg-tab ${on ? 'active' : ''}" data-sheet="${k}"
@@ -233,7 +233,7 @@ function renderForm(wrap, side, sheet, data, onSaved) {
     const avisos = [];
     // Sensación de riesgo y fuera del plan: se enseña el dato PROPIO del
     // alumno (es lo que más pesa en el resultado, según sus propios trades).
-    const propio = filtro => { const r = resumenR(state.trades.filter(filtro)); return r.dec >= 5 ? r : null; };
+    const propio = filtro => { const r = resumenR(state.tradesVista.filter(filtro)); return r.dec >= 5 ? r : null; };
     const frase = r => `${r.n} trades, ${r.wr.toFixed(0)}% de acierto, <span class="pnl-value">${fmtPct(r.r, 1)}</span> en total`;
     if (SENS_NEGATIVAS.includes(data.sensacion) || SENS_NEUTRALES.includes(data.sensacion)) {
       const r = propio(t => t.sensacion === data.sensacion);

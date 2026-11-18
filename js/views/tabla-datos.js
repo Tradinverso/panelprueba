@@ -1,4 +1,4 @@
-import { SHEETS, sheetLabel } from '../utils/strategy-config.js';
+import { SHEETS, sheetLabel, sheetsVisibles, sheetVisible } from '../utils/strategy-config.js';
 import { ic } from '../components/icons.js';
 // Vista "Tabla de datos": editor tipo Excel para corregir trades en masa
 // sin tener que abrir el modal de cada uno.
@@ -36,7 +36,7 @@ export function tablaDatosView(container) {
 }
 
 function render(container) {
-  const all = state.trades;
+  const all = state.tradesVista;
 
   const q = searchQuery.trim().toLowerCase();
   const filtered = all.filter(t => {
@@ -68,7 +68,7 @@ function render(container) {
     <div class="td-filters">
       <select id="td-sheet" class="select">
         <option value="all" ${filterSheet === 'all' ? 'selected' : ''}>Todas las estrategias</option>
-        ${SHEETS.map(k => `<option value="${k}" ${filterSheet === k ? 'selected' : ''}>${sheetLabel(k)}</option>`).join('')}
+        ${sheetsVisibles().map(k => `<option value="${k}" ${filterSheet === k ? 'selected' : ''}>${sheetLabel(k)}</option>`).join('')}
       </select>
       <select id="td-result" class="select">
         <option value="all" ${filterResult === 'all' ? 'selected' : ''}>Todos los resultados</option>
@@ -163,7 +163,7 @@ function renderRow(t) {
       <td><input type="time" data-field="close_str" value="${escAttr(t.close_str || '')}"></td>
       <td>
         <select data-field="sheet">
-          ${SHEETS.map(k => `<option value="${k}" ${t.sheet === k ? 'selected' : ''}>${sheetLabel(k)}</option>`).join('')}
+          ${SHEETS.filter(k => sheetVisible(k) || k === t.sheet).map(k => `<option value="${k}" ${t.sheet === k ? 'selected' : ''}>${sheetLabel(k)}</option>`).join('')}
         </select>
       </td>
       <td><input type="text" data-field="pair" value="${escAttr(t.pair || '')}" class="td-w-80"></td>

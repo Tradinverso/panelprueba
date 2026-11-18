@@ -38,7 +38,7 @@ let perfMode = 'sistema'; // 'sistema' | 'real'
 let lastUserKey = null;   // detecta cambio de usuario (viewAs) para resetear filtros
 
 function render(container) {
-  const allTrades = state.trades;
+  const allTrades = state.tradesVista;
 
   // Los filtros viven a nivel de módulo: al cambiar de alumno (viewAs) o si el
   // periodo filtrado ya no existe en los datos (wipe/reimport), se resetean.
@@ -115,7 +115,7 @@ function render(container) {
 function impersonationBanner() {
   if (!state.viewAsUid || !state.viewAsProfile) return '';
   const p = state.viewAsProfile;
-  const n = state.trades.length;
+  const n = state.tradesVista.length;
   return `
     <div class="imp-banner">
       <div class="imp-banner-icon">${ic('nota')}</div>

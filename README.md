@@ -334,4 +334,11 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   Nasdaq se llama ahora **NQ Nueva York**, pero conserva la clave `NASDAQ`: los trades guardados
   no se tocan. `esNQ(sheet)` agrupa a las dos para el par fijo "NQ" y los importadores. En el
   Excel exportado, NQ Nueva York sigue en la pestaña "Nasdaq" y NQ Londres va en "NQ Londres".
+- **Liquidez retirada** (`js/utils/liquidez.js`): no se borra nada, pero solo se enseña y cuenta
+  para quien la tiene activa. Antiguo = alta anterior a `LIQUIDEZ_CORTE` (se rellena el día del
+  paso a producción; vacío = todos antiguos); el campo opcional `liquidez` del perfil manda sobre
+  la fecha y lo cambia el alumno antiguo en Ajustes → Módulos. Desactivada, desaparece de pestañas,
+  rutas, Nuevo trade y filtros (`sheetsVisibles()`), y las vistas de resultados leen
+  `state.tradesVista` / `state.backtestsVista` (sin Liquidez). `state.trades` sigue completo: lo
+  usan guardar, importar, exportar, el backup y las cuentas, cuyo saldo es dinero real.
 
