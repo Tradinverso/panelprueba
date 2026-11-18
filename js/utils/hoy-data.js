@@ -73,6 +73,8 @@ function ymd(date, tz) {
   try { return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date); }
   catch (e) { return date.toISOString().substring(0, 10); }
 }
+// Día (AAAA-MM-DD) de una fecha ISO en el huso del usuario.
+export const diaEn = (iso, tz) => ymd(new Date(iso), tz);
 export function horaEn(iso, tz) {
   try { return new Intl.DateTimeFormat('es-ES', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: !!appearance.get().hour12 }).format(new Date(iso)); }
   catch (e) { return new Date(iso).toISOString().substring(11, 16); }

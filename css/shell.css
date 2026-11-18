@@ -911,3 +911,22 @@ button.mesa-rail-link { cursor: pointer; font: inherit; padding: 0; }
 .regla-aviso-t { font-size: 21px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.3; color: var(--text); }
 .regla-aviso-s { margin-top: 10px; font-size: 13.5px; color: var(--muted); line-height: 1.5; }
 .acc-linkbtn { border: 0; background: transparent; padding: 0; font: inherit; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ── Agenda de hoy (columna Hoy): noticias y directos en una línea de tiempo ── */
+.mesa-ag-tools { display: inline-flex; align-items: center; gap: 4px; }
+.mesa-ag-ic { width: 22px; height: 22px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; color: var(--muted); }
+.mesa-ag-ic:hover { color: var(--text); background: var(--hover); }
+.mesa-ag-ic svg { width: 13px; height: 13px; }
+.mesa-ag-mark { width: 3px; align-self: stretch; min-height: 14px; border-radius: 2px; background: var(--accent); flex: none; margin: 1px 2px 1px 2px; }
+.mesa-ag-live.live .mesa-ag-mark { background: var(--alerta, var(--red)); }
+.mesa-ag-live.soon .mesa-ag-mark { background: var(--warn, var(--orange)); }
+a.mesa-ag-live { text-decoration: none; color: inherit; border-radius: 8px; }
+a.mesa-ag-live:hover { background: var(--hover); }
+.mesa-ag-live .mesa-news-txt { font-weight: 600; }
+.mesa-ag-live .mesa-news-txt small { font-weight: 400; }
+/* La cabecera de la agenda lleva título, Hoy/Semana y dos iconos en 232 px */
+.mesa-box .mesa-block-head:has(.mesa-ag-tools) { align-items: center; gap: 6px; }
+.mesa-block-head:has(.mesa-ag-tools) h2 { white-space: nowrap; }
+.mesa-ag-tools { gap: 2px; flex: none; }
+.mesa-ag-tools .mesa-mini-seg button { padding: 3px 7px; }
+.mesa-ag-ic { width: 20px; height: 20px; }
