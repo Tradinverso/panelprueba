@@ -1,3 +1,4 @@
+import { ringSvg } from './ring.js';
 // Chart.js wrappers — each destroys any chart on the canvas before creating a new one
 // Charts are destroyed via Chart.getChart(canvas)?.destroy() to avoid memory leaks on re-render.
 // Estilo "Glass Command Center": degradados, curvas suaves, barras redondeadas,
@@ -160,8 +161,25 @@ export function createEquity(canvas, datasets, opts = {}) {
   });
 }
 
+// Donut TP / SL / BE: la misma rueda SVG de toda la app (components/ring.js),
+// en el sitio del lienzo. Devuelve el elemento pintado.
 export function createDonut(canvas, tp, sl, be) {
   // Sin lienzo (la vista cambio antes de pintar): no hay nada que dibujar.
+  if (!canvas) return null;
+  Chart.getChart(canvas)?.destroy();
+  const box = document.createElement('div');
+  box.className = 'ring-box';
+  box.innerHTML = ringSvg({ segments: [
+    { value: tp, color: 'var(--green)', label: `TP: ${tp}` },
+    { value: sl, color: 'var(--red)', label: `SL: ${sl}` },
+    { value: be, color: 'var(--dim)', label: `BE: ${be}` },
+  ], width: 9 });
+  canvas.replaceWith(box);
+  return box;
+}
+
+// Versión anterior con Chart.js (sin uso: se deja por si se quiere volver).
+export function createDonutChart(canvas, tp, sl, be) {
   if (!canvas) return null;
   defaults();
   Chart.getChart(canvas)?.destroy();

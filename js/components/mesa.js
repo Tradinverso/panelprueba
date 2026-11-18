@@ -18,6 +18,7 @@ import { todayLocal } from '../utils/timezone.js';
 import { openChecklistModal } from './checklist-modal.js';
 import { clockParts } from './topbar.js';
 import { icon } from './icons.js';
+import { ringSvg } from './ring.js';
 import { getHoyData, onHoyData, noticiasDeHoy, noticiasDeLaSemana, proximosDirectos, horaEn, diaCortoEn, diaEn } from '../utils/hoy-data.js';
 import { tituloEs } from '../utils/noticias-es.js';
 import { openDiarioModal } from './diario-modal.js';
@@ -262,7 +263,6 @@ export function renderMesa(container) {
       renderMesa(container);
     }));
   } else {
-    const deg = chk.total ? chk.done / chk.total * 360 : 0;
     const liveUrl = enDirecto ? safeUrl(enDirecto.url) : '';
     container.innerHTML = `
       <div class="card mesa-rail" aria-label="Columna Hoy recogida">
@@ -278,7 +278,7 @@ export function renderMesa(container) {
             <span class="mesa-pill-sl">${a.sl}/1</span>
           </div>`).join('')}
         <span class="mesa-sep"></span>
-        <button type="button" class="mesa-ring" id="mesaChecklist" title="Checklist pre-sesión · ${chk.done}/${chk.total}" style="background:conic-gradient(${chk.done === chk.total ? 'var(--green)' : 'var(--accent)'} ${deg}deg, var(--line) ${deg}deg 360deg)"><span>${chk.done}/${chk.total}</span></button>
+        <button type="button" class="mesa-ring" id="mesaChecklist" title="Checklist pre-sesión · ${chk.done}/${chk.total}">${ringSvg({ progress: chk.total ? chk.done / chk.total : 0, color: chk.done === chk.total ? 'var(--green)' : 'var(--accent)', width: 10 })}<span>${chk.done}/${chk.total}</span></button>
         <button type="button" class="mesa-rail-link mesa-rail-dia ${diaEst.plan && diaEst.review ? 'ok' : diaEst.plan ? 'half' : ''}" id="mesaDiario" title="Diario de hoy · ${!diaEst.plan ? 'falta el diario inverso' : !diaEst.review ? 'falta el diario del trader' : 'completo'}" aria-label="Diario de hoy">${icon('nota')}</button>
         <span class="mesa-sep"></span>
         <a class="mesa-rail-link" href="${FORMACION_URL}" target="_blank" rel="noopener noreferrer" title="Formación · cursos y directos" aria-label="Formación">${icon('formacion')}</a>

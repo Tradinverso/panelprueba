@@ -1,6 +1,6 @@
 // Barra superior: logo + navegación horizontal en píldora (agrupada con
 // separadores finos: Operativa · Análisis · Gestión · Academia) + reloj en el
-// huso del alumno + Apariencia + Ajustes + avatar. Sustituye a la barra
+// huso del alumno + avatar (abre Ajustes; la apariencia está en Preferencias). Sustituye a la barra
 // lateral de navegación (rediseño de nov 2026); la columna izquierda es ahora
 // la "Mesa" (mesa.js).
 
@@ -13,7 +13,6 @@ import { tzLabel } from '../utils/timezone.js';
 import { countDangerAlerts } from '../utils/diagnostics.js';
 import { appearance } from '../appearance.js';
 import { icon } from './icons.js';
-import { openAppearancePanel } from './appearance-panel.js';
 import { STRATEGY_ROUTES } from './strategy-tabs.js';
 import { PSICO_ROUTES } from './psicotrading-tabs.js';
 import { BACKTEST_ROUTES } from './backtest-tabs.js';
@@ -76,8 +75,8 @@ setInterval(() => {
 // Encaje de la barra en UNA fila. Lo que cabe depende del rol (el admin tiene
 // más apartados), de "Ver como", de la letra elegida y del ancho de pantalla,
 // así que se mide en vez de fiarlo a un ancho fijo:
-//   1) todo en una fila;  2) si no cabe → modo compacto (Apariencia solo
-//   icono, reloj sin fecha, logo sin texto);  3) si aun así no cabe → el botón
+//   1) todo en una fila;  2) si no cabe → modo compacto (reloj sin
+//   fecha, logo sin texto);  3) si aun así no cabe → el botón
 //   del usuario se queda en el avatar;  4) y si tampoco → la navegación baja
 //   a una segunda fila centrada.
 // En móvil (< 900 px) manda la hoja de estilos (navegación con scroll).
@@ -87,7 +86,7 @@ function fitTopbar(el) {
   if (window.innerWidth < 900) return;
   const noCabe = () => el.scrollWidth > el.clientWidth + 1;
   if (!noCabe()) return;
-  el.classList.add('tb-compact');          // Apariencia solo icono, reloj sin fecha, logo sin texto
+  el.classList.add('tb-compact');          // reloj sin fecha, logo sin texto
   if (!noCabe()) return;
   el.classList.add('tb-mini');             // el botón del usuario se queda en el avatar
   if (noCabe()) el.classList.add('tb-wrap');
@@ -165,17 +164,14 @@ export function renderTopbar(container) {
         <span class="tb-clock-hora" data-clock-hora>${clock.hora}</span>
         <span class="tb-clock-fecha" data-clock-fecha>${clock.fecha}</span>
       </button>
-      <button type="button" class="tb-tool tb-appearance" id="tbAppearance" title="Apariencia · tema, colores y letra" aria-label="Apariencia"><span class="tb-dot"></span><span class="tb-appearance-txt">Apariencia</span></button>
       <button type="button" class="tb-user" data-account="perfil" title="Tu cuenta y ajustes" aria-haspopup="dialog">
         <span class="tb-user-av">${avatarInner(inViewAs ? state.viewAsProfile : auth.profile, name)}</span>
         <span class="tb-user-name">${escapeHtml(name)}</span>
-        <span class="tb-user-chev" aria-hidden="true">▾</span>
       </button>
     </div>
   `;
 
   fitTopbar(container);
-  container.querySelector('#tbAppearance').addEventListener('click', () => openAppearancePanel());
   const exitBtn = container.querySelector('#tbExitViewAs');
   if (exitBtn) exitBtn.addEventListener('click', async () => {
     await state.exitViewAs();

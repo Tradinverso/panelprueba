@@ -13,7 +13,7 @@
 import { state } from '../state.js';
 import { auth } from '../auth.js';
 import { openModal } from './modal.js';
-import { openAppearancePanel } from './appearance-panel.js';
+import { openAccountModal } from './account-modal.js';
 
 export const NOVEDADES_ID = '2026-11-rediseno';
 
@@ -51,7 +51,7 @@ export function maybeShowNovedades() {
       <div class="nov-item"><span class="nov-dot"></span><div><b>${t}</b><p>${d}</p></div></div>`).join('')}
     </div>`,
     actions: [
-      { label: 'Abrir Apariencia', onClick: close => { close(); openAppearancePanel(); } },
+      { label: 'Abrir Preferencias', onClick: close => { close(); openAccountModal('preferencias'); } },
       { label: 'Entendido', variant: 'primary', onClick: close => close() },
     ],
   });

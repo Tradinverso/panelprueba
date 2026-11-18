@@ -79,7 +79,7 @@ export function periodLabel(sel) {
 
 export function periodHtml(months, sel, { idFrom = 'pfFrom', idTo = 'pfTo' } = {}) {
   const opts = (id, value, allLabel) => `
-    <select id="${id}" class="select" title="${allLabel}">
+    <select id="${id}" class="select period-select" title="${allLabel}">
       <option value="all" ${value === 'all' ? 'selected' : ''}>${allLabel}</option>
       ${months.map(m => `<option value="${m}" ${value === m ? 'selected' : ''}>${monthLabel(m)}</option>`).join('')}
     </select>`;

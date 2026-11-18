@@ -316,4 +316,15 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   trade, no salen en la columna Hoy, no enseñan equity ni estadísticas en Cuentas y su gestión de
   riesgo se apaga; se quedan para la Contabilidad. `config.contabilidad === false` quita la
   pestaña Contabilidad del menú y de las rutas. Ninguno de los dos borra datos.
+- **Columna Hoy**: el checklist pre-sesión ya no tiene tarjeta (se abre desde el botón del
+  Dashboard; en la columna recogida sigue el anillo). «Alto impacto» y «Próximos directos» son una
+  sola tarjeta, **Agenda de hoy**: noticias y directos en una línea de tiempo por hora, Hoy / Semana
+  (por días) y el aviso «Evita operar en la noticia» solo a 15 minutos o menos de una noticia (un
+  reloj de 30 s repinta la columna cuando entra o sale esa ventana).
+- **Ruedas** (`js/components/ring.js`): todas en SVG con el mismo estilo (arcos separados,
+  extremos redondeados, degradado de su color y anillo fino): winrate por estrategia del
+  Dashboard, Disciplina, donuts de Estrategias y Stats grupales, y el anillo del checklist en la
+  columna recogida. `createDonut` pinta la rueda en el sitio del lienzo.
+- **Barra de arriba**: sin el botón Apariencia (la apariencia se cambia en Ajustes → Preferencias)
+  y sin la flecha del botón de perfil. Los filtros de fecha llevan el texto centrado.
 

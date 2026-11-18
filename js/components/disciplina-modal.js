@@ -2,19 +2,16 @@
 // propio alumno) y Mis Alumnos (la de cada uno).
 
 import { openModal } from './modal.js';
+import { ringSvg } from './ring.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // Anillo con la puntuación dentro. `size` en px.
 export function anilloDisciplina(res, size = 44) {
-  const r = 15.9155;                       // circunferencia = 100
   const v = res.score == null ? 0 : res.score;
   return `
     <span class="disc-ring disc-${res.nivel.id}" style="width:${size}px;height:${size}px;">
-      <svg viewBox="0 0 36 36" aria-hidden="true">
-        <circle class="disc-ring-bg" cx="18" cy="18" r="${r}"></circle>
-        <circle class="disc-ring-fg" cx="18" cy="18" r="${r}" stroke-dasharray="${v} ${100 - v}" transform="rotate(-90 18 18)"></circle>
-      </svg>
+      ${ringSvg({ progress: v / 100, color: 'var(--disc)', width: 7 })}
       <b>${res.score == null ? '–' : res.score}</b>
     </span>`;
 }

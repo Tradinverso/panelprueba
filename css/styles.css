@@ -215,6 +215,9 @@ body::after {
 /* Selects del header del dashboard (año/mes): a juego con el semáforo.
    Ojo con el padding derecho: reserva sitio para la flechita del desplegable. */
 .page-actions .select { font-size: 13.5px; padding: 9px 34px 9px 14px; background-position: right 12px center; }
+/* Filtros de fecha (Desde / Hasta): sin flecha visible, así que el texto va centrado
+   y con el mismo margen a los dos lados. */
+.select.period-select, .page-actions .select.period-select { padding: 9px 14px; text-align: center; text-align-last: center; }
 
 /* Checklist pre-sesión (modal desde el semáforo) */
 .checklist-items { display: flex; flex-wrap: wrap; gap: 8px 18px; }

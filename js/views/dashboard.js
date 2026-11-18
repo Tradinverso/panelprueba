@@ -14,6 +14,7 @@ import {
 import { kpiCard, kpiCardComposite } from '../components/kpi-card.js';
 import { createEquity, createBar, createHourBar, createDayBar } from '../components/charts.js';
 import { renderHeatmap } from '../components/heatmap.js';
+import { ringSvg } from '../components/ring.js';
 import { openDiarioModal } from '../components/diario-modal.js';
 import { hoy as hoyDiario, estadoDia } from '../utils/diario.js';
 import { puntuacionDisciplina } from '../utils/disciplina.js';
@@ -355,7 +356,7 @@ function stratCardShell(s) {
         <span class="strat-status" data-field="status">Activa</span>
       </div>
       <div class="strat-body">
-        <div class="strat-ring" data-field="ring"><span data-field="wr">–</span><small>winrate</small></div>
+        <div class="strat-ring" data-field="ring"><span class="strat-ring-svg" data-field="ringSvg">${ringSvg({ segments: [] })}</span><span data-field="wr">–</span><small>winrate</small></div>
         <div class="strat-lines">
           <div><span>P&L sist.</span><b data-field="pnl" class="pnl-value">–</b></div>
           <div><span>P&L real</span><b data-field="pnlReal" class="pnl-value">–</b></div>
@@ -565,11 +566,11 @@ function paintStrategy(container, sheet, trades) {
   const subWr = winrate(sub);
   const decisive = c.tp + c.sl;
   card.querySelector('[data-field="wr"]').textContent = decisive ? fmtPctNoSign(subWr) : '–';
-  // Anillo: verde hasta el WR, rojo el resto; gris si no hay trades.
-  const ring = card.querySelector('[data-field="ring"]');
-  ring.style.background = decisive
-    ? `conic-gradient(var(--green) 0 ${subWr}%, var(--red) ${subWr}% 100%)`
-    : 'conic-gradient(var(--line) 0 100%)';
+  // Anillo: verde los TP, rojo los SL (arcos separados); gris si no hay trades.
+  card.querySelector('[data-field="ringSvg"]').innerHTML = ringSvg({ segments: decisive ? [
+    { value: c.tp, color: 'var(--green)', label: `${c.tp} TP` },
+    { value: c.sl, color: 'var(--red)', label: `${c.sl} SL` },
+  ] : [] });
   const pnlEl = card.querySelector('[data-field="pnl"]');
   pnlEl.textContent = fmtPct(subPnl, 1);
   pnlEl.style.color = subPnl >= 0 ? 'var(--green)' : 'var(--red)';

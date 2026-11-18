@@ -100,6 +100,23 @@ export function openAccountModal(sec) {
   if (!unsubAuth) unsubAuth = auth.on(() => { if (!auth.currentUser) closeAccountModal(); });
   render();
   const x = rootEl.querySelector('.acc-close'); if (x) x.focus();
+  // El buscador sale siempre vacío, entres desde donde entres; otra vez a los
+  // 100 ms por si el navegador lo rellena después de pintarse.
+  vaciarBuscador();
+  setTimeout(() => { if (isAccountOpen() && !query) vaciarBuscador(); }, 100);
+}
+
+function esAutorelleno(input) {
+  try { return input.matches(':autofill'); } catch (e) { /* navegador sin :autofill */ }
+  try { return input.matches(':-webkit-autofill'); } catch (e) { return false; }
+}
+function vaciarBuscador() {
+  const b = rootEl && rootEl.querySelector('.acc-search input');
+  if (!b) return;
+  const habia = query || b.value;
+  b.value = '';
+  query = '';
+  if (habia) renderMenu();
 }
 
 export function closeAccountModal() {
@@ -132,7 +149,7 @@ function render() {
         </div>
         <div class="acc-cols">
           <nav class="acc-side" aria-label="Secciones de ajustes">
-            <label class="acc-search">${icon('buscar')}<input type="search" placeholder="Buscar en ajustes" value="${esc(query)}" aria-label="Buscar en ajustes"></label>
+            <label class="acc-search">${icon('buscar')}<input type="search" name="settings-search" autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other" placeholder="Buscar en ajustes" value="${esc(query)}" aria-label="Buscar en ajustes"></label>
             <div class="acc-menu"></div>
           </nav>
           <div class="acc-main"></div>
@@ -145,7 +162,12 @@ function render() {
   overlay.addEventListener('click', e => { if (e.target === overlay && abajoEnFondo) closeAccountModal(); });
   rootEl.querySelector('.acc-close').addEventListener('click', closeAccountModal);
   const buscador = rootEl.querySelector('.acc-search input');
-  buscador.addEventListener('input', () => { query = buscador.value; renderMenu(); });
+  buscador.addEventListener('input', () => {
+    // Chrome autocompleta el buscador con el email guardado (hay un email y un
+    // botón de contraseña en la misma vista): ese relleno no es una búsqueda.
+    if (esAutorelleno(buscador)) { vaciarBuscador(); return; }
+    query = buscador.value; renderMenu();
+  });
   renderMenu();
   renderSection();
 }
@@ -212,7 +234,7 @@ function perfil(body) {
     ${card(`
       <div class="acc-pcard-banner">${ondas()}</div>
       <div class="acc-pcard">
-        <button type="button" class="acc-avatar sm acc-avatar-btn" id="accFotoAv" title="Cambiar la foto de perfil" aria-label="Cambiar la foto de perfil">${avatarInner(p, nombre)}<span class="acc-avatar-cam">${ic('lapiz')}</span></button>
+        <div class="acc-avatar sm">${avatarInner(p, nombre)}</div>
         <div class="acc-id-text"><div class="acc-name sm">${esc(nombre)}</div><div class="acc-user">${esc(usuario(nombre))}</div></div>
         <button type="button" class="btn" id="accEditName">${ic('lapiz')} Editar perfil</button>
       </div>
@@ -254,7 +276,6 @@ function perfil(body) {
   // Foto de perfil
   const fotoFile = body.querySelector('#accFotoFile');
   const elegirFoto = () => fotoFile.click();
-  on(body, '#accFotoAv', 'click', elegirFoto);
   on(body, '#accFotoBtn', 'click', elegirFoto);
   on(body, '#accFotoFile', 'change', async () => {
     const f = fotoFile.files && fotoFile.files[0];

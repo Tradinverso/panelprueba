@@ -930,3 +930,17 @@ a.mesa-ag-live:hover { background: var(--hover); }
 .mesa-ag-tools { gap: 2px; flex: none; }
 .mesa-ag-tools .mesa-mini-seg button { padding: 3px 7px; }
 .mesa-ag-ic { width: 20px; height: 20px; }
+
+/* ── Ruedas en SVG (js/components/ring.js) ──
+   Arcos separados y redondeados, más finos: el texto del centro respira. */
+.ring-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.strat-ring { background: none; }
+.strat-ring::before { content: none; }
+.strat-ring-svg { position: absolute !important; inset: 0; }
+.strat-ring span[data-field="wr"] { font-size: 13px; }  /* «100.0%» cabe con margen dentro del aro */
+.ring-box { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.ring-box .ring-svg { width: auto; height: 100%; max-width: 100%; aspect-ratio: 1; }
+.disc-ring .ring-svg { position: absolute; inset: 0; }
+.mesa-ring { position: relative; background: none; }
+.mesa-ring .ring-svg { position: absolute; inset: 0; }
+.mesa-ring span { position: relative; background: transparent; }
