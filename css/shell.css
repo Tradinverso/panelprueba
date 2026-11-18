@@ -55,7 +55,6 @@ body.mesa-closed #mesa { flex: 0 0 58px; min-width: 58px; }
 .tb-brand-text { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; letter-spacing: .08em; white-space: nowrap; }
 .tb-marca-texto { height: 11px; width: auto; display: block; }
 #topbar.tb-solo:not(.tb-wrap) .tb-brand { padding: 5px 11px; }
-.tb-test { color: var(--orange); font-size: 10px; letter-spacing: .12em; }
 
 .tb-nav { display: flex; flex-wrap: nowrap; flex: none; align-items: center; gap: 2px; padding: 4px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); }
 :root[data-nav="flat"] .tb-nav { background: transparent; border-color: transparent; }

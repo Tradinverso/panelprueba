@@ -160,9 +160,9 @@ export function renderTopbar(container) {
   }).join('');
 
   container.innerHTML = `
-    <a href="${home}" class="tb-brand" title="Tradinverso">
+    <a href="${home}" class="tb-brand" title="Tradinverso${IS_TEST_ENV ? ' · entorno de pruebas' : ''}">
       <img class="tb-marca-simbolo" src="assets/marca-simbolo.png" alt="" width="172" height="132">
-      <span class="tb-brand-text"><img class="tb-marca-texto" src="assets/marca-texto.png" alt="Tradinverso" width="519" height="54">${IS_TEST_ENV ? '<b class="tb-test">PRUEBAS</b>' : ''}</span>
+      <span class="tb-brand-text"><img class="tb-marca-texto" src="assets/marca-texto.png" alt="Tradinverso" width="519" height="54"></span>
     </a>
     <nav class="tb-nav" aria-label="Secciones">${items}</nav>
     <div class="tb-right">
