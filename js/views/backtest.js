@@ -264,7 +264,7 @@ function render(container, sheet) {
 
     ${all.some(t => STRATEGIES[t.sheet]?.models) ? `
     <div class="card table-card" style="margin-top:16px;">
-      <div class="card-title">Por modelo de entrada${esNoTomados ? ' <span style="color:var(--muted);font-weight:400;">(Nasdaq)</span>' : ''}</div>
+      <div class="card-title">Por modelo de entrada${esNoTomados ? ' <span style="color:var(--muted);font-weight:400;">(NQ)</span>' : ''}</div>
       <table class="data-table"><thead><tr>
         <th>Modelo</th><th>Trades</th><th>WR</th><th>P&L</th><th>PF</th>
       </tr></thead><tbody id="btModels"></tbody></table>

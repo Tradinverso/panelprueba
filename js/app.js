@@ -68,8 +68,9 @@ router
   .add('#/dashboard',   (_, c) => dashboardView(c))
   .add('#/nuevo',       (_, c) => newTradeView(c))
   .add('#/zonas',       (_, c) => strategyView(c, 'ZONAS'))
-  .add('#/liquidez',    (_, c) => strategyView(c, 'LIQUIDEZ'))
+  .add('#/nq-londres',  (_, c) => strategyView(c, 'NQ_LONDRES'))
   .add('#/nasdaq',      (_, c) => strategyView(c, 'NASDAQ'))
+  .add('#/liquidez',    (_, c) => strategyView(c, 'LIQUIDEZ'))
   .add('#/calendario',  (_, c) => calendarView(c))
   .add('#/diagnostico', (_, c) => diagnosticView(c))
   .add('#/psicologia',  (_, c) => psicologiaView(c))
@@ -94,8 +95,9 @@ router
   .add('#/plan',        (_, c) => tradingPlanView(c))
   .add('#/contabilidad', (_, c) => contabilidadView(c))
   .add('#/bt-zonas',    (_, c) => backtestView(c, 'ZONAS'))
-  .add('#/bt-liquidez', (_, c) => backtestView(c, 'LIQUIDEZ'))
+  .add('#/bt-nq-londres', (_, c) => backtestView(c, 'NQ_LONDRES'))
   .add('#/bt-nasdaq',   (_, c) => backtestView(c, 'NASDAQ'))
+  .add('#/bt-liquidez', (_, c) => backtestView(c, 'LIQUIDEZ'))
   .add('#/bt-no-tomados', (_, c) => backtestView(c, 'NO_TOMADOS'))
   .add('#/bt-importar', (_, c) => backtestImportView(c));
 

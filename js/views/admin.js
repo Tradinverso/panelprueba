@@ -13,6 +13,7 @@ import { puntuacionDisciplina } from '../utils/disciplina.js';
 import { openDisciplinaModal } from '../components/disciplina-modal.js';
 import { todayLocal } from '../utils/timezone.js';
 import { avatarInner } from '../utils/avatar.js';
+import { STRATEGIES, SHEETS } from '../utils/strategy-config.js';
 import { fmtPct, fmtPctNoSign } from '../utils/number-format-es.js';
 import { openModal, closeModal } from '../components/modal.js';
 import {
@@ -364,11 +365,11 @@ function row(s) {
   const disc = disciplinaDe(s);
 
   // WR por estrategia (solo las que tienen trades)
-  const stratBreakdown = ['ZONAS', 'LIQUIDEZ', 'NASDAQ']
+  const stratBreakdown = SHEETS
     .map(sheet => {
       const sub = s.trades.filter(t => t.sheet === sheet);
       if (!sub.length) return null;
-      return { letter: sheet[0], wr: winrate(sub) };
+      return { letter: STRATEGIES[sheet].corto, wr: winrate(sub) };
     })
     .filter(Boolean);
   const stratWrText = stratBreakdown.length

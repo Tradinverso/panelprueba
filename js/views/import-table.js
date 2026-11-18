@@ -1,3 +1,4 @@
+import { SHEETS, sheetLabel } from '../utils/strategy-config.js';
 import { state } from '../state.js';
 import { storage } from '../storage.js';
 import { auth } from '../auth.js';
@@ -58,9 +59,7 @@ function paintPasteTab(container) {
   container.innerHTML = `
     <div class="import-toolbar">
       <select id="sheetSel" class="select">
-        <option value="ZONAS"   ${pasteSheet === 'ZONAS' ? 'selected' : ''}>Estrategia: ZONAS</option>
-        <option value="LIQUIDEZ" ${pasteSheet === 'LIQUIDEZ' ? 'selected' : ''}>Estrategia: LIQUIDEZ</option>
-        <option value="NASDAQ"  ${pasteSheet === 'NASDAQ' ? 'selected' : ''}>Estrategia: NASDAQ</option>
+        ${SHEETS.map(k => `<option value="${k}" ${pasteSheet === k ? 'selected' : ''}>Estrategia: ${sheetLabel(k)}</option>`).join('')}
       </select>
       <button class="btn" id="addRowBtn">+ Añadir 5 filas</button>
       <button class="btn" id="clearBtn">Limpiar tabla</button>

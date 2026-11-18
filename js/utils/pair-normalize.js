@@ -1,3 +1,4 @@
+import { esNQ } from './strategy-config.js';
 // Normalize pair strings to canonical form
 const MAP = new Map([
   ['EURUSD', 'EUR/USD'],
@@ -30,12 +31,12 @@ const MAP = new Map([
 ]);
 
 export function normalizePair(p, sheet) {
-  if (!p) return sheet === 'NASDAQ' ? 'NQ' : '';
+  if (!p) return esNQ(sheet) ? 'NQ' : '';
   const raw = String(p).toUpperCase().trim();
   if (MAP.has(raw)) return MAP.get(raw);
   // Already in EUR/USD form or similar
   if (/^[A-Z]{3}\/[A-Z]{3}$/.test(raw)) return raw;
-  if (sheet === 'NASDAQ') return 'NQ';
+  if (esNQ(sheet)) return 'NQ';
   return raw;
 }
 

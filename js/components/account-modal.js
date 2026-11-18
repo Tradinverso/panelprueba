@@ -482,7 +482,7 @@ function datos(body) {
     ${card(`
       ${fila('Copia de seguridad (JSON)', `Todos los datos de la cuenta en un archivo. <span id="accBkCount">${nt} trades · ${state.backtests.length - noTomados} backtests · ${noTomados} no tomados · ${state.reflections.length} reflexiones · ${state.cuentas.length} cuentas · ${protocolos.length} protocolos</span>`,
         `<button type="button" class="btn" id="accBackup">${ic('descargar')} Descargar JSON</button>`)}
-      ${fila('Excel completo (.xlsx)', 'Un libro con una pestaña por estrategia (Zonas · Liquidez · Nasdaq), con las mismas columnas que tu hoja original.',
+      ${fila('Excel completo (.xlsx)', 'Un libro con una pestaña por estrategia, con las mismas columnas que tu hoja original.',
         `<button type="button" class="btn primary" id="accXlsx" ${nt ? '' : 'disabled'}>${ic('tabla')} Descargar Excel (${nt})</button>`)}
     `)}
     ${card(`

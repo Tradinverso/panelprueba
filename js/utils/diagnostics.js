@@ -31,7 +31,7 @@ import {
   withSensacion, sensacionStats,
   NEGATIVAS, POSITIVAS,
 } from './sensaciones.js';
-import { STRATEGIES, TP_RANGE, R_MAXIMO, tpRangeLabel, esMotivoManual } from './strategy-config.js';
+import { STRATEGIES, TP_RANGE, R_MAXIMO, tpRangeLabel, esMotivoManual, SHEETS } from './strategy-config.js';
 import { fmtPct } from './number-format-es.js';
 import { tzHourDiff, todayLocal } from './timezone.js';
 import { auth } from '../auth.js';
@@ -197,7 +197,6 @@ function ordenarPorSeveridad(result) {
 // ── Helpers de medida ──────────────────────────────────────
 // % P&L dentro de un rango creíble (va en R). Lo demás es un dato mal apuntado.
 const limpio = t => Math.abs(t.pnl_pct || 0) <= R_MAXIMO;
-const SHEETS = ['ZONAS', 'LIQUIDEZ', 'NASDAQ'];
 const etiqueta = sheet => (STRATEGIES[sheet] && STRATEGIES[sheet].label) || sheet;
 
 // Resumen de un grupo de trades: nº, decisivos (TP+SL), acierto y P&L sistema.

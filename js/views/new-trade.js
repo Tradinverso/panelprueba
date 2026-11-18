@@ -9,14 +9,13 @@ import { auth } from '../auth.js';
 import { todayLocal } from '../utils/timezone.js';
 import { fmtPct } from '../utils/number-format-es.js';
 import { fmtUsd } from '../utils/account-stats.js';
-import { STRATEGIES as STRAT_META, modelLabel, errorModeloEntrada, TP_RANGE, R_MAXIMO, tpRangeLabel, MOTIVOS_SALIDA, esMotivoManual, motivoLabel, motivoPorResultado } from '../utils/strategy-config.js';
+import { STRATEGIES as STRAT_META, modelLabel, errorModeloEntrada, TP_RANGE, R_MAXIMO, tpRangeLabel, MOTIVOS_SALIDA, esMotivoManual, motivoLabel, motivoPorResultado, SHEETS } from '../utils/strategy-config.js';
 import { resumenR } from '../utils/diagnostics.js';
 import { aplicarReglasModelo } from '../components/model-rules.js';
 import { attachDictation } from '../utils/dictation.js';
 import { showToast } from '../components/toast.js';
 import { armBreaker } from '../utils/breaker.js';
 
-const SHEETS = ['ZONAS', 'LIQUIDEZ', 'NASDAQ'];
 // El R objetivo de cada estrategia (TP_RANGE, en strategy-config.js) es lo que
 // rellenan los atajos "TP" del resultado: uno si el TP es fijo (Zonas), dos si
 // la estrategia trabaja con un rango (Liquidez 2–3R, Nasdaq 1,5–2R).

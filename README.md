@@ -327,4 +327,11 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   columna recogida. `createDonut` pinta la rueda en el sitio del lienzo.
 - **Barra de arriba**: sin el botón Apariencia (la apariencia se cambia en Ajustes → Preferencias)
   y sin la flecha del botón de perfil. Los filtros de fecha llevan el texto centrado.
+- **Estrategias** (`js/utils/strategy-config.js`): la lista y el orden salen de `SHEETS`
+  (Zonas, NQ Londres, NQ Nueva York, Liquidez) y cada una lleva su etiqueta, color, rutas y texto
+  corto en `STRATEGIES`; las vistas ya no las nombran a mano. **NQ Londres** (`NQ_LONDRES`) es una
+  copia de la de Nasdaq con su nombre, color y rutas (`#/nq-londres`, `#/bt-nq-londres`). La de
+  Nasdaq se llama ahora **NQ Nueva York**, pero conserva la clave `NASDAQ`: los trades guardados
+  no se tocan. `esNQ(sheet)` agrupa a las dos para el par fijo "NQ" y los importadores. En el
+  Excel exportado, NQ Nueva York sigue en la pestaña "Nasdaq" y NQ Londres va en "NQ Londres".
 

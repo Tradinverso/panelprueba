@@ -1,7 +1,7 @@
 // Modal de SOLO LECTURA: muestra todos los datos del trade como texto plano.
 // No hay inputs; un botón "Editar" delega al modal de edición existente.
 
-import { motivoLabel } from '../utils/strategy-config.js';
+import { motivoLabel, sheetLabel, sheetCls } from '../utils/strategy-config.js';
 import { openModal } from './modal.js';
 import { openEditTradeModal } from './trade-edit-modal.js';
 import { tradeRealPnl } from '../utils/calculations.js';
@@ -11,7 +11,6 @@ import { formatDateEs } from '../utils/date-helpers.js';
 import { STRATEGIES, modelLabel } from '../utils/strategy-config.js';
 import { accountUsd, fmtUsd } from '../utils/account-stats.js';
 
-const STRAT_LABEL = { ZONAS: 'Zonas', LIQUIDEZ: 'Liquidez', NASDAQ: 'Nasdaq' };
 
 // opts.variant 'backtest': oculta las filas del journal (riesgo real, % real,
 // sensación, plan, cuentas) y el botón Editar delega en opts.onEdit — NUNCA en
@@ -54,13 +53,13 @@ export function openViewTradeModal(trade, opts = {}) {
   const risk = typeof trade.risk_real_pct === 'number' && isFinite(trade.risk_real_pct) ? trade.risk_real_pct : 1;
 
   openModal({
-    title: (isBacktest ? 'Backtest · ' : 'Trade · ') + (STRAT_LABEL[trade.sheet] || trade.sheet),
+    title: (isBacktest ? 'Backtest · ' : 'Trade · ') + sheetLabel(trade.sheet),
     meta: `${formatDateEs(trade.date)} · ${trade.pair || ''} · ${trade.setup || ''} · ${trade.result}`,
     body: `
       <dl class="trade-view-grid">
         <dt>Fecha</dt><dd>${formatDateEs(trade.date)}</dd>
         <dt>Hora</dt><dd>${escapeHtml(trade.open_str || '–')}${trade.close_str ? ' → ' + escapeHtml(trade.close_str) : ''}${trade.dur != null ? ` <span style="color:var(--muted);">(${trade.dur} min)</span>` : ''}</dd>
-        <dt>Estrategia</dt><dd><span class="strat-pill ${(trade.sheet || '').toLowerCase()}">${STRAT_LABEL[trade.sheet] || trade.sheet}</span></dd>
+        <dt>Estrategia</dt><dd><span class="strat-pill ${sheetCls(trade.sheet)}">${sheetLabel(trade.sheet) || trade.sheet}</span></dd>
         <dt>Par</dt><dd>${escapeHtml(trade.pair || '–')}</dd>
         <dt>Setup</dt><dd>${escapeHtml(trade.setup || '–')}</dd>
         ${meta.models ? `<dt>Modelo</dt><dd>${escapeHtml(modelLabel(trade.model))}</dd>` : ''}

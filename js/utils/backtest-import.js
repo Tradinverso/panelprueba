@@ -11,6 +11,7 @@
 //   · Columnas derivadas (BALANCE, DD, rachas, mini-tablas laterales) se ignoran.
 //   · La columna Sensación se ignora: el backtesting no lleva emociones.
 
+import { SHEETS, esNQ } from './strategy-config.js';
 import { normalizePair } from './pair-normalize.js';
 
 // ── Parser CSV de verdad (comillas, comas y saltos de línea embebidos) ──
@@ -173,20 +174,24 @@ export async function fetchSheetBacktests(url) {
   const m = String(url || '').match(/\/d\/([a-zA-Z0-9-_]+)/);
   if (!m) return { buckets: null, errors: ['El enlace no parece de Google Sheets. Copia la URL completa del navegador.'] };
   const id = m[1];
-  const buckets = { ZONAS: [], LIQUIDEZ: [], NASDAQ: [] };
+  const buckets = Object.fromEntries(SHEETS.map(k => [k, []]));
   const errors = [];
-  for (const tab of ['Zonas', 'Liquidez', 'Nasdaq']) {
+  // La pestaña "NQ Londres" es opcional: tiene las mismas cabeceras que "Nasdaq",
+  // así que se reconoce por su nombre, no por sus columnas.
+  for (const tab of ['Zonas', 'Liquidez', 'Nasdaq', 'NQ Londres']) {
+    const opcional = tab === 'NQ Londres';
     try {
       const resp = await fetch(`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`);
       const text = await resp.text();
       if (!resp.ok || text.trim().startsWith('<')) {
+        if (opcional) continue;
         errors.push(`No se pudo leer la pestaña "${tab}". Comparte el Sheet como "Cualquiera con el enlace · Lector" (o usa la descarga CSV).`);
         continue;
       }
       const rows = parseCsv(text);
       const hIdx = findHeaderRow(rows);
-      if (hIdx < 0) { errors.push(`La pestaña "${tab}" no tiene el formato de la plantilla (no encuentro las cabeceras).`); continue; }
-      const type = detectSheetType(rows[hIdx]) || tab.toUpperCase();
+      if (hIdx < 0) { if (opcional) continue; errors.push(`La pestaña "${tab}" no tiene el formato de la plantilla (no encuentro las cabeceras).`); continue; }
+      const type = opcional ? 'NQ_LONDRES' : (detectSheetType(rows[hIdx]) || tab.toUpperCase());
       buckets[type] = buckets[type].concat(rowsToDrafts(rows, hIdx));
     } catch (e) {
       errors.push(`Error leyendo "${tab}": ${e.message || e}. Prueba con la descarga CSV.`);
@@ -222,7 +227,7 @@ export function draftToBacktest(draft, sheet) {
     date,
     open_str: normTime(draft.open),
     close_str: normTime(draft.close),
-    pair: sheet === 'NASDAQ' ? 'NQ' : normalizePair(draft.pair || '', sheet),   // XAUUSD → ORO, USOIL → OIL…
+    pair: esNQ(sheet) ? 'NQ' : normalizePair(draft.pair || '', sheet),   // XAUUSD → ORO, USOIL → OIL…
     setup,
     zone: draft.zone || '',
     entry: draft.entry || '',

@@ -1,3 +1,4 @@
+import { sheetLabel, sheetCls } from '../utils/strategy-config.js';
 import { ic } from '../components/icons.js';
 // Detalle de una cuenta concreta. KPIs en $, equity curve, retiros (si fondeada),
 // tabla de trades asignados con su $ P&L individual.
@@ -406,7 +407,7 @@ function renderAccountTradesTable(items, cuenta) {
             return `<tr>
               <td>${formatDateShort(t.date)}</td>
               <td>${t.open_str || '–'}</td>
-              <td><span class="strat-pill ${t.sheet === 'ZONAS' ? 'zonas' : t.sheet === 'LIQUIDEZ' ? 'liquidez' : 'nasdaq'}">${t.sheet.charAt(0) + t.sheet.slice(1).toLowerCase()}</span></td>
+              <td><span class="strat-pill ${sheetCls(t.sheet)}">${sheetLabel(t.sheet)}</span></td>
               <td>${esc(t.pair || '–')}</td>
               <td>${esc(t.setup || '–')}</td>
               <td>${esc((Array.isArray(t.zone) ? t.zone.join(' · ') : t.zone) || '–')}</td>

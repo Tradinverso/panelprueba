@@ -264,6 +264,7 @@
 :root[data-skin] .pill-group.zonas .pill.active    { background: var(--zonas-bg); border-color: var(--zonas); color: var(--text); }
 :root[data-skin] .pill-group.liquidez .pill.active { background: var(--liquidez-bg); border-color: var(--liquidez); color: var(--text); }
 :root[data-skin] .pill-group.nasdaq .pill.active   { background: var(--nasdaq-bg); border-color: var(--nasdaq); color: var(--text); }
+:root[data-skin] .pill-group.nqlondres .pill.active { background: var(--nqlondres-bg); border-color: var(--nqlondres); color: var(--text); }
 
 /* Controles nativos (lista desplegable de los <select>, calendario de los
    input date, barras de scroll) a juego con el esquema: sin esto, en el tema

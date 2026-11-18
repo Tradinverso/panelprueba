@@ -1,15 +1,11 @@
-// Barra de pestañas que unifica las tres estrategias en una sola sección.
+// Barra de pestañas que unifica las estrategias en una sola sección.
 // Son enlaces de navegación (cada estrategia sigue siendo su propia ruta/vista),
 // marcando la activa. Mismo patrón que gestion-tabs y ajustes-tabs.
 // Cada pestaña activa lleva el color de su estrategia.
 
-import { STRATEGIES } from '../utils/strategy-config.js';
+import { STRATEGIES, SHEETS } from '../utils/strategy-config.js';
 
-export const STRATEGY_ROUTES = {
-  ZONAS: '#/zonas',
-  LIQUIDEZ: '#/liquidez',
-  NASDAQ: '#/nasdaq',
-};
+export const STRATEGY_ROUTES = Object.fromEntries(SHEETS.map(k => [k, STRATEGIES[k].route]));
 
 export function strategyTabs(active) {
   return `

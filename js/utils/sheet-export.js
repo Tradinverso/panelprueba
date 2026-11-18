@@ -10,7 +10,7 @@
 // backtests para no duplicar ~130 líneas.
 
 import { IMPORT_HEADERS } from './sheet-parsers.js';
-import { STRATEGIES, modelLabel } from './strategy-config.js';
+import { STRATEGIES, modelLabel, SHEETS, esNQ } from './strategy-config.js';
 import { formatDateEs } from './date-helpers.js';
 import { toCsv } from './csv.js';
 
@@ -45,7 +45,7 @@ export function formatCell(key, t, idx, sheet) {
   switch (key) {
     case 'idx':
     case 'trade':   return String(idx);
-    case 'pair':    return sheet === 'NASDAQ' ? '' : (t.pair || '');
+    case 'pair':    return esNQ(sheet) ? '' : (t.pair || '');
     case 'setup':   return t.setup || '';
     case 'date':    return formatDateEs(t.date) || '';
     case 'dia':     return dayOfWeekFullEs(t.date);
@@ -135,9 +135,11 @@ async function loadSheetJS() {
 export async function exportXlsx(rows, filename) {
   const XLSX = await loadSheetJS();
   const wb = XLSX.utils.book_new();
-  const tabName = { ZONAS: 'Zonas', LIQUIDEZ: 'Liquidez', NASDAQ: 'Nasdaq' };
+  // Una pestaña por estrategia. La de NQ Nueva York conserva el nombre "Nasdaq":
+  // es el que busca el importador de hojas al volver a cargarla.
+  const tabName = { ZONAS: 'Zonas', LIQUIDEZ: 'Liquidez', NASDAQ: 'Nasdaq', NQ_LONDRES: 'NQ Londres' };
 
-  for (const sheet of ['ZONAS', 'LIQUIDEZ', 'NASDAQ']) {
+  for (const sheet of SHEETS) {
     const sheetRows = rows.filter(t => t.sheet === sheet);
     if (sheetRows.length === 0) continue;
     const headers = exportHeaders(sheet);

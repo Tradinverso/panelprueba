@@ -1,6 +1,7 @@
 // Parsers for the user's actual Google Sheet tabs (ZONAS, LIQUIDEZ, NASDAQ).
 // Each tab has a different column order; this module knows the layouts.
 
+import { esNQ } from './strategy-config.js';
 import { parseDate, parseTime, durationMinutes } from './date-helpers.js';
 import { parseNumberEs, parsePctEs } from './number-format-es.js';
 import { normalizePair } from './pair-normalize.js';
@@ -76,7 +77,7 @@ export function parseSheetRow(sheet, cells) {
     open_hour: parseTime(open_str),
     dur: durationMinutes(open_str, close_str),
     setup: String(cells[map.setup] || '').trim().toUpperCase(),
-    pair: sheet === 'NASDAQ' ? 'NQ' : normalizePair(cells[map.pair], sheet),
+    pair: esNQ(sheet) ? 'NQ' : normalizePair(cells[map.pair], sheet),
     zone: String(cells[map.zone] || '').trim(),
     entry: map.entry != null ? String(cells[map.entry] || '').trim() : '',
     rr: map.rr != null ? parseNumberEs(cells[map.rr]) : null,
@@ -109,6 +110,8 @@ export function parseSheetRows(sheet, rows) {
   return out;
 }
 
+// NQ Londres tiene exactamente las columnas de Nasdaq.
+SHEET_COL_MAP.NQ_LONDRES = SHEET_COL_MAP.NASDAQ;
 export const SHEET_COLUMNS = SHEET_COL_MAP;
 
 // User-facing column headers for the import table view (matches the actual sheet)
@@ -197,6 +200,7 @@ export const IMPORT_HEADERS = {
     { key: 'reflex',  label: 'REFLEXIÓN',  calc: false },
   ],
 };
+IMPORT_HEADERS.NQ_LONDRES = IMPORT_HEADERS.NASDAQ;
 
 // Convert a row of {key:value} from import-table → canonical trade
 export function rowToTrade(sheet, row) {
@@ -205,7 +209,7 @@ export function rowToTrade(sheet, row) {
   const pct = parsePctEs(row.pct);
   if (pct == null) return { error: 'Falta % P&L' };
   const setup = String(row.setup || '').trim().toUpperCase();
-  if (sheet !== 'NASDAQ' && !row.pair) return { error: 'Falta PAR' };
+  if (!esNQ(sheet) && !row.pair) return { error: 'Falta PAR' };
   if (!['LONG', 'SHORT'].includes(setup)) return { error: 'SETUP debe ser LONG o SHORT' };
 
   const open_str = normalizeTime(row.open);
@@ -222,7 +226,7 @@ export function rowToTrade(sheet, row) {
       open_hour: parseTime(open_str),
       dur: durationMinutes(open_str, close_str),
       setup,
-      pair: sheet === 'NASDAQ' ? 'NQ' : normalizePair(row.pair, sheet),
+      pair: esNQ(sheet) ? 'NQ' : normalizePair(row.pair, sheet),
       zone: String(row.zone || '').trim(),
       entry: String(row.entry || '').trim(),
       rr: row.rr != null && row.rr !== '' ? parseNumberEs(row.rr) : null,

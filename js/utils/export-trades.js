@@ -6,12 +6,12 @@
 
 import { exportXlsx, stampNow, slug } from './sheet-export.js';
 import { downloadFile } from './csv.js';
-import { STRATEGIES, motivoLabel } from './strategy-config.js';
+import { STRATEGIES, SHEETS, motivoLabel } from './strategy-config.js';
 import { winrate, pnlPct } from './calculations.js';
 import { todayLocal } from './timezone.js';
 import { auth } from '../auth.js';
 
-export const EXPORT_SHEETS = ['ZONAS', 'NASDAQ', 'LIQUIDEZ'];
+export const EXPORT_SHEETS = SHEETS;
 export const sheetLabel = s => (STRATEGIES[s] && STRATEGIES[s].label) || s;
 
 const JSPDF_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';

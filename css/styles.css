@@ -111,6 +111,7 @@ body::after {
 .badge.zonas { border-color: var(--zonas); color: var(--zonas); background: var(--zonas-bg); }
 .badge.liquidez { border-color: var(--liquidez); color: var(--liquidez); background: var(--liquidez-bg); }
 .badge.nasdaq { border-color: var(--nasdaq); color: var(--nasdaq); background: var(--nasdaq-bg); }
+.badge.nqlondres { border-color: var(--nqlondres); color: var(--nqlondres); background: var(--nqlondres-bg); }
 
 /* ── KPI grid ────────────────────────────────────────────── */
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 24px; }
@@ -162,6 +163,7 @@ body::after {
 .strat-pill.zonas { color: var(--zonas); border-color: var(--zonas); background: var(--zonas-bg); }
 .strat-pill.liquidez { color: var(--liquidez); border-color: var(--liquidez); background: var(--liquidez-bg); }
 .strat-pill.nasdaq { color: var(--nasdaq); border-color: var(--nasdaq); background: var(--nasdaq-bg); }
+.strat-pill.nqlondres { color: var(--nqlondres); border-color: var(--nqlondres); background: var(--nqlondres-bg); }
 
 /* ── Result badges ───────────────────────────────────────── */
 .res-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-family: var(--mono); font-weight: 500; }

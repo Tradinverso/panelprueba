@@ -18,6 +18,7 @@ import { todayLocal } from '../utils/timezone.js';
 import { openChecklistModal } from './checklist-modal.js';
 import { clockParts } from './topbar.js';
 import { icon } from './icons.js';
+import { STRATEGIES, sheetLabel } from '../utils/strategy-config.js';
 import { ringSvg } from './ring.js';
 import { getHoyData, onHoyData, noticiasDeHoy, noticiasDeLaSemana, proximosDirectos, horaEn, diaCortoEn, diaEn } from '../utils/hoy-data.js';
 import { tituloEs } from '../utils/noticias-es.js';
@@ -32,7 +33,6 @@ const INVESTING_URL = 'https://es.investing.com/economic-calendar';
 // solo abre a quien ya es miembro del servidor).
 const DISCORD_URL = 'https://discord.com/channels/1306561566958817280/1426808153839767553';
 
-const SHEET_SHORT = { ZONAS: 'Zonas', LIQUIDEZ: 'Liquidez', NASDAQ: 'Nasdaq' };
 
 let unsubAuth = null;
 let unsubState = null;
@@ -71,7 +71,7 @@ function slToday(c, trades, today) {
 function stratsOf(c, trades) {
   const set = new Set();
   for (const t of trades) {
-    if (Array.isArray(t.accounts) && t.accounts.some(a => a.accountId === c.id) && SHEET_SHORT[t.sheet]) set.add(SHEET_SHORT[t.sheet]);
+    if (Array.isArray(t.accounts) && t.accounts.some(a => a.accountId === c.id) && STRATEGIES[t.sheet]) set.add(sheetLabel(t.sheet));
   }
   return [...set].join(' · ') || (c.tipo === 'Futuros' ? 'Futuros' : 'CFD');
 }

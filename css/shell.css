@@ -167,6 +167,7 @@ body.mesa-closed #mesa { flex: 0 0 58px; min-width: 58px; }
 .strat-card.zonas::before    { background: linear-gradient(90deg, var(--zonas) 0%, var(--zonas-bg) 55%, transparent 100%); }
 .strat-card.liquidez::before { background: linear-gradient(90deg, var(--liquidez) 0%, var(--liquidez-bg) 55%, transparent 100%); }
 .strat-card.nasdaq::before   { background: linear-gradient(90deg, var(--nasdaq) 0%, var(--nasdaq-bg) 55%, transparent 100%); }
+.strat-card.nqlondres::before { background: linear-gradient(90deg, var(--nqlondres) 0%, var(--nqlondres-bg) 55%, transparent 100%); }
 .strat-card.dim { opacity: .55; }
 .strat-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
 .strat-head .card-sub { margin-bottom: 0; }
@@ -944,3 +945,18 @@ a.mesa-ag-live:hover { background: var(--hover); }
 .mesa-ring { position: relative; background: none; }
 .mesa-ring .ring-svg { position: absolute; inset: 0; }
 .mesa-ring span { position: relative; background: transparent; }
+
+/* ── Tarjetas por estrategia cuando hay cuatro ──
+   Cuatro en fila solo si cada una queda con unos 290 px (depende de si la
+   columna Hoy está abierta); si no, dos y dos. Nunca tres y una suelta. */
+.strat-grid.n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.strat-grid.n4 .strat-body { gap: 12px; }
+@media (min-width: 1640px) {
+  .strat-grid.n4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (min-width: 1360px) {
+  body.mesa-closed .strat-grid.n4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .strat-grid.n4 { grid-template-columns: 1fr; }
+}

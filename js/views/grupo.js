@@ -1,3 +1,4 @@
+import { STRATEGIES, SHEETS, sheetLabel } from '../utils/strategy-config.js';
 import { ic } from '../components/icons.js';
 // Vista "Stats grupales" (solo admin). Agrega los trades de los alumnos
 // seleccionados por grupo (GENERAL / Avanzados / Intermedios / Principiantes
@@ -143,7 +144,7 @@ function paint(container) {
         </div>
 
         <div class="section-title">Por estrategia</div>
-        <div class="grid-3" id="grupoStrats"></div>
+        <div class="grid-3 strat-grid n${SHEETS.length}" id="grupoStrats"></div>
 
         <div class="section-title">Timing</div>
         <div class="grid-2">
@@ -256,7 +257,7 @@ function paint(container) {
   const nStudents = Math.max(1, studentsSel.length);
 
   // ── Por estrategia (HTML antes de los charts) ─────────────
-  body.querySelector('#grupoStrats').innerHTML = ['ZONAS', 'LIQUIDEZ', 'NASDAQ'].map(s => stratCard(s, filtered.filter(t => t.sheet === s), nStudents)).join('');
+  body.querySelector('#grupoStrats').innerHTML = SHEETS.map(s => stratCard(s, filtered.filter(t => t.sheet === s), nStudents)).join('');
 
   // ── Charts — en el siguiente frame (layout listo) para evitar el lienzo
   //    en blanco en el primer pintado (mismo patrón que dashboard/estrategias).
@@ -266,15 +267,13 @@ function paint(container) {
     if (!body.querySelector('#grupoEquity')) return;   // la vista cambió
     createEquity(body.querySelector('#grupoEquity'), [
       { key: 'ALL', label: 'Global', data: avgCurve(filtered) },
-      { key: 'ZONAS',    label: 'Zonas',    data: avgCurve(filtered.filter(t => t.sheet === 'ZONAS')) },
-      { key: 'LIQUIDEZ', label: 'Liquidez', data: avgCurve(filtered.filter(t => t.sheet === 'LIQUIDEZ')) },
-      { key: 'NASDAQ',   label: 'Nasdaq',   data: avgCurve(filtered.filter(t => t.sheet === 'NASDAQ')) },
+      ...SHEETS.map(k => ({ key: k, label: sheetLabel(k), data: avgCurve(filtered.filter(t => t.sheet === k)) })),
     ]);
     const m = monthlyPnl(filtered);
     createBar(body.querySelector('#grupoMonthly'),
       m.map(d => MONTHS_ES_SHORT[+d.month.split('-')[1] - 1] + ' ' + d.month.substring(2, 4)),
       m.map(d => +((perfMode === 'real' ? d.pnlReal : d.pnl) / nStudents).toFixed(2)));
-    ['ZONAS', 'LIQUIDEZ', 'NASDAQ'].forEach(s => {
+    SHEETS.forEach(s => {
       const sub = filtered.filter(t => t.sheet === s);
       const c = tradeCounts(sub);
       const donut = body.querySelector(`[data-strat-donut="${s}"]`);
@@ -283,8 +282,8 @@ function paint(container) {
     createHourBar(body.querySelector('#grupoHour'), wrByHour(filtered));
     createDayBar(body.querySelector('#grupoDay'), wrByDay(filtered));
     renderHeatmap(body.querySelector('#grupoHeatmap'), filtered);
-    const ls = ['ZONAS', 'LIQUIDEZ', 'NASDAQ'].map(sheet => ({
-      label: sheet.charAt(0) + sheet.slice(1).toLowerCase(),
+    const ls = SHEETS.map(sheet => ({
+      label: sheetLabel(sheet),
       ...longVsShort(filtered.filter(t => t.sheet === sheet)),
     }));
     createLongShort(body.querySelector('#grupoLs'), ls);
@@ -358,8 +357,8 @@ function paintKpis(body, trades, students) {
 }
 
 function stratCard(sheet, sub, nStudents) {
-  const cls = { ZONAS: 'zonas', LIQUIDEZ: 'liquidez', NASDAQ: 'nasdaq' }[sheet];
-  const label = sheet.charAt(0) + sheet.slice(1).toLowerCase();
+  const color = STRATEGIES[sheet].color;
+  const label = sheetLabel(sheet);
   const n = Math.max(1, nStudents);
   const c = tradeCounts(sub);
   const wr = winrate(sub);
@@ -371,7 +370,7 @@ function stratCard(sheet, sub, nStudents) {
       <div class="card-title">${label}</div>
       <div class="card-sub">${c.total} trades · media por alumno</div>
       <div class="mini-stats">
-        <div><div class="mini-stat-val" style="color:var(--${cls});">${fmtPctNoSign(wr, 0)}</div><div class="mini-stat-lbl">Winrate</div></div>
+        <div><div class="mini-stat-val" style="color:${color};">${fmtPctNoSign(wr, 0)}</div><div class="mini-stat-lbl">Winrate</div></div>
         <div><div class="mini-stat-val" style="color:${pnlAvg >= 0 ? 'var(--green)' : 'var(--red)'};">${fmtPct(pnlAvg, 1)}</div><div class="mini-stat-lbl">P&L sist.</div></div>
         <div><div class="mini-stat-val" style="color:${pnlRealAvg >= 0 ? 'var(--green)' : 'var(--red)'};">${fmtPct(pnlRealAvg, 1)}</div><div class="mini-stat-lbl">P&L real</div></div>
         <div><div class="mini-stat-val" style="color:var(--orange);">${fmtNum(pf)}</div><div class="mini-stat-lbl">Profit Factor</div></div>

@@ -1,3 +1,4 @@
+import { sheetsVisibles, sheetLabel } from '../utils/strategy-config.js';
 import { ic } from '../components/icons.js';
 import { state } from '../state.js';
 import { MONTHS_ES } from '../utils/date-helpers.js';
@@ -44,9 +45,7 @@ function render(container) {
       <div class="page-actions">
         <select id="stratF" class="select">
           <option value="all" ${stratFilter === 'all' ? 'selected' : ''}>Todas las estrategias</option>
-          <option value="ZONAS" ${stratFilter === 'ZONAS' ? 'selected' : ''}>Zonas</option>
-          <option value="LIQUIDEZ" ${stratFilter === 'LIQUIDEZ' ? 'selected' : ''}>Liquidez</option>
-          <option value="NASDAQ" ${stratFilter === 'NASDAQ' ? 'selected' : ''}>Nasdaq</option>
+          ${sheetsVisibles().map(k => `<option value="${k}" ${stratFilter === k ? 'selected' : ''}>${sheetLabel(k)}</option>`).join('')}
         </select>
         <div class="cal-controls">
           <button class="cal-btn" id="prev">‹</button>

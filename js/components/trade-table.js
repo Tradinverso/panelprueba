@@ -7,13 +7,11 @@ import { openViewTradeModal } from './trade-view-modal.js';
 import { openEditTradeModal } from './trade-edit-modal.js';
 import { state } from '../state.js';
 import { accountUsd, fmtUsd } from '../utils/account-stats.js';
-import { STRATEGIES, modelLabel } from '../utils/strategy-config.js';
+import { STRATEGIES, modelLabel, sheetLabel, sheetCls } from '../utils/strategy-config.js';
 
 // ¿La estrategia del trade usa modelos de entrada? (hoy solo Nasdaq)
 const tieneModelos = t => !!(STRATEGIES[t.sheet] && STRATEGIES[t.sheet].models);
 
-const STRAT_LABEL = { ZONAS: 'Zonas', LIQUIDEZ: 'Liquidez', NASDAQ: 'Nasdaq' };
-const STRAT_CLS = { ZONAS: 'zonas', LIQUIDEZ: 'liquidez', NASDAQ: 'nasdaq' };
 
 // ── Fila marcada ("dónde iba") ───────────────────────────────
 // Al revisar trades uno a uno hay que ir recordando por cuál se iba. Se marca
@@ -139,7 +137,7 @@ export function renderTradeTable(container, trades, opts = {}) {
       <div class="filter-bar">
         ${showSheet ? sel('sheet', filters.sheet, [
           { v: 'all', l: 'Todas las estrategias' },
-          ...sheets.map(s => ({ v: s, l: STRAT_LABEL[s] || s })),
+          ...sheets.map(s => ({ v: s, l: sheetLabel(s) })),
         ]) : ''}
         ${sel('result', filters.result, [
           { v: 'all', l: 'Todos los resultados' },
@@ -360,7 +358,7 @@ function row(t, canDelete, isBacktest = false, markedId = '', conModelos = false
       <td>${viewBtn}</td>
       <td>${isBacktest ? formatDateShort(t.date) + '/' + String(t.date || '').substring(2, 4) : formatDateShort(t.date)}</td>
       <td>${t.open_str || '–'}</td>
-      <td><span class="strat-pill ${STRAT_CLS[t.sheet]}">${STRAT_LABEL[t.sheet] || t.sheet}</span></td>
+      <td><span class="strat-pill ${sheetCls(t.sheet)}">${sheetLabel(t.sheet)}</span></td>
       <td>${t.pair || '–'}</td>
       <td>${t.setup || '–'}</td>
       ${conModelos ? `<td>${tieneModelos(t)

@@ -15,6 +15,7 @@ import { kpiCard, kpiCardComposite } from '../components/kpi-card.js';
 import { createEquity, createBar, createHourBar, createDayBar } from '../components/charts.js';
 import { renderHeatmap } from '../components/heatmap.js';
 import { ringSvg } from '../components/ring.js';
+import { STRATEGIES, sheetsVisibles, sheetLabel, sheetCls } from '../utils/strategy-config.js';
 import { openDiarioModal } from '../components/diario-modal.js';
 import { hoy as hoyDiario, estadoDia } from '../utils/diario.js';
 import { puntuacionDisciplina } from '../utils/disciplina.js';
@@ -31,7 +32,6 @@ import {
   newPeriod, monthsOf, inPeriod, clampPeriod, periodHtml, wirePeriod, prevPeriod,
 } from '../components/period-filter.js';
 
-const STRAT_LABELS = { ZONAS: 'Forex, Oro y Oil', LIQUIDEZ: 'EUR/USD', NASDAQ: 'NQ Futuros' };
 
 let dashPeriod = newPeriod();   // rango de meses { from, to }
 let perfMode = 'sistema'; // 'sistema' | 'real'
@@ -102,10 +102,11 @@ function render(container) {
   // ya está calculado. Crearlos en el mismo tick que el innerHTML provoca que a
   // veces midan tamaño 0 y salgan en blanco hasta refrescar.
   requestAnimationFrame(() => {
-    if (!container.querySelector('#equityChart')) return; // la vista cambió
+    // La vista cambió (#stratGrid solo existe en el Dashboard; #equityChart también lo usa Estrategias).
+    if (!container.querySelector('#stratGrid') || !container.querySelector('#equityChart')) return;
     paintEquity(container, filtered);
     paintMonthly(container, allTrades);
-    ['ZONAS', 'LIQUIDEZ', 'NASDAQ'].forEach(s => paintStrategy(container, s, filtered));
+    sheetsVisibles().forEach(s => paintStrategy(container, s, filtered));
     paintTiming(container, filtered);
     paintDirectionAndPairs(container, filtered);
   });
@@ -248,11 +249,9 @@ function renderShell(allTrades, filtered) {
             <div class="card-title">Curva de equity (P&L acumulado)</div>
             <div class="card-sub">Por estrategia · ${perfMode === 'real' ? 'P&L real (riesgo aplicado)' : 'Sistema 1R normalizado'}</div>
           </div>
-          <div class="eq-legend" style="display:flex;gap:6px;" title="Pulsa una estrategia para mostrar u ocultar su línea">
+          <div class="eq-legend" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;" title="Pulsa una estrategia para mostrar u ocultar su línea">
             <button type="button" class="strat-pill global" data-eq="0">● Global</button>
-            <button type="button" class="strat-pill zonas" data-eq="1">● Zonas</button>
-            <button type="button" class="strat-pill liquidez" data-eq="2">● Liquidez</button>
-            <button type="button" class="strat-pill nasdaq" data-eq="3">● Nasdaq</button>
+            ${sheetsVisibles().map((k, i) => `<button type="button" class="strat-pill ${sheetCls(k)}" data-eq="${i + 1}">● ${sheetLabel(k)}</button>`).join('')}
           </div>
         </div>
         <div class="chart-wrap" style="height:300px;"><canvas id="equityChart"></canvas></div>
@@ -265,8 +264,8 @@ function renderShell(allTrades, filtered) {
     </div>
 
     <div class="section-title">Por estrategia</div>
-    <div class="grid-3 strat-grid" id="stratGrid">
-      ${['ZONAS', 'LIQUIDEZ', 'NASDAQ'].map(s => stratCardShell(s)).join('')}
+    <div class="grid-3 strat-grid n${sheetsVisibles().length}" id="stratGrid">
+      ${sheetsVisibles().map(s => stratCardShell(s)).join('')}
     </div>
 
     <div class="section-title">Timing y dirección</div>
@@ -320,9 +319,7 @@ function renderShell(allTrades, filtered) {
       <div class="card-title" style="margin-bottom:14px;">Rachas consecutivas y DD por estrategia y par</div>
       <table class="data-table"><thead><tr>
         <th>Métrica</th><th>Global</th>
-        <th style="color:var(--liquidez)">Liquidez</th>
-        <th style="color:var(--nasdaq)">Nasdaq</th>
-        <th style="color:var(--zonas)">Zonas</th>
+        ${sheetsVisibles().map(k => `<th style="color:${STRATEGIES[k].color}">${sheetLabel(k)}</th>`).join('')}
         <th style="color:var(--pair-gbp)">GBP/USD</th>
         <th style="color:var(--pair-eur)">EUR/USD</th>
         <th style="color:var(--pair-gold)">ORO</th>
@@ -343,14 +340,13 @@ function renderShell(allTrades, filtered) {
 // Tarjeta por estrategia: barra superior del color de la estrategia, nombre y
 // meta, estado, anillo de winrate (conic-gradient) y 4 líneas. Pulsable → la
 // página de esa estrategia.
-const STRAT_ROUTE = { ZONAS: '#/zonas', LIQUIDEZ: '#/liquidez', NASDAQ: '#/nasdaq' };
 function stratCardShell(s) {
-  const cls = { ZONAS: 'zonas', LIQUIDEZ: 'liquidez', NASDAQ: 'nasdaq' }[s];
+  const cls = sheetCls(s);
   return `
-    <a class="card strat-card ${cls}" data-strat="${s}" href="${STRAT_ROUTE[s]}" title="Ver análisis de ${s.charAt(0) + s.slice(1).toLowerCase()}">
+    <a class="card strat-card ${cls}" data-strat="${s}" href="${STRATEGIES[s].route}" title="Ver análisis de ${sheetLabel(s)}">
       <div class="strat-head">
         <div>
-          <div class="card-title">${s.charAt(0) + s.slice(1).toLowerCase()}</div>
+          <div class="card-title">${sheetLabel(s)}</div>
           <div class="card-sub" data-field="sub">– trades</div>
         </div>
         <span class="strat-status" data-field="status">Activa</span>
@@ -417,9 +413,7 @@ function paintEquity(container, trades) {
   const curve = perfMode === 'real' ? equityCurveReal : equityCurve;
   const datasets = [
     { key: 'ALL', label: 'Global', data: curve(trades) },
-    { key: 'ZONAS', label: 'Zonas', data: curve(trades.filter(t => t.sheet === 'ZONAS')) },
-    { key: 'LIQUIDEZ', label: 'Liquidez', data: curve(trades.filter(t => t.sheet === 'LIQUIDEZ')) },
-    { key: 'NASDAQ', label: 'Nasdaq', data: curve(trades.filter(t => t.sheet === 'NASDAQ')) },
+    ...sheetsVisibles().map(k => ({ key: k, label: sheetLabel(k), data: curve(trades.filter(t => t.sheet === k)) })),
   ];
   const chart = createEquity(container.querySelector('#equityChart'), datasets);
   // Leyenda pulsable: muestra u oculta la línea de esa estrategia.
@@ -580,7 +574,7 @@ function paintStrategy(container, sheet, trades) {
   const subPf = profitFactor(sub);
   card.querySelector('[data-field="pf"]').textContent = sub.length ? (isFinite(subPf) ? fmtNum(subPf) : '∞') : '–';
   card.querySelector('[data-field="n"]').textContent = `${c.tp} TP · ${c.sl} SL · ${c.be} BE`;
-  card.querySelector('[data-field="sub"]').textContent = `${sub.length} trades · ${STRAT_LABELS[sheet]}`;
+  card.querySelector('[data-field="sub"]').textContent = `${sub.length} trades · ${STRATEGIES[sheet].sub}`;
   // Estado: "Sin trades" si no hay; "Inactiva" si el último trade es de hace más de 60 días.
   const last = sub.length ? sub.map(t => t.date).sort().pop() : null;
   const daysAgo = last ? Math.round((Date.now() - new Date(last + 'T12:00:00').getTime()) / 86400000) : null;
@@ -632,10 +626,10 @@ function paintLongShort(container, trades) {
   const all = longVsShort(trades);
   const realLong = pnlPctReal(trades.filter(t => t.setup === 'LONG'));
   const realShort = pnlPctReal(trades.filter(t => t.setup === 'SHORT'));
-  const rows = ['ZONAS', 'LIQUIDEZ', 'NASDAQ'].map(sheet => {
+  const rows = sheetsVisibles().map(sheet => {
     const d = longVsShort(trades.filter(t => t.sheet === sheet));
     const cell = x => `<td style="color:${wrColor(x.wr, x.n)}">${x.n ? fmtPctNoSign(x.wr) : '–'}</td>`;
-    return `<tr><td><span class="strat-pill ${sheet.toLowerCase()}">${sheet.charAt(0) + sheet.slice(1).toLowerCase()}</span></td>${cell(d.long)}${cell(d.short)}</tr>`;
+    return `<tr><td><span class="strat-pill ${sheetCls(sheet)}">${sheetLabel(sheet)}</span></td>${cell(d.long)}${cell(d.short)}</tr>`;
   }).join('');
   el.innerHTML = `
     ${dir('Long', all.long, realLong)}
@@ -681,9 +675,8 @@ function paintDirectionAndPairs(container, trades) {
 function paintStreaks(container, trades) {
   const groups = {
     Global: trades,
-    Liquidez: trades.filter(t => t.sheet === 'LIQUIDEZ'),
-    Nasdaq: trades.filter(t => t.sheet === 'NASDAQ'),
-    Zonas: trades.filter(t => t.sheet === 'ZONAS'),
+    // Mismo orden que la cabecera de la tabla.
+    ...Object.fromEntries(sheetsVisibles().map(k => [sheetLabel(k), trades.filter(t => t.sheet === k)])),
     'GBP/USD': trades.filter(t => t.sheet === 'ZONAS' && t.pair === 'GBP/USD'),
     'EUR/USD': trades.filter(t => t.sheet === 'ZONAS' && t.pair === 'EUR/USD'),
     ORO: trades.filter(t => t.sheet === 'ZONAS' && t.pair === 'ORO'),
@@ -710,11 +703,7 @@ function paintStreaks(container, trades) {
 }
 
 function paintDurations(container, trades) {
-  const rows = [
-    ['ZONAS', durationStats(trades.filter(t => t.sheet === 'ZONAS')), 'zonas'],
-    ['LIQUIDEZ', durationStats(trades.filter(t => t.sheet === 'LIQUIDEZ')), 'liquidez'],
-    ['NASDAQ', durationStats(trades.filter(t => t.sheet === 'NASDAQ')), 'nasdaq'],
-  ];
+  const rows = sheetsVisibles().map(k => [sheetLabel(k), durationStats(trades.filter(t => t.sheet === k)), sheetCls(k)]);
   const global = durationStats(trades);
   container.querySelector('#durTbody').innerHTML = rows.map(([name, d, cls]) => `
     <tr>

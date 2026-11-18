@@ -13,7 +13,7 @@ import { ic } from '../components/icons.js';
 // dedupe: reimportar lo mismo no duplica).
 
 import { state } from '../state.js';
-import { STRATEGIES } from '../utils/strategy-config.js';
+import { STRATEGIES, SHEETS } from '../utils/strategy-config.js';
 import { backtestTabs, BACKTEST_ROUTES } from '../components/backtest-tabs.js';
 import { openModal } from '../components/modal.js';
 import { exportXlsx, stampNow, slug } from '../utils/sheet-export.js';
@@ -67,7 +67,8 @@ const COLS = {
   ],
 };
 
-const SHEETS = ['ZONAS', 'LIQUIDEZ', 'NASDAQ'];
+// NQ Londres usa la misma rejilla que Nasdaq.
+COLS.NQ_LONDRES = COLS.NASDAQ;
 
 // Estado del importador (a nivel de módulo: sobrevive al cambiar de pestaña
 // dentro de la sesión; se limpia al importar).
@@ -76,7 +77,7 @@ let activeSheet = 'ZONAS';
 let lastMsg = null;   // { type: 'ok'|'err', text }
 
 function emptyBuckets() {
-  return { ZONAS: [], LIQUIDEZ: [], NASDAQ: [] };
+  return Object.fromEntries(SHEETS.map(k => [k, []]));
 }
 function emptyRow() {
   return { date: '', open: '', close: '', pair: '', setup: '', zone: '', entry: '', rr: '', pnl: '', res: '', url1: '', url2: '', notas: '' };

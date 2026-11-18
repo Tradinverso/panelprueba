@@ -3,16 +3,14 @@ import { ic } from './icons.js';
 // su histórico de backtests. Mismo patrón que strategy-tabs (enlaces de
 // navegación, la activa con el color de su estrategia).
 
-import { STRATEGIES } from '../utils/strategy-config.js';
+import { STRATEGIES, SHEETS } from '../utils/strategy-config.js';
 
 // Tras las 3 estrategias van NO TOMADOS (trades que se escaparon, aparte para
 // que no contaminen la validación de cada estrategia) e IMPORTAR (rejilla para
 // volcar Sheets/CSV). Ambas están en BACKTEST_ROUTES para que el sidebar marque
 // activo el ítem "Backtesting" también en esas rutas (match usa Object.values).
 export const BACKTEST_ROUTES = {
-  ZONAS: '#/bt-zonas',
-  LIQUIDEZ: '#/bt-liquidez',
-  NASDAQ: '#/bt-nasdaq',
+  ...Object.fromEntries(SHEETS.map(k => [k, STRATEGIES[k].btRoute])),
   NO_TOMADOS: '#/bt-no-tomados',
   IMPORTAR: '#/bt-importar',
 };

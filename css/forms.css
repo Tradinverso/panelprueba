@@ -44,6 +44,7 @@
 .pill-group.zonas .pill.active { background: var(--zonas); border-color: var(--zonas); color: #fff; }
 .pill-group.liquidez .pill.active { background: var(--liquidez); border-color: var(--liquidez); color: #fff; }
 .pill-group.nasdaq .pill.active { background: var(--nasdaq); border-color: var(--nasdaq); color: #fff; }
+.pill-group.nqlondres .pill.active { background: var(--nqlondres); border-color: var(--nqlondres); color: #fff; }
 .pill-group.sens .pill[data-val="Seguro - Confiado"].active   { background: rgba(16,185,129,.5); border-color: #10B981; color: #fff; }
 .pill-group.sens .pill[data-val="Convencido - Calma"].active  { background: rgba(59,130,246,.5); border-color: #60A5FA; color: #fff; }
 .pill-group.sens .pill[data-val="Dudoso - Inseguro"].active   { background: rgba(255,165,2,.5); border-color: #FFA502; color: #fff; }

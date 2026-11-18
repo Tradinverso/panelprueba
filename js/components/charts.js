@@ -1,4 +1,5 @@
 import { ringSvg } from './ring.js';
+import { STRATEGIES, SHEETS } from '../utils/strategy-config.js';
 // Chart.js wrappers — each destroys any chart on the canvas before creating a new one
 // Charts are destroyed via Chart.getChart(canvas)?.destroy() to avoid memory leaks on re-render.
 // Estilo "Glass Command Center": degradados, curvas suaves, barras redondeadas,
@@ -118,8 +119,8 @@ export function createEquity(canvas, datasets, opts = {}) {
   if (!canvas) return null;
   defaults();
   Chart.getChart(canvas)?.destroy();
-  const GREEN = READ('--green'), Z = READ('--zonas'), L = READ('--liquidez'), N = READ('--nasdaq');
-  const palette = { ALL: GREEN, ZONAS: Z, LIQUIDEZ: L, NASDAQ: N, PORT: READ('--cyan') };
+  const GREEN = READ('--green');
+  const palette = { ALL: GREEN, PORT: READ('--cyan'), ...Object.fromEntries(SHEETS.map(k => [k, READ(STRATEGIES[k].colorVar)])) };
   const fmt = oculto() ? TAPADO : (typeof opts.formatter === 'function' ? opts.formatter : (v => v.toFixed(1) + '%'));
   return new Chart(canvas, {
     type: 'line',

@@ -42,6 +42,8 @@
   --liquidez-bg: rgba(168,85,247,0.15);
   --nasdaq: #4D9AFF;
   --nasdaq-bg: rgba(77,154,255,0.15);
+  --nqlondres: #22D3EE;
+  --nqlondres-bg: rgba(34,211,238,0.15);
 
   --pos: #10E0A0;
   --neu: #FFA23A;
@@ -116,6 +118,8 @@
   --liquidez-bg: rgba(147,51,234,0.12);
   --nasdaq: #2563EB;
   --nasdaq-bg: rgba(37,99,235,0.12);
+  --nqlondres: #0891B2;
+  --nqlondres-bg: rgba(8,145,178,0.12);
 
   --donut-tp-1: #2FBE96;
   --donut-tp-2: #067A57;

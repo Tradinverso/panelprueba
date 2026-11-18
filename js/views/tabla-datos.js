@@ -1,3 +1,4 @@
+import { SHEETS, sheetLabel } from '../utils/strategy-config.js';
 import { ic } from '../components/icons.js';
 // Vista "Tabla de datos": editor tipo Excel para corregir trades en masa
 // sin tener que abrir el modal de cada uno.
@@ -67,9 +68,7 @@ function render(container) {
     <div class="td-filters">
       <select id="td-sheet" class="select">
         <option value="all" ${filterSheet === 'all' ? 'selected' : ''}>Todas las estrategias</option>
-        <option value="ZONAS" ${filterSheet === 'ZONAS' ? 'selected' : ''}>Zonas</option>
-        <option value="LIQUIDEZ" ${filterSheet === 'LIQUIDEZ' ? 'selected' : ''}>Liquidez</option>
-        <option value="NASDAQ" ${filterSheet === 'NASDAQ' ? 'selected' : ''}>Nasdaq</option>
+        ${SHEETS.map(k => `<option value="${k}" ${filterSheet === k ? 'selected' : ''}>${sheetLabel(k)}</option>`).join('')}
       </select>
       <select id="td-result" class="select">
         <option value="all" ${filterResult === 'all' ? 'selected' : ''}>Todos los resultados</option>
@@ -164,9 +163,7 @@ function renderRow(t) {
       <td><input type="time" data-field="close_str" value="${escAttr(t.close_str || '')}"></td>
       <td>
         <select data-field="sheet">
-          <option value="ZONAS" ${t.sheet === 'ZONAS' ? 'selected' : ''}>Zonas</option>
-          <option value="LIQUIDEZ" ${t.sheet === 'LIQUIDEZ' ? 'selected' : ''}>Liquidez</option>
-          <option value="NASDAQ" ${t.sheet === 'NASDAQ' ? 'selected' : ''}>Nasdaq</option>
+          ${SHEETS.map(k => `<option value="${k}" ${t.sheet === k ? 'selected' : ''}>${sheetLabel(k)}</option>`).join('')}
         </select>
       </td>
       <td><input type="text" data-field="pair" value="${escAttr(t.pair || '')}" class="td-w-80"></td>
