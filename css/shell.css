@@ -369,6 +369,25 @@ body[data-auth="false"] #view { border: 0; background: transparent; padding: 0; 
 .mesa-cta:hover { transform: translateY(-2px); border-color: var(--border-strong); }
 .mesa-cta-ic { width: 34px; height: 34px; border-radius: 11px; flex: none; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, var(--accent), var(--pos)); color: #fff; }
 .mesa-cta-ic.alt { background: var(--card2); color: var(--accent); border: 1px solid var(--line); }
+/* Prop firms: icono en color (no gris) y una fila con los logos de las firmas,
+   para que no se confunda con Formación ni se pierda al final de la columna. */
+.mesa-cta-ic.firmas { background: linear-gradient(140deg, #8b5cf6, var(--accent)); color: #fff; }
+.mesa-cta-firmas {
+  border-color: color-mix(in srgb, #8b5cf6 45%, var(--line)) !important;
+  background-image: linear-gradient(135deg, rgba(139,92,246,.20) 0%, rgba(59,130,246,.08) 60%, transparent 100%) !important;
+}
+.mesa-cta-firmas:hover { border-color: color-mix(in srgb, #8b5cf6 75%, transparent) !important; }
+.mesa-firmas { display: flex; align-items: center; gap: 4px; margin-top: 5px; }
+.mesa-firmas i {
+  width: 24px; height: 24px; border-radius: 7px; overflow: hidden; flex: none;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.12), 0 1px 3px rgba(0,0,0,.3);
+}
+.mesa-firmas img { width: 100%; height: 100%; object-fit: contain; padding: 2px; box-sizing: border-box; }
+.mesa-firmas i.lleno img { padding: 0; }
+.mesa-firmas b { font-size: 11px; font-weight: 700; color: var(--muted); margin-left: 2px; }
+.mesa-rail-link[data-firmas] { background: linear-gradient(140deg, #8b5cf6, var(--accent)); color: #fff; border-color: transparent; }
+:root[data-theme="light"] .mesa-firmas i { box-shadow: 0 0 0 1px rgba(15,23,42,.12), 0 1px 2px rgba(0,0,0,.12); }
 .mesa-cta-ic svg { width: 17px; height: 17px; }
 .mesa-cta-text { display: flex; flex-direction: column; line-height: 1.25; flex: 1; min-width: 0; }
 .mesa-cta-text b { font-size: 13.5px; font-weight: 600; }

@@ -26,6 +26,18 @@ import { tituloEs } from '../utils/noticias-es.js';
 import { openDiarioModal } from './diario-modal.js';
 import { hoy as hoyDiario, estadoDia, tradesDe } from '../utils/diario.js';
 import { irAFirmas } from './firmas.js';
+import { FIRMAS } from '../utils/firmas.js';
+
+// Botón «Prop firms»: lleva los logos de las primeras firmas de la lista (la
+// destacada primero) para que se reconozca de un vistazo; el resto, «+N».
+const LOGOS_CTA = 5;
+function firmasCtaHtml() {
+  const firmas = FIRMAS.filter(f => f.tipo !== 'herramienta');
+  const orden = [...firmas.filter(f => f.destacada), ...firmas.filter(f => !f.destacada)];
+  const conLogo = orden.filter(f => f.logo).slice(0, LOGOS_CTA);
+  const resto = firmas.length - conLogo.length;
+  return `<span class="mesa-firmas">${conLogo.map(f => `<i class="${f.lleno ? 'lleno' : ''}" style="background:${f.fondo || '#fff'}" title="${escapeHtml(f.nombre)}"><img src="${escapeHtml(f.logo)}" alt=""></i>`).join('')}${resto > 0 ? `<b>+${resto}</b>` : ''}</span>`;
+}
 
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
 // Curso de Thinkific donde se suben todos los diferidos de los directos.
@@ -311,9 +323,9 @@ export function renderMesa(container) {
         <span class="mesa-cta-text"><b>Formación</b><small>Cursos · directos</small></span>
         <span class="mesa-cta-arrow">↗</span>
       </a>
-      ${state.viewAsUid ? '' : `<a class="card mesa-cta" href="#/cuentas" data-firmas title="Las firmas de fondeo que usamos en Tradinverso">
-        <span class="mesa-cta-ic alt">${icon('edificio')}</span>
-        <span class="mesa-cta-text"><b>Prop firms</b><small>Las que usamos · códigos</small></span>
+      ${state.viewAsUid ? '' : `<a class="card mesa-cta mesa-cta-firmas" href="#/cuentas" data-firmas title="Las firmas de fondeo que usamos en Tradinverso, con sus enlaces y códigos">
+        <span class="mesa-cta-ic firmas">${icon('edificio')}</span>
+        <span class="mesa-cta-text"><b>Prop firms · códigos</b>${firmasCtaHtml()}</span>
         <span class="mesa-cta-arrow">→</span>
       </a>`}
       ${hoyData ? '' : `<a class="card mesa-cta" href="${newsUrl}" target="_blank" rel="noopener noreferrer" title="Calendario económico de Investing">
