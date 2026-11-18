@@ -321,6 +321,11 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   directos» van en dos tarjetas separadas: se probó a juntarlas en una «Agenda de hoy» y David
   prefirió tenerlas aparte. El aviso «Evita operar en la noticia» sale solo a 15 minutos o menos de
   una noticia (un reloj de 30 s repinta la columna cuando entra o sale esa ventana).
+  La tarjeta de directos enseña la **semana en curso entera** (`directosDeLaSemana` en
+  `js/utils/hoy-data.js`): el de hoy resaltado y con enlace todo el día; los ya emitidos, atenuados,
+  abren su diferido. El diferido no se puede leer de Thinkific ni de Discord (son privados): sale
+  del evento del calendario, de una línea `Diferido: <enlace>` en su descripción (campo `rec` de
+  `hoy.json`); sin ella, el directo emitido lleva a la Formación.
 - **Ruedas** (`js/components/ring.js`): todas en SVG con el mismo estilo (arcos separados,
   extremos redondeados, degradado de su color y anillo fino): winrate por estrategia del
   Dashboard, Disciplina, donuts de Estrategias y Stats grupales, y el anillo del checklist en la
