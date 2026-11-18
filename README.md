@@ -325,7 +325,9 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   `js/utils/hoy-data.js`): el de hoy resaltado y con enlace todo el día; los ya emitidos, atenuados,
   abren su diferido. El diferido no se puede leer de Thinkific ni de Discord (son privados): sale
   del evento del calendario, de una línea `Diferido: <enlace>` en su descripción (campo `rec` de
-  `hoy.json`); sin ella, el directo emitido lleva a la Formación.
+  `hoy.json`); sin ella, el directo emitido lleva al curso de Thinkific donde están todos
+  los diferidos (`DIFERIDOS_URL` en `js/components/mesa.js`). Los directos que no se graban (`SIN_DIFERIDO`,
+  hoy el Café de los Viernes) quedan como emitidos, sin enlace.
 - **Ruedas** (`js/components/ring.js`): todas en SVG con el mismo estilo (arcos separados,
   extremos redondeados, degradado de su color y anillo fino): winrate por estrategia del
   Dashboard, Disciplina, donuts de Estrategias y Stats grupales, y el anillo del checklist en la

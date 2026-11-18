@@ -27,6 +27,11 @@ import { hoy as hoyDiario, estadoDia, tradesDe } from '../utils/diario.js';
 import { irAFirmas } from './firmas.js';
 
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
+// Curso de Thinkific donde se suben todos los diferidos de los directos.
+const DIFERIDOS_URL = 'https://tradinverso.thinkific.com/courses/mastering-directos-course';
+// Directos que NO se graban: una vez emitidos no llevan enlace al diferido.
+const SIN_DIFERIDO = [/caf[eé] de los viernes/i];
+const tieneDiferido = d => !SIN_DIFERIDO.some(re => re.test(d.title || ''));
 // Calendario económico completo (la lista de la caja sale de Forex Factory).
 const INVESTING_URL = 'https://es.investing.com/economic-calendar';
 // Canal de la comunidad en Discord (dirección directa, NO una invitación:
@@ -177,11 +182,16 @@ export function renderMesa(container) {
       </section>`;
 
   const directoRow = d => {
-    // Ya emitido: fila atenuada. Al pulsarla abre su diferido (si está puesto en
-    // el evento del calendario) o, si no, la Formación, que es donde se suben.
+    // Ya emitido: fila atenuada. Al pulsarla abre el curso donde están todos los
+    // diferidos (o su grabación concreta, si el evento del calendario la trae).
     if (d.pasado) {
       const rec = safeUrl(d.rec);
-      return `<a class="mesa-live past" href="${escapeHtml(rec || FORMACION_URL)}" target="_blank" rel="noopener noreferrer" title="${rec ? 'Ver la grabación de este directo' : 'Directo ya emitido · los diferidos se suben a Formación'}">
+      // Los que no se graban (Café de los Viernes) quedan solo como emitidos.
+      if (!rec && !tieneDiferido(d)) return `<div class="mesa-live past" title="Directo ya emitido · este no se graba">
+        <span class="mesa-live-when">${diaCortoEn(d.t, tz)} · ${horaEn(d.t, tz)}</span>
+        <span class="mesa-live-title">${escapeHtml(d.title)}</span>
+      </div>`;
+      return `<a class="mesa-live past" href="${escapeHtml(rec || DIFERIDOS_URL)}" target="_blank" rel="noopener noreferrer" title="${rec ? 'Ver la grabación de este directo' : 'Directo ya emitido · ver los diferidos'}">
         <span class="mesa-live-when">${diaCortoEn(d.t, tz)} · ${horaEn(d.t, tz)}<span class="mesa-live-rec">${rec ? 'Ver diferido' : 'Diferido'} ↗</span></span>
         <span class="mesa-live-title">${escapeHtml(d.title)}</span>
       </a>`;
