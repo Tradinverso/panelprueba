@@ -25,7 +25,10 @@ export function irAFirmas() {
 
 // Logo y nombre también llevan al enlace de la firma.
 const enlace = f => `href="${esc(f.url)}" target="_blank" rel="noopener sponsored"`;
-const logoHtml = (f, lazy) => `<a class="firma-logo${f.lleno ? ' lleno' : ''}" ${enlace(f)} style="background:${f.fondo || '#fff'}" title="Ir a ${esc(f.nombre)}"><img src="${esc(f.logo)}" alt="${esc(f.nombre)}"${lazy ? ' loading="lazy"' : ''}></a>`;
+// Sin logo todavía: sus siglas sobre la baldosa.
+const logoHtml = (f, lazy) => `<a class="firma-logo${f.lleno ? ' lleno' : ''}" ${enlace(f)} style="background:${f.fondo || '#fff'}" title="Ir a ${esc(f.nombre)}">${f.logo
+  ? `<img src="${esc(f.logo)}" alt="${esc(f.nombre)}"${lazy ? ' loading="lazy"' : ''}>`
+  : `<span class="firma-siglas">${esc(f.siglas || f.nombre.slice(0, 2).toUpperCase())}</span>`}</a>`;
 const nombreHtml = f => `<a class="firma-name" ${enlace(f)}>${esc(f.nombre)}</a>`;
 
 function codigosHtml(f) {

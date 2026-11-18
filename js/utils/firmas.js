@@ -8,7 +8,8 @@
 //              `insignia` y `lema` son los dos textos de esa tarjeta
 //   tipo       'firma' (por defecto) o 'herramienta'
 //   logo       icono cuadrado en assets/firmas; `fondo` es el color de su baldosa
-//              y `lleno` marca los que ya traen fondo propio (sin margen)
+//              y `lleno` marca los que ya traen fondo propio (sin margen).
+//              Sin logo todavía: `siglas` (se pintan sobre la baldosa)
 
 export const FIRMAS = [
   {
@@ -44,10 +45,17 @@ export const FIRMAS = [
     codigos: [{ codigo: 'TRADINVERSO' }], logo: 'assets/firmas/tradingpit.png', lleno: true, fondo: '#000000',
   },
   {
-    id: 'the5ers', nombre: 'The5ers', mercados: ['Futuros', 'CFD'],
-    url: 'https://www.the5ers.com/?afmc=8p8',
-    codigos: [{ codigo: 'PMSME1K9' }], logo: 'assets/firmas/the5ers.png', fondo: '#ffffff',
+    id: 'myfundedfutures', nombre: 'My Funded Futures', mercados: ['Futuros'],
+    url: 'https://myfundedfutures.com/challenge?ref=5470&coupon=tradinverso&utm_source=discord&utm_medium=affiliate',
+    codigos: [{ codigo: 'TRADINVERSO' }], siglas: 'MFF', fondo: '#0b1220',
   },
+  // The5ers: retirada de momento (David, 18-nov-2026); My Funded Futures ocupa su
+  // sitio. Para recuperarla, quitar el comentario. Su logo sigue en assets/firmas.
+  // {
+  //   id: 'the5ers', nombre: 'The5ers', mercados: ['Futuros', 'CFD'],
+  //   url: 'https://www.the5ers.com/?afmc=8p8',
+  //   codigos: [{ codigo: 'PMSME1K9' }], logo: 'assets/firmas/the5ers.png', fondo: '#ffffff',
+  // },
   {
     id: 'alpha', nombre: 'Alpha Futures', mercados: ['Futuros'],
     url: 'https://app.alpha-futures.com/signup/Jose_David021098/',
