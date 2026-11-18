@@ -612,7 +612,7 @@ body.mesa-closed #mesa { flex: 0 0 98px; min-width: 98px; }
 :root[data-skin] .psico-day.has-reflex { outline: 0; }
 /* Fines de semana sin operativa: atenuados (8 columnas en Operativa, 7 en Psicotrading) */
 :root[data-skin] .cal-wrap .cal-cell:is(:nth-child(8n-1), :nth-child(8n-2)):not(.has-data):not(.other):not(.cal-today),
-:root[data-skin] .psico-cal-wrap .cal-cell:is(:nth-child(7n), :nth-child(7n-1)):not(.has-data):not(.other):not(.cal-today) { opacity: .6; }
+/* Psicotrading: los días sin trades se ven todos iguales (también los fines de semana). */
 :root[data-skin] .cal-week-summary { border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--text) 6%, transparent); min-height: 88px; }
 :root[data-skin] .cal-week-summary:hover { background: color-mix(in srgb, var(--text) 10%, transparent); }
 :root[data-skin] .cal-week-summary.empty, :root[data-skin] .cal-week-summary.empty:hover { background: color-mix(in srgb, var(--text) 3%, transparent); }

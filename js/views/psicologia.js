@@ -196,7 +196,8 @@ function paintDailyGrid(body) {
 
     let cls = 'cal-cell psico-day';
     if (stats.count) cls += ' has-data ' + (stats.pnlSistema > 0 ? 'profit' : stats.pnlSistema < 0 ? 'loss' : 'be');
-    if (hasReflex) cls += ' has-reflex';
+    // Un día sin trades se ve vacío: solo el número, sin marcas ni color.
+    if (hasReflex && stats.count) cls += ' has-reflex';
     if (isToday) cls += ' cal-today';
 
     const tpStr = stats.tp > 0 ? `${stats.tp}T` : '';
@@ -219,14 +220,14 @@ function paintDailyGrid(body) {
       <div class="${cls}" data-day="${ds}">
         <div class="psico-day-head">
           <span class="cal-num">${d}</span>
-          <span class="psico-day-marks">${planLine}${hasReflex ? '<span class="psico-reflex-dot" title="Reflexión guardada">' + ic('nota') + '</span>' : ''}</span>
+          ${stats.count ? `<span class="psico-day-marks">${planLine}${hasReflex ? '<span class="psico-reflex-dot" title="Reflexión guardada">' + ic('nota') + '</span>' : ''}</span>` : ''}
         </div>
         ${stats.count ? `
           <div class="psico-day-body">
             <div class="psico-day-pnl">${fmtPct(stats.pnlSistema, 1)}</div>
             <div class="psico-day-meta">${stats.count} trade${stats.count > 1 ? 's' : ''}${breakdown ? ' · ' + breakdown : ''}</div>
           </div>
-        ` : `<div class="psico-day-body empty">${diaEst.sinOperar ? 'sin operar' : '–'}</div>`}
+        ` : ''}
       </div>
     `;
   }
