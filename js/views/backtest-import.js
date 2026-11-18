@@ -134,7 +134,7 @@ function paint(container) {
         <div class="bti-loader">
           <div class="form-label">Subir CSV (una pestaña por archivo)</div>
           <input class="form-input" type="file" id="btiFile" accept=".csv,text/csv" multiple>
-          <div class="bti-hint">En el Sheet: <b>Archivo → Descargar → CSV</b> de la pestaña que quieras. Detecta sola si es Zonas, Liquidez o Nasdaq.</div>
+          <div class="bti-hint">En el Sheet: <b>Archivo → Descargar → CSV</b> de la pestaña que quieras. Detecta sola si es Zonas, Liquidez o Nasdaq (NQ Nueva York). Para NQ Londres, elige su pestaña antes de pegar las filas.</div>
         </div>
       </div>
       ${lastMsg ? `<div class="import-result ${lastMsg.type}" style="margin-top:12px;">${esc(lastMsg.text)}</div>` : ''}
@@ -190,7 +190,7 @@ function paint(container) {
         <div class="setting-info">
           <div class="setting-label">Exportar a Excel (.xlsx)</div>
           <div class="setting-desc">
-            Archivo con <strong>3 pestañas</strong> (Zonas · Liquidez · Nasdaq) y el mismo orden de columnas
+            Archivo con <strong>una pestaña por estrategia</strong> y el mismo orden de columnas
             que la plantilla de la academia, así que se puede volver a importar tal cual.
             Solo backtests — tu journal real se exporta desde <strong>Ajustes</strong>.
           </div>

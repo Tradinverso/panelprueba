@@ -1,4 +1,5 @@
-import { SHEETS, sheetLabel } from '../utils/strategy-config.js';
+import { showToast } from '../components/toast.js';
+import { sheetsVisibles, sheetLabel } from '../utils/strategy-config.js';
 import { state } from '../state.js';
 import { storage } from '../storage.js';
 import { auth } from '../auth.js';
@@ -10,6 +11,15 @@ import { parseCsv, toCsv, downloadFile } from '../utils/csv.js';
 
 let activeTab = 'paste';
 let pasteSheet = 'ZONAS';
+
+// Con Liquidez desactivada, sus trades se guardan pero no se ven: se avisa para
+// que nadie crea que la importación ha fallado.
+function avisoLiquidez(trades, added) {
+  if (!added || state.liquidezActiva()) return;
+  const n = trades.filter(t => t && t.sheet === 'LIQUIDEZ').length;
+  if (!n) return;
+  showToast(`Hay ${n} trade${n === 1 ? '' : 's'} de Liquidez en lo importado. Están guardados, pero no se ven ni cuentan mientras tengas Liquidez desactivada${state.liquidezDisponible() ? ' (Ajustes → Módulos)' : ''}.`, { duration: 9000 });
+}
 let rows = [];   // array of { [key]: value }
 let lastContextUid = null;  // last user the rows were prepared for
 const INITIAL_ROWS = 20;
@@ -59,7 +69,7 @@ function paintPasteTab(container) {
   container.innerHTML = `
     <div class="import-toolbar">
       <select id="sheetSel" class="select">
-        ${SHEETS.map(k => `<option value="${k}" ${pasteSheet === k ? 'selected' : ''}>Estrategia: ${sheetLabel(k)}</option>`).join('')}
+        ${sheetsVisibles().map(k => `<option value="${k}" ${pasteSheet === k ? 'selected' : ''}>Estrategia: ${sheetLabel(k)}</option>`).join('')}
       </select>
       <button class="btn" id="addRowBtn">+ Añadir 5 filas</button>
       <button class="btn" id="clearBtn">Limpiar tabla</button>
@@ -224,6 +234,7 @@ function doImport(container) {
     return;
   }
   const { added, dup } = state.addMany(trades);
+      avisoLiquidez(trades, added);
   result.className = 'import-result ok';
   result.innerHTML = `${added} importados · ${dup} duplicados ignorados${errs > 0 ? ` · ${errs} con errores (revisa filas marcadas con ✗)` : ''}`;
   if (added > 0) {
@@ -273,6 +284,7 @@ export function paintUrlTab(container) {
         return;
       }
       const { added, dup } = state.addMany(trades);
+      avisoLiquidez(trades, added);
       result.className = 'import-result ok';
       result.innerHTML = `${added} importados · ${dup} duplicados ignorados de ${trades.length} recibidos.`;
     } catch (e) {
@@ -321,6 +333,7 @@ export function paintFileTab(container) {
           return;
         }
         const { added, dup } = state.addMany(trades);
+      avisoLiquidez(trades, added);
         result.className = 'import-result ok';
         result.innerHTML = `${added} importados · ${dup} duplicados ignorados de ${trades.length} extraídos.`;
         return;
@@ -346,6 +359,7 @@ export function paintFileTab(container) {
         return;
       }
       const { added, dup } = state.addMany(trades);
+      avisoLiquidez(trades, added);
       result.className = 'import-result ok';
       result.innerHTML = `${added} importados · ${dup} duplicados ignorados de ${trades.length} extraídos.`;
     } catch (err) {
@@ -436,6 +450,7 @@ function showBackupV2Selector(resultEl, parsed) {
     try {
       if (wantTrades && trades.length) {
         const { added, dup } = state.addMany(trades);
+      avisoLiquidez(trades, added);
         parts.push(`${added} trades (${dup} duplicados ignorados)`);
       }
       if (wantCuentas && cuentas.length) {

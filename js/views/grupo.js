@@ -1,3 +1,4 @@
+import { tradesSegunLiquidez } from '../utils/liquidez.js';
 import { STRATEGIES, SHEETS, sheetLabel } from '../utils/strategy-config.js';
 import { ic } from '../components/icons.js';
 // Vista "Stats grupales" (solo admin). Agrega los trades de los alumnos
@@ -47,6 +48,10 @@ function saveSelectedGroups() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedGroups)); } catch (e) { /* ignore */ }
 }
 
+// Mis Alumnos cambia el perfil de un alumno (p. ej. Liquidez): la copia de aquí
+// ya no vale y se vuelve a cargar al entrar.
+export function resetGrupoCache() { cache = null; }
+
 export function grupoView(container) {
   if (!auth.isAdmin()) {
     router.go('#/dashboard');
@@ -82,6 +87,9 @@ async function render(container) {
   }
 }
 
+// Los trades de cada alumno como él los ve: sin Liquidez si la tiene desactivada.
+const tradesDe = s => tradesSegunLiquidez(s.trades, s.profile);
+
 function paint(container) {
   const students = cache || [];
 
@@ -93,12 +101,14 @@ function paint(container) {
   // estadísticas por hora del grupo sean comparables. Solo afecta a la vista.
   const adminTz = auth.timezone();
   const allTrades = studentsSel.flatMap(s =>
-    convertTradesTz(s.trades || [], (s.profile && s.profile.timezone) || DEFAULT_TZ, adminTz)
+    convertTradesTz(tradesDe(s), (s.profile && s.profile.timezone) || DEFAULT_TZ, adminTz)
       .map(t => ({ ...t, _ownerUid: s.uid })));
   const filtered = filterByPeriod(allTrades, grPeriod);
+  // Liquidez solo sale si algún alumno del grupo la tiene activa y con trades.
+  const hojas = SHEETS.filter(k => k !== 'LIQUIDEZ' || allTrades.some(t => t.sheet === 'LIQUIDEZ'));
 
   // ── Sub header + filtros temporales ───────────────────────
-  const months = monthsOf(students.flatMap(s => s.trades || []));
+  const months = monthsOf(students.flatMap(s => tradesDe(s)));
   clampPeriod(grPeriod, months);
 
   container.querySelector('#grupoSub').textContent = `${studentsSel.length} de ${students.length} alumnos · ${filtered.length} trades`;
@@ -144,7 +154,7 @@ function paint(container) {
         </div>
 
         <div class="section-title">Por estrategia</div>
-        <div class="grid-3 strat-grid n${SHEETS.length}" id="grupoStrats"></div>
+        <div class="grid-3 strat-grid n${hojas.length}" id="grupoStrats"></div>
 
         <div class="section-title">Timing</div>
         <div class="grid-2">
@@ -257,7 +267,7 @@ function paint(container) {
   const nStudents = Math.max(1, studentsSel.length);
 
   // ── Por estrategia (HTML antes de los charts) ─────────────
-  body.querySelector('#grupoStrats').innerHTML = SHEETS.map(s => stratCard(s, filtered.filter(t => t.sheet === s), nStudents)).join('');
+  body.querySelector('#grupoStrats').innerHTML = hojas.map(s => stratCard(s, filtered.filter(t => t.sheet === s), nStudents)).join('');
 
   // ── Charts — en el siguiente frame (layout listo) para evitar el lienzo
   //    en blanco en el primer pintado (mismo patrón que dashboard/estrategias).
@@ -267,13 +277,13 @@ function paint(container) {
     if (!body.querySelector('#grupoEquity')) return;   // la vista cambió
     createEquity(body.querySelector('#grupoEquity'), [
       { key: 'ALL', label: 'Global', data: avgCurve(filtered) },
-      ...SHEETS.map(k => ({ key: k, label: sheetLabel(k), data: avgCurve(filtered.filter(t => t.sheet === k)) })),
+      ...hojas.map(k => ({ key: k, label: sheetLabel(k), data: avgCurve(filtered.filter(t => t.sheet === k)) })),
     ]);
     const m = monthlyPnl(filtered);
     createBar(body.querySelector('#grupoMonthly'),
       m.map(d => MONTHS_ES_SHORT[+d.month.split('-')[1] - 1] + ' ' + d.month.substring(2, 4)),
       m.map(d => +((perfMode === 'real' ? d.pnlReal : d.pnl) / nStudents).toFixed(2)));
-    SHEETS.forEach(s => {
+    hojas.forEach(s => {
       const sub = filtered.filter(t => t.sheet === s);
       const c = tradeCounts(sub);
       const donut = body.querySelector(`[data-strat-donut="${s}"]`);
@@ -282,7 +292,7 @@ function paint(container) {
     createHourBar(body.querySelector('#grupoHour'), wrByHour(filtered));
     createDayBar(body.querySelector('#grupoDay'), wrByDay(filtered));
     renderHeatmap(body.querySelector('#grupoHeatmap'), filtered);
-    const ls = SHEETS.map(sheet => ({
+    const ls = hojas.map(sheet => ({
       label: sheetLabel(sheet),
       ...longVsShort(filtered.filter(t => t.sheet === sheet)),
     }));
@@ -447,10 +457,10 @@ const LEVEL_ORDER = { avanzado: 0, intermedio: 1, principiante: 2, '': 3 };
 function paintRanking(body, students) {
   // Construir filas con stats individuales del alumno (en el período filtrado).
   const rows = students.map(s => {
-    const trs = filterByPeriod(s.trades || [], grPeriod);
+    const trs = filterByPeriod(tradesDe(s), grPeriod);
     const now = new Date();
     const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const monthTrades = (s.trades || []).filter(t => (t.date || '').startsWith(ym));
+    const monthTrades = tradesDe(s).filter(t => (t.date || '').startsWith(ym));
     return {
       uid: s.uid,
       nombre: s.profile?.nombre || s.profile?.email?.split('@')[0] || '—',

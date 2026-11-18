@@ -341,4 +341,8 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   rutas, Nuevo trade y filtros (`sheetsVisibles()`), y las vistas de resultados leen
   `state.tradesVista` / `state.backtestsVista` (sin Liquidez). `state.trades` sigue completo: lo
   usan guardar, importar, exportar, el backup y las cuentas, cuyo saldo es dinero real.
+  En **Mis Alumnos** hay una columna Liquidez para activarla o desactivarla a cada alumno, y tanto
+  esa tabla como **Stats grupales** cuentan los trades de cada uno según su interruptor
+  (`tradesSegunLiquidez`). Al importar trades de Liquidez con ella desactivada, se avisa de que
+  quedan guardados pero no se ven.
 

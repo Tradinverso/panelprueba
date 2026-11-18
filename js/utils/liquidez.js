@@ -45,3 +45,10 @@ export function liquidezActivaDe(profile, corte = LIQUIDEZ_CORTE) {
   if (profile && profile.liquidez === false) return false;
   return esAntiguo(profile, corte);
 }
+
+// Trades de un alumno tal como él los ve en sus resultados: sin Liquidez si la
+// tiene desactivada. Para Mis Alumnos y Stats grupales.
+export function tradesSegunLiquidez(trades, profile, corte = LIQUIDEZ_CORTE) {
+  const lista = trades || [];
+  return liquidezActivaDe(profile, corte) ? lista : lista.filter(t => t.sheet !== 'LIQUIDEZ');
+}

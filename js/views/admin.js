@@ -13,6 +13,8 @@ import { puntuacionDisciplina } from '../utils/disciplina.js';
 import { openDisciplinaModal } from '../components/disciplina-modal.js';
 import { todayLocal } from '../utils/timezone.js';
 import { avatarInner } from '../utils/avatar.js';
+import { liquidezActivaDe, tradesSegunLiquidez } from '../utils/liquidez.js';
+import { resetGrupoCache } from './grupo.js';
 import { STRATEGIES, SHEETS } from '../utils/strategy-config.js';
 import { fmtPct, fmtPctNoSign } from '../utils/number-format-es.js';
 import { openModal, closeModal } from '../components/modal.js';
@@ -27,9 +29,12 @@ let cacheUid = null;
 let searchQuery = '';
 let sortBy = 'nombre';       // 'nombre' | 'disc-asc' (peor primero) | 'disc-desc'
 
+// Los trades de un alumno como él los ve: sin Liquidez si la tiene desactivada.
+const tradesDe = s => tradesSegunLiquidez(s.trades, s.profile);
+
 // La disciplina de cada alumno se calcula una vez por carga del listado.
 function disciplinaDe(s) {
-  if (!s._disc) s._disc = puntuacionDisciplina(s.trades, s.reflections || [], todayLocal(auth.timezone()));
+  if (!s._disc) s._disc = puntuacionDisciplina(tradesDe(s), s.reflections || [], todayLocal(auth.timezone()));
   return s._disc;
 }
 
@@ -222,6 +227,7 @@ function paintStudents(container, students) {
             <th>Email</th>
             <th>Nivel</th>
             <th title="Puede dar de alta alumnos y ver el listado, sin ver resultados">Crea alumnos</th>
+            <th title="Estrategia Liquidez activada para este alumno. Desactivada, no la ve y sus trades de Liquidez no cuentan en sus resultados (no se borran).">Liquidez</th>
             <th>Trades</th>
             <th>WR <span style="color:var(--muted);font-weight:400;">(global · estrategias)</span></th>
             <th>P&L acum. <span style="color:var(--muted);font-weight:400;">(sist · real)</span></th>
@@ -323,6 +329,31 @@ function paintStudents(container, students) {
     });
   });
 
+  // Estrategia Liquidez de cada alumno: se guarda en su perfil y la tabla se
+  // recalcula, porque cambia qué trades cuentan.
+  content.querySelectorAll('[data-liq-uid]').forEach(chk => {
+    chk.addEventListener('change', async () => {
+      const stu = students.find(s => s.uid === chk.dataset.liqUid);
+      if (!stu) return;
+      const liquidez = chk.checked;
+      chk.disabled = true;
+      try {
+        await sync.updateProfile(stu.uid, { liquidez });
+        stu.profile = { ...stu.profile, liquidez };
+        delete stu._disc;
+        resetGrupoCache();   // Stats grupales también cambia
+        // Si es el alumno que se está viendo, su panel cambia también.
+        if (state.viewAsUid === stu.uid) state.viewAsProfile = stu.profile;
+        paintStudents(container, students);
+      } catch (err) {
+        console.error('No se pudo cambiar Liquidez:', err);
+        alert('No se pudo guardar: ' + (err.message || err));
+        chk.checked = !liquidez;
+        chk.disabled = false;
+      }
+    });
+  });
+
   // Permiso de gestor de alumnos (crear alumnos + ver listado, sin resultados).
   content.querySelectorAll('[data-gestor-uid]').forEach(chk => {
     chk.addEventListener('change', async () => {
@@ -354,20 +385,22 @@ function escAttr(s) {
 }
 
 function row(s) {
-  const counts = tradeCounts(s.trades);
-  const wr = winrate(s.trades);
-  const pnl = pnlPct(s.trades);
-  const pnlReal = pnlPctReal(s.trades);
-  const streak = currentSlStreak(s.trades);
+  const tr = tradesDe(s);
+  const liq = liquidezActivaDe(s.profile);
+  const counts = tradeCounts(tr);
+  const wr = winrate(tr);
+  const pnl = pnlPct(tr);
+  const pnlReal = pnlPctReal(tr);
+  const streak = currentSlStreak(tr);
   // Alertas críticas del diagnóstico — s.trades ya está en memoria (listStudents),
   // así que esto no añade ninguna lectura de Firestore.
-  const nAlerts = countDangerAlerts(s.trades);
+  const nAlerts = countDangerAlerts(tr);
   const disc = disciplinaDe(s);
 
   // WR por estrategia (solo las que tienen trades)
   const stratBreakdown = SHEETS
     .map(sheet => {
-      const sub = s.trades.filter(t => t.sheet === sheet);
+      const sub = tr.filter(t => t.sheet === sheet);
       if (!sub.length) return null;
       return { letter: STRATEGIES[sheet].corto, wr: winrate(sub) };
     })
@@ -382,7 +415,7 @@ function row(s) {
   // P&L mes actual
   const now = new Date();
   const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const monthTrades = s.trades.filter(t => (t.date || '').startsWith(ym));
+  const monthTrades = tr.filter(t => (t.date || '').startsWith(ym));
   const pnlMonth = pnlPct(monthTrades);
   const pnlMonthColor = pnlMonth >= 0 ? 'var(--green)' : 'var(--red)';
 
@@ -414,6 +447,7 @@ function row(s) {
       <td style="font-family:var(--mono);font-size:11px;color:var(--muted);">${escapeHtml(s.profile.email)}</td>
       <td>${levelSel}</td>
       <td style="text-align:center;"><input type="checkbox" data-gestor-uid="${s.uid}" ${s.profile?.gestor === true ? 'checked' : ''} title="Puede dar de alta alumnos y ver el listado (sin ver resultados)"></td>
+      <td style="text-align:center;"><input type="checkbox" data-liq-uid="${s.uid}" ${liq ? 'checked' : ''} title="${liq ? 'Usa la estrategia Liquidez: cuenta en sus resultados' : 'Liquidez desactivada: no la ve y no cuenta en sus resultados'}"></td>
       <td>${counts.total} <span style="color:var(--muted);font-size:10px;">(${counts.tp}T·${counts.sl}S)</span></td>
       <td>
         <div style="color:${wrColor};font-weight:600;">${counts.total ? fmtPctNoSign(wr, 0) : '–'}</div>
