@@ -46,8 +46,8 @@ export const FIRMAS = [
   },
   {
     id: 'myfundedfutures', nombre: 'My Funded Futures', mercados: ['Futuros'],
-    url: 'https://myfundedfutures.com/challenge?ref=5470&coupon=tradinverso&utm_source=discord&utm_medium=affiliate',
-    codigos: [{ codigo: 'TRADINVERSO' }], siglas: 'MFF', fondo: '#0b1220',
+    url: 'https://myfundedfutures.com/challenge?ref=5470',
+    codigos: [{ codigo: 'TRADINVERSO' }], logo: 'assets/firmas/myfundedfutures.png', lleno: true, fondo: '#0b1220',
   },
   // The5ers: retirada de momento (David, 18-nov-2026); My Funded Futures ocupa su
   // sitio. Para recuperarla, quitar el comentario. Su logo sigue en assets/firmas.
