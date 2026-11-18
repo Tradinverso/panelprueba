@@ -55,8 +55,22 @@ function enlaceDe(comp) {
   const campo = n => { try { return String(comp?.getFirstPropertyValue?.(n) || ''); } catch (e) { return ''; } };
   const texto = [campo('location'), campo('url'), campo('description'), campo('x-google-conference')].join(' \n ')
     .replace(/&amp;/g, '&').replace(/\\n/g, ' ');
-  const urls = (texto.match(/https:\/\/[^\s<>"')\]]+/g) || []).map(u => u.replace(/[.,;]+$/, ''));
+  const dif = diferidoDe(comp);
+  const urls = (texto.match(/https:\/\/[^\s<>"')\]]+/g) || []).map(u => u.replace(/[.,;]+$/, '')).filter(u => u !== dif);
   return urls.find(u => /zoom\.us\//i.test(u)) || urls[0] || '';
+}
+
+// Enlace al DIFERIDO (la grabación) de un directo ya dado. No hay forma de
+// leerlo de Thinkific ni de Discord (son privados), así que sale del propio
+// evento del calendario: una línea en la descripción que empiece por
+// "Diferido:", "Grabación:" o "Replay:" seguida del enlace.
+function diferidoDe(comp) {
+  let desc = '';
+  try { desc = String(comp?.getFirstPropertyValue?.('description') || ''); } catch (e) { /* sin descripción */ }
+  // Google guarda la descripción con saltos escritos como "\n" y con HTML.
+  desc = desc.replace(/&amp;/g, '&').replace(/\\n/g, ' ').replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, ' ');
+  const m = desc.match(/(?:diferido|grabaci[oó]n|replay)\s*:?\s*(https:\/\/[^\s<>"')\]]+)/i);
+  return m ? m[1].replace(/[.,;]+$/, '') : '';
 }
 
 // null = calendario sin configurar (no hay secreto).
@@ -68,8 +82,10 @@ async function directos() {
   const ics = await r.text();
   const { default: IcalExpander } = await import('ical-expander');
   const exp = new IcalExpander({ ics, maxIterations: 2000 });
-  const desde = new Date(Date.now() - 2 * 3600e3);          // incluye el que está en curso
-  const hasta = new Date(Date.now() + 21 * 86400e3);
+  // Desde hace 7 días: la app enseña la semana en curso entera (lunes a
+  // domingo), también los directos que ya han pasado, con su diferido si lo hay.
+  const desde = new Date(Date.now() - 7 * 86400e3);
+  const hasta = new Date(Date.now() + 14 * 86400e3);
   const { events, occurrences } = exp.between(desde, hasta);
   const todos = [
     ...events.map(e => ({ start: e.startDate, end: e.endDate, title: e.summary, comp: e.component })),
@@ -89,11 +105,13 @@ async function directos() {
       if (PUBLICAR_ENLACES) {
         const url = enlaceDe(x.comp);
         if (url) d.url = url;
+        const rec = diferidoDe(x.comp);
+        if (rec) d.rec = rec;
       }
       return d;
     })
     .sort((a, b) => a.t.localeCompare(b.t))
-    .slice(0, 8);
+    .slice(0, 24);
 }
 
 const prev = await previo();
@@ -110,7 +128,7 @@ try {
 try {
   const d = await directos();
   if (d === null) console.log('directos: sin configurar (falta el secreto CLASES_ICS_URL)');
-  else console.log(`directos: ${d.length} próximos`);
+  else console.log(`directos: ${d.length} (últimos 7 días y próximos 14)`);
   out.directos = d || [];
 } catch (e) {
   console.warn('directos: fallo, se conserva lo anterior ·', e.message);

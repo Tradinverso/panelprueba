@@ -20,7 +20,7 @@ import { clockParts } from './topbar.js';
 import { icon } from './icons.js';
 import { STRATEGIES, sheetLabel } from '../utils/strategy-config.js';
 import { ringSvg } from './ring.js';
-import { getHoyData, onHoyData, noticiasDeHoy, noticiasDeLaSemana, proximosDirectos, horaEn, diaCortoEn } from '../utils/hoy-data.js';
+import { getHoyData, onHoyData, noticiasDeHoy, noticiasDeLaSemana, proximosDirectos, horaEn, diaCortoEn, directosDeLaSemana } from '../utils/hoy-data.js';
 import { tituloEs } from '../utils/noticias-es.js';
 import { openDiarioModal } from './diario-modal.js';
 import { hoy as hoyDiario, estadoDia, tradesDe } from '../utils/diario.js';
@@ -177,25 +177,37 @@ export function renderMesa(container) {
       </section>`;
 
   const directoRow = d => {
+    // Ya emitido: fila atenuada. Al pulsarla abre su diferido (si está puesto en
+    // el evento del calendario) o, si no, la Formación, que es donde se suben.
+    if (d.pasado) {
+      const rec = safeUrl(d.rec);
+      return `<a class="mesa-live past" href="${escapeHtml(rec || FORMACION_URL)}" target="_blank" rel="noopener noreferrer" title="${rec ? 'Ver la grabación de este directo' : 'Directo ya emitido · los diferidos se suben a Formación'}">
+        <span class="mesa-live-when">${diaCortoEn(d.t, tz)} · ${horaEn(d.t, tz)}</span>
+        <span class="mesa-live-title">${escapeHtml(d.title)}</span>
+        <span class="mesa-live-rec">${rec ? 'Ver diferido' : 'Diferido en Formación'} ↗</span>
+      </a>`;
+    }
     const st = estadoDirecto(d, ahora);
-    // El enlace para entrar solo se ofrece cuando el directo está en curso o
-    // le faltan menos de 30 min (para poder entrar puntual). Antes, la fila
-    // es solo informativa.
-    const url = (st.tipo === 'live' || st.tipo === 'soon') ? safeUrl(d.url) : '';
+    // El enlace para entrar se ofrece todo el día en el directo de HOY (es el
+    // que importa); en los de otros días, solo cuando falta menos de 30 min.
+    const url = (d.esHoy || st.tipo === 'live' || st.tipo === 'soon') ? safeUrl(d.url) : '';
     const cuando = st.tipo === 'live' ? '<span class="mesa-live-badge">● En directo</span>'
       : st.tipo === 'soon' ? `<span class="mesa-live-soon">Empieza en ${st.min} min</span> · ${horaEn(d.t, tz)}`
+      : d.esHoy ? `<span class="mesa-live-hoy">Hoy</span> · ${horaEn(d.t, tz)}`
       : `${diaCortoEn(d.t, tz)} · ${horaEn(d.t, tz)}`;
+    const cls = `${st.tipo}${d.esHoy ? ' hoy' : ''}`;
     const inner = `
         <span class="mesa-live-when">${cuando}</span>
         <span class="mesa-live-title">${escapeHtml(d.title)}${url ? ' <span class="mesa-live-go">↗</span>' : ''}</span>`;
     return url
-      ? `<a class="mesa-live ${st.tipo}" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" title="${st.tipo === 'live' ? 'Entrar al directo' : 'Abrir el enlace del directo'}">${inner}</a>`
-      : `<div class="mesa-live ${st.tipo}"${safeUrl(d.url) ? ' title="El enlace para entrar aparece 30 min antes de empezar"' : ''}>${inner}</div>`;
+      ? `<a class="mesa-live ${cls}" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" title="${st.tipo === 'live' ? 'Entrar al directo' : 'Abrir el enlace del directo'}">${inner}</a>`
+      : `<div class="mesa-live ${cls}"${safeUrl(d.url) ? ' title="El enlace para entrar aparece 30 min antes de empezar"' : ''}>${inner}</div>`;
   };
-  const directosBox = !directos.length ? '' : `
+  const semanaDirectos = directosDeLaSemana(hoyData, tz);
+  const directosBox = !semanaDirectos.length ? '' : `
       <section class="card mesa-box ${enDirecto ? 'has-live' : ''}">
-        <div class="mesa-block-head"><h2>Próximos directos</h2><a class="mesa-link" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer" title="Comunidad de Tradinverso en Discord">Discord ↗</a></div>
-        ${directos.map(directoRow).join('')}
+        <div class="mesa-block-head"><h2>Directos de la semana</h2><a class="mesa-link" href="${DISCORD_URL}" target="_blank" rel="noopener noreferrer" title="Comunidad de Tradinverso en Discord">Discord ↗</a></div>
+        ${semanaDirectos.map(directoRow).join('')}
       </section>`;
 
   if (open) {

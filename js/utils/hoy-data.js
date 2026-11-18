@@ -110,6 +110,34 @@ export function noticiasDeLaSemana(data, tz, now = new Date()) {
   return [...grupos.values()];
 }
 
+// Lunes (AAAA-MM-DD) de la semana de `now`, en el huso del usuario.
+function lunesDe(now, tz) {
+  const [y, m, d] = ymd(now, tz).split('-').map(Number);
+  const base = new Date(Date.UTC(y, m - 1, d, 12));
+  const dow = (base.getUTCDay() + 6) % 7;          // lunes = 0
+  base.setUTCDate(base.getUTCDate() - dow);
+  return base;
+}
+const iso = d => d.toISOString().substring(0, 10);
+
+// Directos de la SEMANA EN CURSO (lunes a domingo, en el huso del usuario), los
+// que ya han pasado incluidos. Si en lo que queda de semana no hay ninguno por
+// venir, se añaden los dos siguientes para que la tarjeta no quede solo con
+// pasados. Cada uno lleva `pasado` (ya terminó) y `esHoy`.
+export function directosDeLaSemana(data, tz, now = new Date()) {
+  if (!data) return [];
+  const lunes = lunesDe(now, tz);
+  const domingo = new Date(lunes); domingo.setUTCDate(domingo.getUTCDate() + 6);
+  const desde = iso(lunes), hasta = iso(domingo), ahora = now.getTime();
+  const fin = d => (d.end ? Date.parse(d.end) : Date.parse(d.t) + 90 * 60000);
+  const hoyStr = ymd(now, tz);
+  const marca = d => ({ ...d, pasado: fin(d) <= ahora, esHoy: ymd(new Date(d.t), tz) === hoyStr });
+  const semana = data.directos.filter(d => { const dia = ymd(new Date(d.t), tz); return dia >= desde && dia <= hasta; }).map(marca);
+  if (semana.some(d => !d.pasado)) return semana;
+  const siguientes = data.directos.filter(d => ymd(new Date(d.t), tz) > hasta).slice(0, 2).map(marca);
+  return [...semana, ...siguientes];
+}
+
 // Próximos directos: los que no han terminado todavía (o empezaron hace < 90 min).
 export function proximosDirectos(data, max = 3, now = new Date()) {
   if (!data) return [];

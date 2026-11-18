@@ -941,3 +941,19 @@ button.mesa-rail-link { cursor: pointer; font: inherit; padding: 0; }
 @media (max-width: 760px) {
   .strat-grid.n4 { grid-template-columns: 1fr; }
 }
+
+/* ── Directos de la semana ──
+   El de hoy, resaltado; los ya emitidos, con menos contraste y su diferido. */
+.mesa-live.hoy { border-left-width: 3px; border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, transparent); padding: 8px 9px 8px 10px; border-radius: 0 10px 10px 0; }
+.mesa-live.hoy .mesa-live-title { font-size: 13.5px; font-weight: 700; }
+.mesa-live.hoy .mesa-live-when { color: var(--text); }
+.mesa-live-hoy { color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+/* En directo o a punto de empezar: mandan su rojo y su ámbar sobre el azul de "hoy". */
+.mesa-live.hoy.live { border-left-color: var(--alerta, var(--red)); background: var(--alerta-bg, var(--red-bg)); }
+.mesa-live.hoy.soon { border-left-color: var(--warn, var(--orange)); }
+.mesa-live.past { border-left-color: var(--line); }
+.mesa-live.past .mesa-live-when, .mesa-live.past .mesa-live-title { opacity: .45; }
+.mesa-live.past .mesa-live-title { font-weight: 500; }
+.mesa-live-rec { font-size: 10.5px; font-weight: 600; color: var(--muted); }
+a.mesa-live.past:hover .mesa-live-when, a.mesa-live.past:hover .mesa-live-title { opacity: .8; }
+a.mesa-live.past:hover .mesa-live-rec { color: var(--accent); }
