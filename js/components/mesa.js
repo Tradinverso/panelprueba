@@ -182,9 +182,8 @@ export function renderMesa(container) {
     if (d.pasado) {
       const rec = safeUrl(d.rec);
       return `<a class="mesa-live past" href="${escapeHtml(rec || FORMACION_URL)}" target="_blank" rel="noopener noreferrer" title="${rec ? 'Ver la grabación de este directo' : 'Directo ya emitido · los diferidos se suben a Formación'}">
-        <span class="mesa-live-when">${diaCortoEn(d.t, tz)} · ${horaEn(d.t, tz)}</span>
+        <span class="mesa-live-when">${diaCortoEn(d.t, tz)} · ${horaEn(d.t, tz)}<span class="mesa-live-rec">${rec ? 'Ver diferido' : 'Diferido'} ↗</span></span>
         <span class="mesa-live-title">${escapeHtml(d.title)}</span>
-        <span class="mesa-live-rec">${rec ? 'Ver diferido' : 'Diferido en Formación'} ↗</span>
       </a>`;
     }
     const st = estadoDirecto(d, ahora);
