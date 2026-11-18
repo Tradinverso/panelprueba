@@ -363,6 +363,9 @@ export function renderMesa(container) {
   container.querySelector('#mesaToggle').addEventListener('click', () => {
     appearance.set({ mesa: !open });
     renderMesa(container);
+    // La marca de la barra de arriba ocupa el ancho de la columna: al abrirla
+    // o recogerla, la barra tiene que volver a encajarse.
+    window.dispatchEvent(new Event('resize'));
   });
 
   ajustarMesa(container);

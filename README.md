@@ -334,11 +334,16 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   columna recogida. `createDonut` pinta la rueda en el sitio del lienzo.
 - **Barra de arriba**: sin el botón Apariencia (la apariencia se cambia en Ajustes → Preferencias)
   y sin la flecha del botón de perfil. Los filtros de fecha llevan el texto centrado.
-  La marca es el logo del inicio puesto en horizontal, sobre su fondo oscuro en todos los temas:
-  `assets/marca-simbolo.png` y `assets/marca-texto.png` son las dos piezas de
-  `assets/logo-oscuro.png` con el fondo quitado. Si la barra no cabe en una fila se sacrifica por
-  este orden: la fecha del reloj, el nombre del usuario, la palabra TRADINVERSO y, por último, la
-  navegación baja a una segunda fila.
+  La marca es el logo del inicio puesto en horizontal: `assets/marca-simbolo.png` y
+  `assets/marca-texto.png` son las dos piezas de `assets/logo-oscuro.png` con el fondo quitado, y
+  las «-claro» son las mismas con lo blanco en azul noche. La pastilla sigue al tema: oscura en
+  los temas oscuros y clara, con las piezas «-claro», en los claros (`data-theme="light"`).
+  En escritorio la marca ocupa el ancho de la columna Hoy y la navegación empieza donde empieza el
+  cuadro de contenido (con la columna recogida, solo el símbolo). Si la barra no cabe así en una
+  fila, `fitTopbar` suelta lastre por este orden (`PASOS_ENCAJE` en `js/components/topbar.js`): la
+  fecha del reloj, navegación más prieta, el nombre del usuario, navegación aún más prieta, la
+  alineación con la columna, la palabra TRADINVERSO y, por último, la navegación baja a una
+  segunda fila.
 - **Barra y columna Hoy fijas** (escritorio, más de 900 px; final de `css/shell.css`): solo se
   desplaza el contenido de la derecha. La barra de arriba es `sticky` y la columna `fixed`, desde
   debajo de la barra (`--mesa-top`, lo mide `mesa.js`) hasta el borde inferior de la pantalla; el

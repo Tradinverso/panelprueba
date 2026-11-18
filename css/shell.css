@@ -40,9 +40,10 @@ body.mesa-closed #mesa { flex: 0 0 58px; min-width: 58px; }
 #topbar.tb-wrap .tb-clock-fecha, #topbar.tb-wrap .tb-appearance-txt { display: revert; }
 #topbar.tb-wrap .tb-brand-text { display: flex; }
 #topbar.tb-wrap .tb-appearance { width: auto; height: auto; padding: 8px 14px; }
-/* La marca: el logo del inicio puesto en horizontal (símbolo + TRADINVERSO),
-   sobre su mismo fondo oscuro para que se lea igual en tema claro y oscuro.
-   Las dos piezas salen de assets/logo-oscuro.png con el fondo quitado. */
+/* La marca: el logo del inicio puesto en horizontal (símbolo + TRADINVERSO).
+   Las dos piezas salen de assets/logo-oscuro.png con el fondo quitado. En los
+   temas oscuros va sobre su fondo azul noche; en los claros, sobre una pastilla
+   como las demás de la barra y con las piezas «-claro» (lo blanco, en oscuro). */
 .tb-brand {
   display: flex; align-items: center; gap: 10px; flex: none; text-decoration: none;
   padding: 5px 16px 5px 12px; border-radius: 999px; color: #fff;
@@ -54,6 +55,14 @@ body.mesa-closed #mesa { flex: 0 0 58px; min-width: 58px; }
 .tb-marca-simbolo { height: 28px; width: auto; display: block; }
 .tb-brand-text { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; letter-spacing: .08em; white-space: nowrap; }
 .tb-marca-texto { height: 11px; width: auto; display: block; }
+/* Midnight y Onyx son negros o grises, sin azul: la pastilla toma su color. */
+:root[data-skin="midnight"] .tb-brand, :root[data-skin="onyx"] .tb-brand { background: var(--card); border-color: var(--line); }
+.tb-brand .en-claro { display: none; }
+:root[data-theme="light"] .tb-brand .en-oscuro { display: none; }
+:root[data-theme="light"] .tb-brand .en-claro { display: block; }
+:root[data-theme="light"] .tb-brand { background: var(--card); border-color: var(--line); color: var(--text); }
+:root[data-theme="light"] .tb-brand:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+:root[data-skin="glassLight"] .tb-brand { background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.85); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 10px 30px rgba(0,0,0,0.08); }
 #topbar.tb-solo:not(.tb-wrap) .tb-brand { padding: 5px 11px; }
 
 .tb-nav { display: flex; flex-wrap: nowrap; flex: none; align-items: center; gap: 2px; padding: 4px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); }
@@ -1001,6 +1010,23 @@ a.mesa-live.past:hover .mesa-live-rec { color: var(--accent); }
     opacity: 0; transition: opacity .18s ease;
   }
   body.con-scroll #topbar::before { opacity: 1; }
+
+  /* La marca ocupa el ancho de la columna y la navegación empieza justo donde
+     empieza el cuadro de contenido. Si la barra no cabe así, topbar.js suelta
+     la alineación (tb-libre) antes de partirla en dos filas (tb-wrap). */
+  #topbar:not(.tb-libre):not(.tb-wrap) { justify-content: flex-start; gap: 14px; }
+  #topbar:not(.tb-libre):not(.tb-wrap) .tb-brand { width: var(--mesa-w); padding-left: 0; padding-right: 0; justify-content: center; }
+  #topbar:not(.tb-libre):not(.tb-wrap) .tb-right { margin-left: auto; }
+  #topbar:not(.tb-libre):not(.tb-wrap) .tb-marca-simbolo { height: 30px; }
+  #topbar:not(.tb-libre):not(.tb-wrap) .tb-marca-texto { height: 12.5px; }
+  /* Columna recogida: en su ancho solo cabe el símbolo. */
+  body.mesa-closed #topbar:not(.tb-libre):not(.tb-wrap) .tb-brand-text { display: none; }
+  body.mesa-closed #topbar:not(.tb-libre):not(.tb-wrap) .tb-marca-simbolo { height: 26px; }
+  #topbar.tb-prieta .tb-item { padding: 7px 7px; font-size: 12px; }
+  #topbar.tb-prieta .tb-sep { margin: 0 2px; }
+  #topbar.tb-prieta2 .tb-item { padding: 7px 5px; }
+  #topbar.tb-prieta2 .tb-nav { gap: 1px; }
+  #topbar.tb-prieta2 .tb-sep { margin: 0 1px; }
 
   #shell { padding-left: calc(var(--mesa-w) + 14px); }
   #footer { margin-left: calc(var(--mesa-w) + 14px); }

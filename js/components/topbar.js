@@ -75,25 +75,25 @@ setInterval(() => {
 // Encaje de la barra en UNA fila. Lo que cabe depende del rol (el admin tiene
 // más apartados), de "Ver como", de la letra elegida y del ancho de pantalla,
 // así que se mide en vez de fiarlo a un ancho fijo:
-//   1) todo en una fila;  2) si no cabe → modo compacto (reloj sin fecha);
-//   3) si aun así no cabe → el botón del usuario se queda en el avatar;
-//   4) después la marca se queda en el símbolo, sin la palabra TRADINVERSO
-//   (es lo último que se sacrifica);  5) y si tampoco → la navegación baja a
-//   una segunda fila centrada.
+// La marca ocupa el ancho de la columna Hoy y la navegación empieza donde
+// empieza el cuadro de contenido (css/shell.css). Para mantenerlo se va
+// soltando lastre por este orden, hasta que cabe:
+//   1) reloj sin fecha;  2) navegación más prieta;  3) el botón del usuario se
+//   queda en el avatar;  4) navegación aún más prieta;  5) la marca deja de
+//   ocupar el ancho de la columna (se pierde la alineación);  6) la marca se
+//   queda en el símbolo;  7) la navegación baja a una segunda fila centrada.
 // En móvil (< 900 px) manda la hoja de estilos (navegación con scroll).
 function fitTopbar(el) {
   if (!el || !el.firstChild) return;
-  el.classList.remove('tb-compact', 'tb-mini', 'tb-solo', 'tb-wrap');
-  if (window.innerWidth < 900) return;
+  el.classList.remove(...PASOS_ENCAJE);
+  if (window.innerWidth <= 900) return;
   const noCabe = () => el.scrollWidth > el.clientWidth + 1;
-  if (!noCabe()) return;
-  el.classList.add('tb-compact');          // reloj sin fecha
-  if (!noCabe()) return;
-  el.classList.add('tb-mini');             // el botón del usuario se queda en el avatar
-  if (!noCabe()) return;
-  el.classList.add('tb-solo');             // la marca, solo el símbolo
-  if (noCabe()) el.classList.add('tb-wrap');
+  for (const paso of PASOS_ENCAJE) {
+    if (!noCabe()) return;
+    el.classList.add(paso);
+  }
 }
+const PASOS_ENCAJE = ['tb-compact', 'tb-prieta', 'tb-mini', 'tb-prieta2', 'tb-libre', 'tb-solo', 'tb-wrap'];
 // La barra es fija: al bajar se le pone fondo para que el contenido pase por
 // debajo sin verse (css/shell.css, body.con-scroll).
 window.addEventListener('scroll', () => {
@@ -161,8 +161,9 @@ export function renderTopbar(container) {
 
   container.innerHTML = `
     <a href="${home}" class="tb-brand" title="Tradinverso${IS_TEST_ENV ? ' · entorno de pruebas' : ''}">
-      <img class="tb-marca-simbolo" src="assets/marca-simbolo.png" alt="" width="172" height="132">
-      <span class="tb-brand-text"><img class="tb-marca-texto" src="assets/marca-texto.png" alt="Tradinverso" width="519" height="54"></span>
+      <img class="tb-marca-simbolo en-oscuro" src="assets/marca-simbolo.png" alt="" width="172" height="132">
+      <img class="tb-marca-simbolo en-claro" src="assets/marca-simbolo-claro.png" alt="" width="172" height="132">
+      <span class="tb-brand-text"><img class="tb-marca-texto en-oscuro" src="assets/marca-texto.png" alt="Tradinverso" width="519" height="54"><img class="tb-marca-texto en-claro" src="assets/marca-texto-claro.png" alt="Tradinverso" width="519" height="54"></span>
     </a>
     <nav class="tb-nav" aria-label="Secciones">${items}</nav>
     <div class="tb-right">
