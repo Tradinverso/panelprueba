@@ -224,6 +224,9 @@ BASE.NQ_LONDRES = {
   cls: 'nqlondres',
   colorVar: '--nqlondres', route: '#/nq-londres', btRoute: '#/bt-nq-londres', sub: 'NQ Futuros · Londres', corto: 'LD',
   desc: 'Operativa de liquidez en NQ Futuros · sesión Londres',
+  // Zonas: las de NQ, pero la sesión de referencia cambia. Operando en Londres
+  // no tiene sentido la zona LONDON; en su sitio va NEW YORK (la sesión anterior).
+  zones: NQ_ZONES.map(z => (z === 'LONDON' ? 'NEW YORK' : z)),
 };
 
 // Orden en toda la app (pestañas, tarjetas, tablas, exportación).
