@@ -371,7 +371,7 @@ body[data-auth="false"] #view { border: 0; background: transparent; padding: 0; 
 .mesa-cta-ic.alt { background: var(--card2); color: var(--accent); border: 1px solid var(--line); }
 /* Prop firms: icono en color (no gris) y una fila con los logos de las firmas,
    para que no se confunda con Formación ni se pierda al final de la columna. */
-.mesa-cta-ic.firmas { background: linear-gradient(140deg, #8b5cf6, var(--accent)); color: #fff; }
+.mesa-cta-ic.mesa-ic-firmas { background: linear-gradient(140deg, #8b5cf6, var(--accent)); color: #fff; }
 .mesa-cta-firmas {
   border-color: color-mix(in srgb, #8b5cf6 45%, var(--line)) !important;
   background-image: linear-gradient(135deg, rgba(139,92,246,.20) 0%, rgba(59,130,246,.08) 60%, transparent 100%) !important;

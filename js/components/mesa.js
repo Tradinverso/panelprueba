@@ -324,7 +324,7 @@ export function renderMesa(container) {
         <span class="mesa-cta-arrow">↗</span>
       </a>
       ${state.viewAsUid ? '' : `<a class="card mesa-cta mesa-cta-firmas" href="#/cuentas" data-firmas title="Las firmas de fondeo que usamos en Tradinverso, con sus enlaces y códigos">
-        <span class="mesa-cta-ic firmas">${icon('edificio')}</span>
+        <span class="mesa-cta-ic mesa-ic-firmas">${icon('edificio')}</span>
         <span class="mesa-cta-text"><b>Prop firms · códigos</b>${firmasCtaHtml()}</span>
         <span class="mesa-cta-arrow">→</span>
       </a>`}
