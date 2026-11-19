@@ -61,6 +61,14 @@ export const auth = {
   // en el dashboard de nadie: las reglas de Firestore solo le dejan leer
   // users/{uid} y users/{uid}/profile, nunca trades ni el resto.
   isGestor() { return !this.isAdmin() && this.profile?.gestor === true; },
+  // Equipo: alumno al que el admin marca en Mis Alumnos para revisar a todos
+  // los alumnos (Mis Alumnos, Stats grupales y «Ver como»), SOLO EN LECTURA.
+  // No crea, pausa ni borra alumnos ni cambia permisos, y no puede tocar los
+  // datos del alumno que está viendo. Las reglas de Firestore le dejan leer
+  // users/{uid}/** y no le dejan marcarse a sí mismo (campo `equipo`).
+  isEquipo() { return !this.isAdmin() && this.profile?.equipo === true; },
+  // ¿Puede ver el listado con resultados y entrar en los alumnos?
+  veAlumnos() { return this.isAdmin() || this.isEquipo(); },
   canManageStudents() { return this.isAdmin() || this.isGestor(); },
   uid() { return this.currentUser?.uid || null; },
   // Huso del usuario LOGUEADO. Sobrevive a viewAs (this.profile nunca se toca al

@@ -44,7 +44,7 @@ export const router = {
         window.location.hash = auth.isAdmin() ? '#/admin' : '#/dashboard';
         return;
       }
-      if (ADMIN_ROUTES.has(path) && !auth.isAdmin()) {
+      if (ADMIN_ROUTES.has(path) && !auth.veAlumnos()) {
         window.location.hash = '#/dashboard';
         return;
       }

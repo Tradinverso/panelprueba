@@ -46,8 +46,13 @@ auth.on(() => {
   }
 });
 
+// El EQUIPO también entra aquí, en solo lectura: ve el listado con resultados
+// y puede abrir a cualquier alumno, pero no tiene backup, restaurar, crear,
+// pausar ni eliminar, ni cambia nivel, permisos ni Liquidez.
+const esAdmin = () => auth.isAdmin();
+
 export function adminView(container) {
-  if (!auth.isAdmin()) {
+  if (!auth.veAlumnos()) {
     router.go('#/dashboard');
     return;
   }
@@ -62,7 +67,7 @@ async function render(container) {
       <div class="imp-banner-icon">${ic('pin')}</div>
       <div class="imp-banner-text">
         Actualmente estás viendo a <strong>${escapeHtml(state.viewAsProfile.nombre || state.viewAsProfile.email)}</strong>
-        <span class="meta">cualquier cambio que hagas afecta a su cuenta</span>
+        <span class="meta">${esAdmin() ? 'cualquier cambio que hagas afecta a su cuenta' : 'en solo lectura: no puedes cambiar sus datos'}</span>
       </div>
       <button class="btn" id="exitViewAsAdminBtn">↩ Volver a tu cuenta</button>
     </div>
@@ -80,14 +85,14 @@ async function render(container) {
         <div class="sub" id="adminSub">Cargando alumnos…</div>
       </div>
       <div class="page-actions">
-        <button class="btn" id="backupBtn" title="${backupTooltip}">${ic('descargar')} Backup</button>
-        <button class="btn" id="restoreBtn" title="Restaurar desde un archivo de backup">${ic('carpeta')} Restaurar</button>
+        ${esAdmin() ? `<button class="btn" id="backupBtn" title="${backupTooltip}">${ic('descargar')} Backup</button>
+        <button class="btn" id="restoreBtn" title="Restaurar desde un archivo de backup">${ic('carpeta')} Restaurar</button>` : ''}
         <button class="btn" id="refreshBtn">↻ Refrescar</button>
-        <button class="btn primary" id="newStudentBtn">+ Crear nuevo alumno</button>
+        ${esAdmin() ? '<button class="btn primary" id="newStudentBtn">+ Crear nuevo alumno</button>' : ''}
       </div>
     </div>
     ${viewingBanner}
-    ${showBackupWarn ? `
+    ${showBackupWarn && esAdmin() ? `
       <div class="backup-warn">
         ⚠ <strong>Backup pendiente</strong> — tu último backup fue ${lastBackup ? `hace ${daysSince} días (${formatBackupDate(lastBackup)})` : 'nunca'}.
         <button class="btn primary" id="backupBtnInline">Crear ahora</button>
@@ -111,7 +116,7 @@ async function render(container) {
     cache = null;
     render(container);
   });
-  container.querySelector('#newStudentBtn').addEventListener('click', () => {
+  container.querySelector('#newStudentBtn')?.addEventListener('click', () => {
     openCreateStudentModal(() => { cache = null; render(container); });
   });
 
@@ -146,16 +151,18 @@ async function render(container) {
       setBtnText(ic('descargar') + ' Backup');
     }
   }
-  container.querySelector('#backupBtn').addEventListener('click', runBackup);
+  container.querySelector('#backupBtn')?.addEventListener('click', runBackup);
   const backupInline = container.querySelector('#backupBtnInline');
   if (backupInline) backupInline.addEventListener('click', runBackup);
 
-  container.querySelector('#restoreBtn').addEventListener('click', () => openRestoreModal(container));
+  container.querySelector('#restoreBtn')?.addEventListener('click', () => openRestoreModal(container));
 
   try {
-    if (!cache) cache = await sync.listStudents({ includePaused: true });
-    paintStudents(container, cache.filter(s => s.profile?.blocked !== true));
-    paintPaused(container, cache.filter(s => s.profile?.blocked === true));
+    if (!cache) cache = await sync.listStudents({ includePaused: esAdmin() });
+    // El equipo no se ve a sí mismo en el listado (sus datos ya son los suyos).
+    const lista = esAdmin() ? cache : cache.filter(s => s.uid !== auth.uid());
+    paintStudents(container, lista.filter(s => s.profile?.blocked !== true));
+    if (esAdmin()) paintPaused(container, lista.filter(s => s.profile?.blocked === true));
   } catch (e) {
     container.querySelector('#studentsContent').innerHTML = `
       <div class="empty">
@@ -226,8 +233,9 @@ function paintStudents(container, students) {
             <th>Nombre</th>
             <th>Email</th>
             <th>Nivel</th>
-            <th title="Puede dar de alta alumnos y ver el listado, sin ver resultados">Crea alumnos</th>
-            <th title="Estrategia Liquidez activada para este alumno. Desactivada, no la ve y sus trades de Liquidez no cuentan en sus resultados (no se borran).">Liquidez</th>
+            ${esAdmin() ? `<th title="Puede dar de alta alumnos y ver el listado, sin ver resultados">Crea alumnos</th>
+            <th title="Equipo de Tradinverso: ve Mis Alumnos, Stats grupales y los datos de todos los alumnos (dashboard, trades, backtesting, cuentas, diario), en solo lectura">Equipo</th>
+            <th title="Estrategia Liquidez activada para este alumno. Desactivada, no la ve y sus trades de Liquidez no cuentan en sus resultados (no se borran).">Liquidez</th>` : ''}
             <th>Trades</th>
             <th>WR <span style="color:var(--muted);font-weight:400;">(global · estrategias)</span></th>
             <th>P&L acum. <span style="color:var(--muted);font-weight:400;">(sist · real)</span></th>
@@ -371,6 +379,26 @@ function paintStudents(container, students) {
     });
   });
 
+  // Equipo: ve a todos los alumnos en solo lectura. Lo marca solo el admin
+  // (las reglas no dejan que nadie se lo ponga a sí mismo).
+  content.querySelectorAll('[data-equipo-uid]').forEach(chk => {
+    chk.addEventListener('change', async () => {
+      const stu = students.find(s => s.uid === chk.dataset.equipoUid);
+      if (!stu) return;
+      const equipo = chk.checked;
+      chk.disabled = true;
+      try {
+        await sync.updateProfile(stu.uid, { equipo });
+        stu.profile = { ...stu.profile, equipo };
+      } catch (err) {
+        console.error('No se pudo cambiar el permiso de equipo:', err);
+        alert('No se pudo guardar el permiso: ' + (err.message || err));
+        chk.checked = !equipo;
+      }
+      chk.disabled = false;
+    });
+  });
+
   // Eliminar alumno (soft delete: marca profile.blocked).
   content.querySelectorAll('[data-pause-uid]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -432,7 +460,8 @@ function row(s) {
     : `<strong>${escapeHtml(s.profile.nombre || '–')}</strong>`;
 
   const level = s.profile?.level || '';
-  const levelSel = `
+  const NIVELES = { principiante: 'Principiante', intermedio: 'Intermedio', avanzado: 'Avanzado' };
+  const levelSel = !esAdmin() ? `<span style="color:var(--muted);font-size:12px;">${NIVELES[level] || '—'}</span>` : `
     <select class="admin-level-select" data-level-uid="${s.uid}">
       <option value=""              ${level === ''              ? 'selected' : ''}>— Sin asignar —</option>
       <option value="principiante"  ${level === 'principiante'  ? 'selected' : ''}>Principiante</option>
@@ -446,8 +475,9 @@ function row(s) {
       <td><span class="al-nombre"><span class="al-av">${avatarInner(s.profile, s.profile.nombre || s.profile.email)}</span><span>${nameCell}</span></span></td>
       <td style="font-family:var(--mono);font-size:11px;color:var(--muted);">${escapeHtml(s.profile.email)}</td>
       <td>${levelSel}</td>
-      <td style="text-align:center;"><input type="checkbox" data-gestor-uid="${s.uid}" ${s.profile?.gestor === true ? 'checked' : ''} title="Puede dar de alta alumnos y ver el listado (sin ver resultados)"></td>
-      <td style="text-align:center;"><input type="checkbox" data-liq-uid="${s.uid}" ${liq ? 'checked' : ''} title="${liq ? 'Usa la estrategia Liquidez: cuenta en sus resultados' : 'Liquidez desactivada: no la ve y no cuenta en sus resultados'}"></td>
+      ${esAdmin() ? `<td style="text-align:center;"><input type="checkbox" data-gestor-uid="${s.uid}" ${s.profile?.gestor === true ? 'checked' : ''} title="Puede dar de alta alumnos y ver el listado (sin ver resultados)"></td>
+      <td style="text-align:center;"><input type="checkbox" data-equipo-uid="${s.uid}" ${s.profile?.equipo === true ? 'checked' : ''} title="Equipo de Tradinverso: ve los datos de todos los alumnos, en solo lectura"></td>
+      <td style="text-align:center;"><input type="checkbox" data-liq-uid="${s.uid}" ${liq ? 'checked' : ''} title="${liq ? 'Usa la estrategia Liquidez: cuenta en sus resultados' : 'Liquidez desactivada: no la ve y no cuenta en sus resultados'}"></td>` : ''}
       <td>${counts.total} <span style="color:var(--muted);font-size:10px;">(${counts.tp}T·${counts.sl}S)</span></td>
       <td>
         <div style="color:${wrColor};font-weight:600;">${counts.total ? fmtPctNoSign(wr, 0) : '–'}</div>
@@ -474,7 +504,7 @@ function row(s) {
           ? '<span class="badge st-activa">' + ic('ojo') + ' viendo ahora</span>'
           : `<button class="btn primary" data-view-uid="${s.uid}" style="padding:6px 12px;font-size:11px;">Ver dashboard →</button>`
         }
-        <button class="btn" data-pause-uid="${s.uid}" title="Pausar acceso (no borra nada; se reactiva en Pausados)" style="padding:6px 9px;font-size:13px;margin-left:6px;color:var(--orange);">${ic('pausa')}</button>
+        ${esAdmin() ? `<button class="btn" data-pause-uid="${s.uid}" title="Pausar acceso (no borra nada; se reactiva en Pausados)" style="padding:6px 9px;font-size:13px;margin-left:6px;color:var(--orange);">${ic('pausa')}</button>` : ''}
       </td>
     </tr>
   `;

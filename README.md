@@ -354,6 +354,14 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   sin operar (naranja; rojo desde 14, igual que en Cuentas) y el resto. Si las primeras llenan el
   hueco, el último sitio es para la más parada. El resto queda en «y N más», que avisa de cuántas
   paradas hay escondidas.
+- **Equipo** (`profile.equipo`, `auth.isEquipo()`): alumno que el admin marca en la columna
+  «Equipo» de Mis Alumnos. Ve Mis Alumnos y Stats grupales y puede abrir a cualquier alumno con
+  «Ver dashboard» (dashboard, trades, backtesting, cuentas, diario, psicotrading), **en solo
+  lectura**: no tiene backup, restaurar, crear, pausar ni eliminar alumnos, no cambia nivel,
+  permisos ni Liquidez, y viendo a un alumno `state.soloLectura()` corta todas las escrituras
+  (`ESCRITURAS` al final de `js/state.js`) con un aviso. Hace falta un cambio en las reglas de
+  Firestore de cada proyecto: función `isEquipo()`, lectura de `users/{uid}/**` para el equipo y
+  que el dueño no pueda tocar `equipo` en su perfil (igual que `gestor`).
 - **Estrategias** (`js/utils/strategy-config.js`): la lista y el orden salen de `SHEETS`
   (Zonas, NQ Londres, NQ Nueva York, Liquidez) y cada una lleva su etiqueta, color, rutas y texto
   corto en `STRATEGIES`; las vistas ya no las nombran a mano. **NQ Londres** (`NQ_LONDRES`) es una

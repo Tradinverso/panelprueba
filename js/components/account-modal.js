@@ -75,7 +75,7 @@ const hojasPropias = () => EXPORT_SHEETS.filter(s => sheetVisible(s) || state.tr
 const targetUid = () => state.viewAsUid || auth.uid();
 const quien = () => inViewAs() && state.viewAsProfile ? (state.viewAsProfile.nombre || state.viewAsProfile.email || 'alumno') : auth.displayName();
 const usuario = n => '@' + (sinTildes(n).replace(/[^a-z0-9]/g, '') || 'usuario');
-const rol = () => inViewAs() ? 'Alumno Tradinverso' : auth.isAdmin() ? 'Admin Tradinverso' : auth.isGestor() ? 'Gestor Tradinverso' : 'Alumno Tradinverso';
+const rol = () => inViewAs() ? 'Alumno Tradinverso' : auth.isAdmin() ? 'Admin Tradinverso' : auth.isEquipo() ? 'Equipo Tradinverso' : auth.isGestor() ? 'Gestor Tradinverso' : 'Alumno Tradinverso';
 function iniciales(name) {
   const p = String(name || '').trim().split(/[\s._-]+/).filter(Boolean);
   return p.length ? (p[0][0] + (p[1] ? p[1][0] : '')).toUpperCase() : '·';
@@ -658,6 +658,7 @@ function mantenimiento(body) {
     const word = body.querySelector('#accWipeWord'), all = body.querySelector('#accWipeAll');
     word.addEventListener('input', () => { all.disabled = word.value.trim() !== 'BORRAR'; });
     all.addEventListener('click', async () => {
+      if (state.soloLectura()) { showToast('Estás viendo a un alumno en solo lectura: no se puede borrar nada.'); return; }
       all.disabled = true;
       try {
         await sync.wipeAllTrades(targetUid());

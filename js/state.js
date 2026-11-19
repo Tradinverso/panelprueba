@@ -441,11 +441,22 @@ function targetUid() {
   return state.viewAsUid || auth.uid();
 }
 
-// readOnly indica que estás viendo a otro usuario (admin viewAs).
-// Permitimos escrituras siempre (van a viewAsUid), pero las views
-// pueden usar el flag para mostrar avisos "estás editando a X".
+// readOnly indica que estás viendo a otro usuario (viewAs). El admin puede
+// escribir en la cuenta del alumno (van a viewAsUid); el EQUIPO no: para él
+// todas las escrituras se cortan aquí, antes de tocar nada (ver ESCRITURAS al
+// final del archivo). Las reglas de Firestore tampoco se lo permitirían.
 function ignoreIfReadOnly(_action) {
-  return false;
+  if (!state.soloLectura()) return false;
+  avisoSoloLectura();
+  return true;
+}
+let avisoVisto = 0;
+function avisoSoloLectura() {
+  if (Date.now() - avisoVisto < 4000) return;   // sin apilar avisos
+  avisoVisto = Date.now();
+  import('./components/toast.js')
+    .then(m => m.showToast('Estás viendo a un alumno en solo lectura: este cambio no se guarda.', { duration: 4500 }))
+    .catch(() => {});
 }
 
 function fireAndForget(p, label) {
@@ -551,7 +562,7 @@ export const state = {
 
   // ── Modo impersonation (admin viendo alumno) ─────────────
   async viewAs(studentUid, profile) {
-    if (!auth.isAdmin()) throw new Error('Solo admin puede ver como alumno');
+    if (!auth.veAlumnos()) throw new Error('Solo el admin o el equipo pueden ver a un alumno');
     this.loading = true;
     this.emit();
     try {
@@ -626,6 +637,11 @@ export const state = {
 
   async exitViewAs() {
     return this.loadFromCloud();
+  },
+
+  // Viendo a un alumno sin poder cambiar nada (equipo). El admin sí puede.
+  soloLectura() {
+    return !!this.viewAsUid && !auth.isAdmin();
   },
 
   // ── Mutaciones ───────────────────────────────────────────
@@ -1257,3 +1273,28 @@ function dedupKey(t) {
 // Las vistas preguntan a strategy-config qué estrategias enseñar; la respuesta
 // depende del perfil, que vive aquí.
 setProveedorLiquidez(() => state.liquidezActiva());
+
+// ── Solo lectura del equipo ──────────────────────────────────
+// Cada método que escribe en Firestore pasa antes por ignoreIfReadOnly: viendo
+// a un alumno, el equipo no cambia nada (ni en pantalla ni en la nube). El
+// valor que se devuelve es el «no se hizo nada» de cada método.
+const ESCRITURAS = {
+  clasificarModelosLiquidez: undefined, add: null, addBacktest: null, updateBacktest: null,
+  removeBacktest: undefined, removeBacktestsBySheet: 0, removeNotTakenBacktests: 0, wipeAllBacktests: 0,
+  addBacktestsMany: { added: 0, dup: 0 }, addMany: { added: 0, dup: 0 }, remove: undefined, update: null,
+  removeBySheet: 0, replaceAll: undefined, addCuenta: null, updateCuenta: null, deleteCuenta: undefined,
+  saveReflection: null, deleteReflection: undefined, addPerfil: null, updatePerfil: null,
+  deletePerfil: undefined, setConfig: undefined, saveTradingPlan: undefined,
+};
+for (const [k, vacio] of Object.entries(ESCRITURAS)) {
+  const f = state[k];
+  if (typeof f !== 'function') { console.warn('[state] escritura sin método:', k); continue; }
+  state[k] = function (...args) {
+    if (state.soloLectura()) {
+      // Lo automático (clasificar modelos) se salta sin aviso.
+      if (k !== 'clasificarModelosLiquidez') ignoreIfReadOnly(k);
+      return (vacio && typeof vacio === 'object') ? { ...vacio } : vacio;
+    }
+    return f.apply(this, args);
+  };
+}

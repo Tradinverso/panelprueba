@@ -135,7 +135,11 @@ export function renderTopbar(container) {
   // Contabilidad se puede apagar en Ajustes → Módulos.
   let nav = NAV_BASE.filter(i => i.path !== '#/contabilidad' || state.contabilidadActiva());
   if (auth.isAdmin()) nav = nav.concat(NAV_ADMIN);
-  else if (auth.isGestor()) nav = nav.concat(NAV_GESTOR);
+  else {
+    // Equipo: Mis Alumnos y Stats grupales, como el admin (en solo lectura).
+    if (auth.isEquipo()) nav = nav.concat(NAV_ADMIN);
+    if (auth.isGestor()) nav = nav.concat(NAV_GESTOR);
+  }
 
   const home = auth.isAdmin() && !inViewAs ? '#/admin' : '#/dashboard';
   const name = inViewAs && state.viewAsProfile
@@ -167,7 +171,7 @@ export function renderTopbar(container) {
     </a>
     <nav class="tb-nav" aria-label="Secciones">${items}</nav>
     <div class="tb-right">
-      ${inViewAs ? `<button type="button" class="tb-viewas" id="tbExitViewAs" title="Estás viendo a este alumno · pulsa para volver a tu cuenta">${icon('volver')} <span>Viendo a <strong>${escapeHtml(name)}</strong></span></button>` : ''}
+      ${inViewAs ? `<button type="button" class="tb-viewas" id="tbExitViewAs" title="Estás viendo a este alumno${state.soloLectura() ? ' en solo lectura' : ''} · pulsa para volver a tu cuenta">${icon('volver')} <span>Viendo a <strong>${escapeHtml(name)}</strong></span></button>` : ''}
       <button type="button" class="tb-clock ${auth.hasTimezone() ? '' : 'warn'}" data-account="perfil" title="${escapeHtml(tz)} · pulsa para cambiar la zona horaria">
         ${icon(auth.hasTimezone() ? 'reloj' : 'aviso')}
         <span class="tb-clock-hora" data-clock-hora>${clock.hora}</span>

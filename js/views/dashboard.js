@@ -120,8 +120,8 @@ function impersonationBanner() {
     <div class="imp-banner">
       <div class="imp-banner-icon">${ic('nota')}</div>
       <div class="imp-banner-text">
-        Editando como <strong>${escapeHtml(p.nombre || p.email)}</strong>
-        <span class="meta">${n} trades · cualquier cambio se guarda en SU cuenta</span>
+        ${state.soloLectura() ? 'Viendo a' : 'Editando como'} <strong>${escapeHtml(p.nombre || p.email)}</strong>
+        <span class="meta">${n} trades · ${state.soloLectura() ? 'solo lectura: no puedes cambiar sus datos' : 'cualquier cambio se guarda en SU cuenta'}</span>
       </div>
       <button class="btn" id="exitImpBtn">Volver a Mis Alumnos</button>
     </div>

@@ -53,7 +53,7 @@ function saveSelectedGroups() {
 export function resetGrupoCache() { cache = null; }
 
 export function grupoView(container) {
-  if (!auth.isAdmin()) {
+  if (!auth.veAlumnos()) {
     router.go('#/dashboard');
     return;
   }
