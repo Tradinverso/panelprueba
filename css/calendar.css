@@ -80,8 +80,7 @@
 .cal-pnl-real { font-size: 10px; font-family: var(--mono); font-weight: 500; line-height: 1; margin-top: 2px; opacity: .75; }
 /* Dólares: cifras más largas que un %, un punto menos de letra para que quepan */
 .cal-pnl.usd { font-size: 15px; letter-spacing: -.4px; white-space: nowrap; }
-/* Selector % Sistema · % Real · $ (cabecera del calendario) */
-#calModo .pill { padding: 6px 12px; font-size: 12px; }
+
 .profit .cal-pnl-real { color: var(--green); }
 .loss   .cal-pnl-real { color: var(--red); }
 .be     .cal-pnl-real { color: var(--orange); }

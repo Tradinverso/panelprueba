@@ -354,7 +354,7 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   sin operar (naranja; rojo desde 14, igual que en Cuentas) y el resto. Si las primeras llenan el
   hueco, el último sitio es para la más parada. El resto queda en «y N más», que avisa de cuántas
   paradas hay escondidas.
-- **Calendario en % o en $** (`js/views/calendar.js`): selector «% Sistema · % Real · $» en la
+- **Calendario en % o en $** (`js/views/calendar.js`): desplegable «% Sistema · % Real · Dólares ($)» en la
   cabecera (se recuerda en el navegador, clave `tradinverso_cal_modo`). Cada día enseña la cifra
   elegida en grande y los trades; el % del sistema sale siempre (en pequeño si se elige otro). Lo
   mismo en la columna de la semana y en el resumen del mes. El $ de un trade sale de

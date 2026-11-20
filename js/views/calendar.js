@@ -6,7 +6,6 @@ import { fmtPct } from '../utils/number-format-es.js';
 import { renderTradeTable } from '../components/trade-table.js';
 import { tradeRealPnl } from '../utils/calculations.js';
 import { tradeUsd } from '../utils/account-stats.js';
-import { renderPills } from '../components/pills.js';
 import { openReflectionModal } from './psicologia.js';
 
 // Qué se enseña en cada día, cada semana y el resumen del mes: % del sistema,
@@ -15,7 +14,7 @@ import { openReflectionModal } from './psicologia.js';
 const MODOS = [
   { value: 'sis',  label: '% Sistema' },
   { value: 'real', label: '% Real' },
-  { value: 'usd',  label: '$' },
+  { value: 'usd',  label: 'Dólares ($)' },
 ];
 const CLAVE_MODO = 'tradinverso_cal_modo';
 let calModo = (() => {
@@ -78,7 +77,9 @@ function render(container) {
         <div class="sub">P&L diario · Círculo naranja = 5+ trades en el día (sobreoperar)</div>
       </div>
       <div class="page-actions">
-        <div id="calModo" title="Qué se enseña en cada día: % del sistema, % real o dólares"></div>
+        <select id="calModo" class="select" title="Qué se enseña en cada día: % del sistema, % real o dólares">
+          ${MODOS.map(m => `<option value="${m.value}" ${calModo === m.value ? 'selected' : ''}>${m.label}</option>`).join('')}
+        </select>
         <select id="stratF" class="select">
           <option value="all" ${stratFilter === 'all' ? 'selected' : ''}>Todas las estrategias</option>
           ${sheetsVisibles().map(k => `<option value="${k}" ${stratFilter === k ? 'selected' : ''}>${sheetLabel(k)}</option>`).join('')}
@@ -120,11 +121,9 @@ function render(container) {
 
   container.querySelector('#prev').addEventListener('click', () => navigate(container, -1));
   container.querySelector('#next').addEventListener('click', () => navigate(container, 1));
-  renderPills(container.querySelector('#calModo'), {
-    name: 'calModo',
-    options: MODOS,
-    value: calModo,
-    onChange: v => { guardarModo(v); render(container); },
+  container.querySelector('#calModo').addEventListener('change', e => {
+    guardarModo(e.target.value);
+    render(container);
   });
   container.querySelector('#stratF').addEventListener('change', e => {
     stratFilter = e.target.value;
