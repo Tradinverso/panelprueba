@@ -914,6 +914,14 @@ button.mesa-rail-link { cursor: pointer; font: inherit; padding: 0; }
   .psico-daily { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--gap, 14px); align-items: start; }
   .psico-daily > .dia-panel { order: 0; grid-template-columns: 1fr; margin-bottom: 0; }
   .psico-daily .psico-nav { margin-top: 0; }
+  /* El panel de hoy empieza a la altura del calendario, no de la fila del mes:
+     el mes va en la primera fila (solo a la izquierda) y calendario y panel,
+     juntos en la segunda. */
+  .psico-daily-cal { display: contents; }
+  .psico-daily { row-gap: 0; }   /* entre el mes y el calendario manda el margen del mes */
+  .psico-daily .psico-nav { grid-column: 1; grid-row: 1; }
+  .psico-daily .psico-cal-wrap { grid-column: 1; grid-row: 2; }
+  .psico-daily > .dia-panel { grid-column: 2; grid-row: 2; }
   .psico-daily .dia-steps { grid-template-columns: 1fr; gap: 6px; }
   .psico-daily .dia-step { padding: 8px 10px; }
   .psico-daily .dia-fecha { font-size: 22px; }
