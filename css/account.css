@@ -1,7 +1,7 @@
 /* ════════════════════════════════════════════════════════════════
    Pop-up de la cuenta (components/account-modal.js), que sustituye a la
    página Ajustes, y su botón en la barra superior. También: Trofeos
-   (components/trophies.js) y el aviso del cortacircuitos (utils/breaker.js).
+   (components/trophies.js) y los avisos del cortacircuitos (utils/breaker.js).
    La caja lleva fondo sólido propio (claro u oscuro según el tema) y por
    dentro redefine los tokens de color, así los controles de siempre
    (.btn, .form-input, .pill, .setting-row…) se ven bien en cualquier tema.
@@ -181,9 +181,22 @@ body.acc-open { overflow: hidden; }
 .tro-viewer-body img, .tro-viewer-body canvas { max-width: 100%; height: auto; border-radius: 10px; box-shadow: 0 8px 30px rgba(15,23,42,0.2); }
 
 /* ── Cortacircuitos ── */
-.tv-breaker { position: fixed; left: 22px; bottom: 22px; z-index: 8000; display: flex; align-items: center; gap: 10px; padding: 9px 10px 9px 14px; border-radius: 999px; background: var(--card-solid, #111827); color: #fff; font-size: 12.5px; box-shadow: 0 16px 40px rgba(0,0,0,0.35); border: 1px solid color-mix(in srgb, var(--alerta, #ef4444) 60%, transparent); font-variant-numeric: tabular-nums; }
-.tv-breaker-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--alerta, #ef4444); box-shadow: 0 0 0 4px color-mix(in srgb, var(--alerta, #ef4444) 25%, transparent); }
-.tv-breaker button { width: 24px; height: 24px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.14); color: #fff; cursor: pointer; }
+/* Límite de SL por cuenta y día: selector junto al interruptor (Ajustes → Módulos) */
+.acc-cc { display: inline-flex; align-items: center; gap: 10px; }
+.acc-cc .select { width: auto; min-width: 82px; }
+/* Aviso dentro de la confirmación de Nuevo trade */
+.cc-aviso { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 14px; padding: 11px 13px; border-radius: 12px; font-size: 13px; line-height: 1.45;
+  color: var(--text); background: color-mix(in srgb, var(--red) 10%, transparent); border: 1px solid color-mix(in srgb, var(--red) 40%, transparent); }
+.cc-aviso b { display: inline; font-size: inherit; color: var(--red); }
+.cc-aviso b.cc-aviso-tit { display: block; margin-bottom: 2px; }
+.cc-aviso-ic { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 13px; color: #fff; background: var(--red); }
+/* Aviso grande de parar, tras guardar el SL que llega al límite */
+.cc-stop { text-align: center; padding: 4px 6px 2px; }
+.cc-stop-ic { width: 64px; height: 64px; margin: 0 auto 12px; border-radius: 50%; display: grid; place-items: center; font-size: 32px;
+  background: color-mix(in srgb, var(--red) 14%, transparent); box-shadow: 0 0 0 6px color-mix(in srgb, var(--red) 8%, transparent); }
+.cc-stop-lead { font-size: 15px; font-weight: 600; margin: 0 0 8px; }
+.cc-stop-lista { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 4px; color: var(--red); }
+.cc-stop p { line-height: 1.5; margin: 0; }
 
 /* ── Estrecho: el menú pasa arriba y el contenido debajo ── */
 @media (max-width: 820px) {

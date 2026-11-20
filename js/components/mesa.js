@@ -27,6 +27,7 @@ import { openDiarioModal } from './diario-modal.js';
 import { hoy as hoyDiario, estadoDia, tradesDe } from '../utils/diario.js';
 import { irAFirmas } from './firmas.js';
 import { FIRMAS } from '../utils/firmas.js';
+import { limiteSL, cortacircuitosActivo } from '../utils/breaker.js';
 
 // Botón «Prop firms»: lleva los logos de las primeras firmas de la lista (la
 // destacada primero) para que se reconozca de un vistazo; el resto, «+N».
@@ -128,6 +129,10 @@ function accountsData() {
   const trades = state.trades || [];
   const today = todayLocal(auth.timezone());
   const turno = idsEnTurno();
+  // Cortacircuitos (Ajustes → Módulos): con el límite de SL del día alcanzado,
+  // la cuenta sale «Parada hoy». El «SL hoy x/N» usa ese límite (1 si no hay).
+  const lim = limiteSL();
+  const cc = cortacircuitosActivo();
   const lista = (state.cuentas || [])
     .filter(c => c.status === 'activa' && state.cuentaConSeguimiento(c))
     .map(c => {
@@ -139,11 +144,12 @@ function accountsData() {
       const opHoy = trades.some(t => t.date === today && Array.isArray(t.accounts) && t.accounts.some(a => a.accountId === c.id));
       const enTurno = turno.has(c.id);
       const parada = !opHoy && dias != null && dias >= DIAS_AVISO;
+      const sl = slToday(c, trades, today);
       return {
         c, s, progress,
         name: shortName(c), abbr: abbr(c),
         pct: s.equityPct, balance: s.equityUsd,
-        sl: slToday(c, trades, today),
+        sl, lim, stopHoy: cc && sl >= lim,
         strats: stratsOf(c, trades),
         enTurno, opHoy, dias, parada,
         alerta: parada && dias >= DIAS_ALERTA,
@@ -308,9 +314,9 @@ export function renderMesa(container) {
       ${state.haySeguimiento() ? `<section class="card mesa-box">
         <div class="mesa-block-head"><h2>Cuentas</h2><a href="#/cuentas" class="mesa-link">${accs.length} activa${accs.length === 1 ? '' : 's'} →</a></div>
         ${accs.length ? accsVis.map(a => `
-          <div class="mesa-acc" title="${escapeHtml(a.name)} · ${fmtPct(a.pct)} · SL hoy ${a.sl}/1${a.enTurno ? ' · es la que toca usar según la rotación' : ''}${a.parada ? ' · ' + sinOperar(a) : ''}">
+          <div class="mesa-acc${a.stopHoy ? ' stop' : ''}" title="${escapeHtml(a.name)} · ${fmtPct(a.pct)} · SL hoy ${a.sl}/${a.lim}${a.stopHoy ? ' · parada hoy: ha llegado a tu límite de SL del día' : ''}${a.enTurno ? ' · es la que toca usar según la rotación' : ''}${a.parada ? ' · ' + sinOperar(a) : ''}">
             <div class="mesa-acc-row">
-              <span class="mesa-acc-name"><span class="mesa-dot ${a.sl > 0 ? 'bad' : 'ok'}" title="SL hoy ${a.sl}/1"></span><span class="mesa-acc-txt">${escapeHtml(a.name)}</span>${a.enTurno ? '<span class="mesa-acc-tag">Toca</span>' : ''}</span>
+              <span class="mesa-acc-name"><span class="mesa-dot ${a.sl > 0 ? 'bad' : 'ok'}" title="SL hoy ${a.sl}/${a.lim}"></span><span class="mesa-acc-txt">${escapeHtml(a.name)}</span>${a.stopHoy ? '<span class="mesa-acc-tag stop">Parada hoy</span>' : a.enTurno ? '<span class="mesa-acc-tag">Toca</span>' : ''}</span>
               <span class="mesa-acc-pct pnl-value" style="color:${colorOf(a.pct)}">${fmtPct(a.pct)}</span>
             </div>
             ${a.progress != null ? `<div class="mesa-bar" title="Progreso hacia el objetivo de la fase: ${a.progress.toFixed(0)}%"><div style="width:${a.progress}%"></div></div>` : ''}
@@ -350,10 +356,10 @@ export function renderMesa(container) {
           ? `<a class="mesa-rail-live" href="${escapeHtml(liveUrl)}" target="_blank" rel="noopener noreferrer" title="En directo ahora: ${escapeHtml(enDirecto.title)} · pulsa para entrar">LIVE</a>`
           : `<span class="mesa-rail-live" title="En directo ahora: ${escapeHtml(enDirecto.title)}">LIVE</span>`) : ''}
         ${accsVis.map(a => `
-          <div class="mesa-pill${a.enTurno ? ' turno' : ''}" title="${escapeHtml(a.name)} · ${fmtPct(a.pct)} · SL hoy ${a.sl}/1${a.enTurno ? ' · toca usarla' : ''}${a.parada ? ' · ' + sinOperar(a) : ''}">
+          <div class="mesa-pill${a.enTurno ? ' turno' : ''}${a.stopHoy ? ' stop' : ''}" title="${escapeHtml(a.name)} · ${fmtPct(a.pct)} · SL hoy ${a.sl}/${a.lim}${a.stopHoy ? ' · parada hoy' : ''}${a.enTurno ? ' · toca usarla' : ''}${a.parada ? ' · ' + sinOperar(a) : ''}">
             <span class="mesa-pill-abbr">${escapeHtml(a.abbr)}</span>
             <span class="mesa-pill-bar" style="background:${colorOf(a.pct)}"></span>
-            <span class="mesa-pill-sl">${a.sl}/1</span>
+            <span class="mesa-pill-sl">${a.sl}/${a.lim}</span>
           </div>`).join('')}
         <span class="mesa-sep"></span>
         <button type="button" class="mesa-ring" id="mesaChecklist" title="Checklist pre-sesión · ${chk.done}/${chk.total}">${ringSvg({ progress: chk.total ? chk.done / chk.total : 0, color: chk.done === chk.total ? 'var(--green)' : 'var(--accent)', width: 10 })}<span>${chk.done}/${chk.total}</span></button>

@@ -81,6 +81,7 @@ export const AYUDA_PAGINAS = {
         'Sirve para ver el Calendario en dólares.',
       ] },
       { t: 'El resumen de la derecha', p: 'Se actualiza mientras escribes y te dice qué campos obligatorios faltan antes de poder guardar.' },
+      { t: 'Si tienes el cortacircuitos activado', p: 'Al guardar el SL que lleva una cuenta a tu límite del día, sale un aviso de parar. Y si el trade va a una cuenta que ya está parada hoy, la confirmación te lo advierte antes de guardar.' },
       { t: '¿Y la estrategia Liquidez?', p: 'Solo la ven los alumnos que ya la usaban antes de esta versión, y solo si la tienen activada en Ajustes → Módulos. Si eres nuevo, no la verás: ya no forma parte de la formación.' },
     ],
   },
@@ -188,6 +189,12 @@ export const AYUDA_PAGINAS = {
         '<b>Ver calendario</b>: abre el Calendario con solo esa cuenta.',
       ] },
       { t: 'Riesgo y rotación', p: 'Si tienes activada la gestión de riesgo, verás las pestañas <b>Riesgo CFD</b> (escalado por niveles según el drawdown) y <b>Riesgo Futuros</b> (riesgo fijo y rotación por grupos de copiado). Con un SL, la rotación pasa a la siguiente cuenta. La etiqueta <b>Toca</b> de la columna Hoy te dice cuál usar.' },
+      { t: 'Cortacircuitos: límite de SL por cuenta y día', lista: [
+        'Actívalo en Ajustes → Módulos y elige tu límite (de 1 a 5 SL; si no eliges, 1).',
+        'Cuando una cuenta llega al límite, la app te avisa en grande de que pares y la cuenta sale <b>Parada hoy</b> aquí y en la columna Hoy.',
+        'Si apuntas otro trade en esa cuenta el mismo día, la confirmación te lo advierte antes de guardar. Apúntalo igual si ya está hecho: el diario tiene que reflejar lo que pasó.',
+        'No bloquea tu plataforma: es tu regla puesta delante de tus ojos. Las cuentas se queman fuera del plan, no por un SL.',
+      ] },
       { t: 'Retiros', p: 'Al registrar un retiro, la app te pide el saldo con el que queda la cuenta. Así el equity cuadra con lo que ves en tu prop firm.' },
       { t: 'Firmas que usamos en Tradinverso', lista: [
         'Al final de la página, filtrables por Futuros o CFDs.',
@@ -256,6 +263,11 @@ export const QUE_HA_CAMBIADO = [
 // ── Novedades: la más reciente arriba ───────────────────────────────────────
 // Cada cambio de la app añade aquí su línea, en el mismo commit.
 export const NOVEDADES = [
+  { fecha: '2026-11-20', titulo: 'Cortacircuitos: límite de SL por cuenta', puntos: [
+    'El cortacircuitos ahora es un <b>límite de SL por cuenta y día</b> (de 1 a 5). Se activa en Ajustes → Módulos.',
+    'Al llegar al límite: aviso grande de parar, la cuenta sale <b>Parada hoy</b> en la columna Hoy y en Mis cuentas, y Nuevo trade te lo advierte si vuelves a apuntar en ella.',
+    'Desaparece la pausa de 5 minutos tras el primer SL.',
+  ] },
   { fecha: '2026-11-20', titulo: 'Ruedas de winrate con BE', puntos: [
     'Dashboard: las ruedas de cada estrategia enseñan también los <b>BE en gris</b>, junto a los TP en verde y los SL en rojo.',
   ] },

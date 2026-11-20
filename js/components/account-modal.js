@@ -35,6 +35,7 @@ import { VERSION } from '../version.js';
 import { avatarInner, prepararFoto, fotoValida } from '../utils/avatar.js';
 import { reglaDiariaActiva, mostrarRegla } from './regla-aviso.js';
 import { htmlPrimerosPasos, htmlNovedades } from '../utils/ayuda.js';
+import { LIMITES, limiteSL } from '../utils/breaker.js';
 import { EXPORT_SHEETS, sheetLabel, filterTrades, periodLabel, exportCsv, exportExcel, exportPdf } from '../utils/export-trades.js';
 
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
@@ -385,8 +386,8 @@ function modulos(body) {
     ${fila('Gestión de riesgo / rotación', 'Añade en <strong>Cuentas</strong> las pestañas de riesgo: <strong>CFD</strong> (escalado por niveles según el drawdown) y <strong>Futuros</strong> (gestiones de riesgo fijo y grupos de copiado), cada una con su rotación. Elige cuáles ver. Lee de tus cuentas y trades, no añade datos.' + (state.haySeguimiento() ? '' : ' <span class="acc-warn">Necesita el seguimiento de trades en cuentas.</span>'),
       `<select class="select" id="accRisk">${[['ambos', 'CFD y Futuros'], ['CFD', 'Solo CFD'], ['Futuros', 'Solo Futuros'], ['off', 'Desactivado']]
         .map(([v, l]) => `<option value="${v}" ${riskValue() === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`)}
-    ${fila('Cortacircuitos de riesgo', 'Al apuntar el primer SL del día en una cuenta, la app te marca una <strong>pausa de 5 minutos</strong> con cuenta atrás antes del siguiente trade.',
-      `<button type="button" class="ap-switch ${cc ? 'on' : ''}" role="switch" aria-checked="${cc}" aria-label="Cortacircuitos de riesgo" id="accBreaker"><span></span></button>`)}
+    ${fila('Cortacircuitos de riesgo', 'Un <strong>límite de SL por cuenta y día</strong>. Al llegar a él, la app te avisa en grande de que pares, la cuenta sale <strong>Parada hoy</strong> en la columna Hoy y en Mis cuentas, y si apuntas otro trade en ella te lo advierte antes de guardar.' + (state.haySeguimiento() ? '' : ' <span class="acc-warn">Necesita el seguimiento de trades en cuentas.</span>'),
+      `<span class="acc-cc">${cc ? `<select class="select" id="accBreakerSL" aria-label="Límite de SL por cuenta y día">${LIMITES.map(n => `<option value="${n}" ${limiteSL() === n ? 'selected' : ''}>${n} SL</option>`).join('')}</select>` : ''}<button type="button" class="ap-switch ${cc ? 'on' : ''}" role="switch" aria-checked="${cc}" aria-label="Cortacircuitos de riesgo" id="accBreaker"><span></span></button></span>`)}
     ${fila('Regla del día al abrir', 'Una vez al día, al entrar, la app te recuerda una regla. En días alternos es una lección que tú mismo escribiste en el diario del trader. <button type="button" class="acc-linkbtn" id="accReglaVer">Ver la de hoy</button>',
       `<button type="button" class="ap-switch ${rd ? 'on' : ''}" role="switch" aria-checked="${rd}" aria-label="Regla del día al abrir" id="accRegla"><span></span></button>`)}`);
   on(body, '#accRegla', 'click', () => {
@@ -427,8 +428,13 @@ function modulos(body) {
   on(body, '#accBreaker', 'click', () => {
     const v = !(state.config.cortacircuitos === true);
     state.setConfig({ cortacircuitos: v });
-    showToast(v ? 'Cortacircuitos activado' : 'Cortacircuitos desactivado');
+    showToast(v ? `Cortacircuitos activado: ${limiteSL()} SL por cuenta y día` : 'Cortacircuitos desactivado');
     refresh();
+  });
+  on(body, '#accBreakerSL', 'change', e => {
+    const n = Number(e.target.value);
+    state.setConfig({ cortacircuitosSL: n });
+    showToast(`Cortacircuitos: ${n} SL por cuenta y día`);
   });
 }
 

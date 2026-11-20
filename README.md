@@ -132,7 +132,7 @@ tradinverso/
       hoy-data.js         lee hoy.json (noticias y directos) de la rama data
       noticias-es.js      titulares de Forex Factory en español
       export-trades.js    exportar una selección de trades (estrategia y periodo) en Excel, CSV o PDF
-      breaker.js          cortacircuitos: pausa de 5 min tras el primer SL del día en una cuenta
+      breaker.js          cortacircuitos: límite de SL por cuenta y día (aviso de parar, «Parada hoy»)
       diario.js           datos del diario del día, racha de días con diario y lecciones propias
       pnl-mask.js         "Ocultar P&L": tapa importes y porcentajes con •••
 ```
@@ -228,7 +228,7 @@ desde cualquier elemento con `data-account="<sección>"`. Entrar por la URL `#/a
 Importar (`#/importar`) y Tabla (`#/tabla`) siguen siendo pantallas, enlazadas desde Datos y privacidad.
 
 - Todo se guarda en la cuenta: el perfil en `users/{uid}/profile/data`; la URL de Apps Script
-  (`config.appsScriptUrl`), el cortacircuitos (`config.cortacircuitos`) y la apariencia, incluido el
+  (`config.appsScriptUrl`), el cortacircuitos (`config.cortacircuitos` y su límite `config.cortacircuitosSL`, 1–5, por defecto 1) y la apariencia, incluido el
   formato de hora (`config.appearance.hour12`), en `users/{uid}/config/data`.
 - **Trofeos sin Firebase Storage**: los dos proyectos están en el plan gratuito y no tienen Storage.
   El archivo se guarda troceado en Firestore: metadatos y miniatura en `users/{uid}/trophies/{id}` y

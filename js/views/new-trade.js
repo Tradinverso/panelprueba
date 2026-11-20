@@ -14,7 +14,7 @@ import { resumenR } from '../utils/diagnostics.js';
 import { aplicarReglasModelo } from '../components/model-rules.js';
 import { attachDictation } from '../utils/dictation.js';
 import { showToast } from '../components/toast.js';
-import { armBreaker } from '../utils/breaker.js';
+import { avisoAntesDeGuardar, avisarTrasGuardar } from '../utils/breaker.js';
 
 // El R objetivo de cada estrategia (TP_RANGE, en strategy-config.js) es lo que
 // rellenan los atajos "TP" del resultado: uno si el TP es fijo (Zonas), dos si
@@ -415,25 +415,23 @@ function attemptSave(sheet, data, wrap, onSaved) {
   openModal({
     title: 'Confirmar nuevo trade',
     meta: `${sheet} · ${trade.pair} · ${trade.setup}`,
-    body: confirmBody(trade),
+    // Cortacircuitos: aviso si alguna de sus cuentas ya está parada hoy.
+    body: avisoAntesDeGuardar(trade) + confirmBody(trade),
     actions: [
       { label: 'Cancelar', onClick: close => close() },
       {
         label: 'Confirmar y guardar', variant: 'primary',
         onClick: close => {
           state.add(trade);
-          // Cortacircuitos (cuenta → Módulos): primer SL del día en alguna de sus cuentas
-          if (state.config.cortacircuitos === true && trade.result === 'SL' && (trade.accounts || []).length) {
-            const ids = trade.accounts.map(a => a.accountId);
-            const slHoy = state.trades.filter(t => t.date === trade.date && t.result === 'SL' && (t.accounts || []).some(a => ids.includes(a.accountId)));
-            if (slHoy.length === 1) armBreaker();
-          }
           // Si es un SL sobre la cuenta activa de la rotación, avanza a la siguiente.
           state.rotateAfterSL(trade);
           close();
           showToast('Trade guardado');
           // Formulario limpio con la misma estrategia, listo para el siguiente.
           if (typeof onSaved === 'function') onSaved(); else router.go('#/dashboard');
+          // Cortacircuitos (Ajustes → Módulos): si este SL lleva una cuenta a su
+          // límite del día, aviso grande de parar (después de guardar y limpiar).
+          avisarTrasGuardar(trade);
         },
       },
     ],

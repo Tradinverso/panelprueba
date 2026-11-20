@@ -18,6 +18,7 @@ import { renderPills } from '../components/pills.js';
 import { MONTHS_ES_SHORT } from '../utils/date-helpers.js';
 import { firmasHtml, wireFirmas } from '../components/firmas.js';
 import { showToast } from '../components/toast.js';
+import { paradaHoy, limiteSL } from '../utils/breaker.js';
 
 let filterStatus = 'all';
 let filterFase = 'all';
@@ -325,7 +326,7 @@ function card(c) {
       <div class="cuenta-card-head">
         <div class="cuenta-card-id">
           <div class="cuenta-card-title">${esc(c.empresa)} <span class="cc-cap">${fmtCapitalShort(c.capital)}</span></div>
-          <div class="cuenta-card-sub">${c.numero ? '#' + esc(c.numero) + ' · ' : ''}${esc(c.tipo)} · <span class="badge st-${c.status}">${STATUS_DOT[c.status]} ${STATUS_LABEL[c.status]}</span></div>
+          <div class="cuenta-card-sub">${c.numero ? '#' + esc(c.numero) + ' · ' : ''}${esc(c.tipo)} · <span class="badge st-${c.status}">${STATUS_DOT[c.status]} ${STATUS_LABEL[c.status]}</span>${seg && c.status === 'activa' && paradaHoy(c.id) ? ` <span class="badge cc-parada" title="Ha llegado a tu límite de ${limiteSL()} SL del día (cortacircuitos)">Parada hoy</span>` : ''}</div>
         </div>
         <div class="cuenta-card-actions" data-stop>
           <button class="btn ghost" data-edit-cuenta="${c.id}" title="Editar" data-stop>${ic('lapiz')}</button>

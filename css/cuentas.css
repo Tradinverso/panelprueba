@@ -79,6 +79,7 @@
 .badge.st-pausada { background: rgba(255,165,2,.12); color: var(--orange); border-color: rgba(255,165,2,.3); }
 .badge.st-pasada  { background: rgba(16,185,129,.18); color: var(--green); border-color: rgba(16,185,129,.45); }
 .badge.st-perdida { background: rgba(239,68,68,.12); color: var(--red); border-color: rgba(239,68,68,.3); }
+.badge.cc-parada  { background: rgba(239,68,68,.12); color: var(--red); border-color: rgba(239,68,68,.45); font-weight: 700; }
 
 /* ── Cuenta-assign (componente en formularios) ───────────── */
 .ca-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
