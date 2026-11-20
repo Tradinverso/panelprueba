@@ -382,6 +382,22 @@ body[data-auth="false"] #view { border: 0; background: transparent; padding: 0; 
 .mesa-cta-firmas .mesa-cta-text { gap: 6px; }
 .mesa-firmas-tit { font-size: 13.5px; font-weight: 600; line-height: 1.25; }
 .mesa-firmas { display: flex; align-items: center; gap: 5px; }
+
+/* Formación y Prop firms: el contenido centrado en la tarjeta y un punto más
+   grande; la flecha, fija a la derecha. Formación lleva el logo de Tradinverso
+   (versión clara u oscura según el tema). */
+#mesa .mesa-cta-centro { position: relative; justify-content: center; padding: 11px 30px !important; }
+.mesa-cta-centro > .mesa-cta-arrow { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); }
+.mesa-cta-centro-in { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.mesa-cta-centro .mesa-cta-text { flex: none; }
+.mesa-cta-centro .mesa-cta-text b, .mesa-cta-centro .mesa-firmas-tit { font-size: 15px; }
+.mesa-cta-centro .mesa-cta-text small { font-size: 11.5px; }
+.mesa-cta-firmas.mesa-cta-centro .mesa-cta-text { align-items: center; text-align: center; gap: 7px; }
+.mesa-cta-firmas.mesa-cta-centro .mesa-firmas { justify-content: center; }
+.mesa-logo { height: 32px; width: auto; display: block; flex: none; }
+.mesa-logo.en-claro { display: none; }
+:root[data-theme="light"] .mesa-logo.en-oscuro { display: none; }
+:root[data-theme="light"] .mesa-logo.en-claro { display: block; }
 .mesa-firmas i {
   width: 24px; height: 24px; border-radius: 7px; overflow: hidden; flex: none;
   display: flex; align-items: center; justify-content: center;
