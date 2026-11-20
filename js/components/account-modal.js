@@ -34,6 +34,7 @@ import { paintUrlTab, paintFileTab } from '../views/import-table.js';
 import { VERSION } from '../version.js';
 import { avatarInner, prepararFoto, fotoValida } from '../utils/avatar.js';
 import { reglaDiariaActiva, mostrarRegla } from './regla-aviso.js';
+import { htmlPrimerosPasos, htmlNovedades } from '../utils/ayuda.js';
 import { EXPORT_SHEETS, sheetLabel, filterTrades, periodLabel, exportCsv, exportExcel, exportPdf } from '../utils/export-trades.js';
 
 const FORMACION_URL = 'https://tradinverso.thinkific.com/enrollments';
@@ -55,6 +56,7 @@ const MENU = [
     { id: 'mantenimiento', label: 'Mantenimiento', icon: 'herramienta', sub: 'Reimportar y borrar trades', keys: 'reimportar borrar trades estrategia limpiar' },
   ] },
   { grupo: 'Tradinverso', items: [
+    { id: 'ayuda', label: 'Ayuda', icon: 'nota', sub: 'Primeros pasos y las novedades de la app', keys: 'ayuda manual guia primeros pasos novedades cambios como funciona' },
     { id: 'sobre', label: 'Sobre Tradinverso', icon: 'info', sub: 'La app, la versión y dónde viven tus datos', keys: 'version formacion firebase privacidad calendario' },
   ] },
 ];
@@ -201,7 +203,7 @@ async function cerrarSesion() {
   closeAccountModal();
 }
 
-const SECCIONES = { perfil, trofeos, modulos, apps, preferencias, datos, mantenimiento, sobre };
+const SECCIONES = { perfil, trofeos, modulos, apps, preferencias, datos, mantenimiento, ayuda, sobre };
 
 function renderSection() {
   const main = rootEl.querySelector('.acc-main');
@@ -672,6 +674,19 @@ function mantenimiento(body) {
 }
 
 // ── SOBRE ──────────────────────────────────────────────────
+// Ayuda: lo del primer día y las novedades (textos en js/utils/ayuda.js).
+function ayuda(body) {
+  body.innerHTML = card(`
+      <div class="card-title">Primeros pasos</div>
+      <div class="card-sub">Tu rutina del primer día. Cada página tiene además su botón <b>?</b>, junto al título, con su ayuda.</div>
+      ${htmlPrimerosPasos()}`)
+    + `<div id="accNovedades"></div>`
+    + card(`
+      <div class="card-title">Novedades</div>
+      <div class="card-sub">Lo que cambia en la app, lo más reciente arriba.</div>
+      ${htmlNovedades()}`);
+}
+
 function sobre(body) {
   const estrategias = new Set(state.trades.map(t => t.sheet)).size;
   body.innerHTML = card(`

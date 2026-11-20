@@ -103,9 +103,9 @@ tradinverso/
       regla-aviso.js      regla del día (o una lección propia) como aviso al abrir, una vez al día
       footer.js           pie: versión, Formación, Ajustes
       checklist-modal.js  pop-up del checklist pre-sesión y editor de la lista de cada alumno
-      novedades.js        aviso de novedades, una vez por cuenta (config.novedadesVista)
+      ayuda.js            ayuda: botón «?» de cada página y aviso al entrar (textos en utils/ayuda.js)
       account-modal.js    pop-up de la cuenta (sustituye a la página Ajustes): Perfil, Trofeos, Módulos,
-                          Apps Script, Preferencias, Datos y privacidad, Mantenimiento y Sobre
+                          Apps Script, Preferencias, Datos y privacidad, Mantenimiento, Ayuda y Sobre
       trophies.js         Trofeos: certificados de prop firms (imagen o PDF), galería y visor
       diario-modal.js     diario del día: Diario inverso (antes) → Trades → Diario del trader (al cerrar)
       appearance-panel.js panel Apariencia (tema, acento, TP/SL, letra, densidad)
@@ -241,6 +241,23 @@ Importar (`#/importar`) y Tabla (`#/tabla`) siguen siendo pantallas, enlazadas d
   actúan sobre la cuenta del alumno.
 
 ---
+
+## Ayuda dentro de la app
+
+- **Textos**: todos en `js/utils/ayuda.js` — `AYUDA_PAGINAS` (una entrada por página principal),
+  `PRIMEROS_PASOS`, `QUE_HA_CAMBIADO` y `NOVEDADES` (con fecha, la más reciente arriba). Solo
+  admiten `<b>`; así se podrían volcar a un PDF si algún día hace falta.
+- **Botón «?»** junto al título de cada página (`js/components/ayuda.js`): se añade solo vigilando
+  `#view`, según la ruta (`ayudaDeRuta`). Importar y Tabla de datos no lo llevan (son de Ajustes).
+- **Ajustes → Ayuda**: Primeros pasos y Novedades.
+- **Aviso al entrar** (`maybeShowAviso`, sustituye al antiguo aviso de novedades): sale en cada
+  carga de la app hasta «No volver a mostrar», que se guarda en el perfil (`profile.avisoOculto =
+  AVISO_ID`, campo que el alumno puede escribir; vale en todos sus dispositivos). Alumno de antes
+  del corte (`esAntiguo`, la misma fecha que Liquidez en `js/utils/liquidez.js`) → «Qué ha
+  cambiado»; alumno nuevo → «Primeros pasos». No sale al admin ni en «Ver como». Para un aviso
+  nuevo, cambiar `AVISO_ID`.
+- **Norma**: cada cambio de la app actualiza su ayuda y añade una línea a `NOVEDADES` en el mismo
+  commit.
 
 ## Diario del día
 

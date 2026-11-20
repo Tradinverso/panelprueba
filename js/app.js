@@ -10,7 +10,7 @@ import { renderTopbar } from './components/topbar.js';
 import { renderMesa } from './components/mesa.js';
 import { renderFooter } from './components/footer.js';
 import { maybeShowMigrationPrompt } from './components/migrate-modal.js';
-import { maybeShowNovedades } from './components/novedades.js';
+import { maybeShowAviso, iniciarBotonesAyuda } from './components/ayuda.js';
 import { maybeShowRegla } from './components/regla-aviso.js';
 import { openAccountModal, isAccountOpen } from './components/account-modal.js';
 import { initBreaker } from './utils/breaker.js';
@@ -57,6 +57,7 @@ function renderChrome() {
   renderTopbar(topbar);
   renderMesa(mesa);
   renderFooter(footer);
+  iniciarBotonesAyuda();   // botón «?» de ayuda en el título de cada página (una sola vez)
 }
 
 // Splash mientras Firebase resuelve la sesión inicial
@@ -143,8 +144,8 @@ auth.on(async () => {
     syncPnlMask();   // "Ocultar P&L" guardado en la cuenta
     // Después de cargar, ofrece migrar localStorage si hay datos
     maybeShowMigrationPrompt();
-    // Aviso de novedades (una vez por cuenta)
-    maybeShowNovedades();
+    // Aviso al entrar (Qué ha cambiado / Primeros pasos) hasta «No volver a mostrar»
+    maybeShowAviso();
     // Regla del día (una vez al día; si ya hay otro aviso abierto, espera)
     maybeShowRegla();
   }

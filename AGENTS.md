@@ -13,3 +13,6 @@
   locales. `.claude/settings.local.json` debe seguir ignorado.
 - Revisa las vistas principales, importacion y exportacion antes de dar por
   terminado un cambio.
+- Ayuda dentro de la app: cada cambio actualiza, en el mismo commit, la ayuda
+  de la pagina que toca y anade una linea a Novedades (todo en
+  `js/utils/ayuda.js`, la mas reciente arriba). El manual nunca va por detras.

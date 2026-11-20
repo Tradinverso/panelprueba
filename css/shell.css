@@ -1110,3 +1110,30 @@ a.mesa-live.past:hover .mesa-live-rec { color: var(--accent); }
 .mesa-acc-parada { color: var(--orange); font-weight: 600; }
 .mesa-acc-parada.alerta { color: var(--red); }
 .mesa-pill.turno { box-shadow: inset 0 0 0 1px var(--accent); }
+
+/* ── Ayuda dentro de la app (components/ayuda.js, textos en utils/ayuda.js) ── */
+.ayuda-btn {
+  display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;
+  width: 24px; height: 24px; margin-left: 10px; border-radius: 50%; padding: 0;
+  border: 1px solid var(--border-strong); background: var(--card2); color: var(--muted);
+  font: 700 13px/1 var(--font); cursor: pointer; transition: color .15s, border-color .15s, background .15s;
+}
+.ayuda-btn:hover { color: var(--text); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+#modal-root .modal-body:has(> .ay) { white-space: normal; }
+.ay { display: flex; flex-direction: column; gap: 16px; }
+.ay-bloque h3 { font-size: 14px; font-weight: 650; color: var(--text); margin: 0 0 5px; }
+.ay-bloque p { margin: 0; font-size: 13px; line-height: 1.55; color: var(--muted); }
+.ay-bloque ul { margin: 2px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.ay-bloque li { font-size: 13px; line-height: 1.5; color: var(--muted); }
+.ay b, .ay-pasos b, .ay-nov b, .nov-item p b { color: var(--text); font-weight: 600; }
+.nov-item p b, .ay-pasos p b { display: inline; font-size: inherit; }
+.ay-pasos { margin: 12px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; }
+.ay-pasos li { font-size: 13px; color: var(--text); }
+.ay-pasos li > b { display: block; font-size: 13.5px; }
+.ay-pasos p { margin: 2px 0 0; color: var(--muted); line-height: 1.5; }
+.ay-nov { padding: 12px 0; border-top: 1px solid var(--line); }
+.ay-nov:first-of-type { border-top: 0; padding-top: 8px; }
+.ay-nov-fecha { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.ay-nov-tit { font-size: 14px; font-weight: 650; color: var(--text); margin: 2px 0 6px; }
+.ay-nov ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.ay-nov li { font-size: 13px; line-height: 1.5; color: var(--muted); }

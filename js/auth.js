@@ -172,6 +172,14 @@ export const auth = {
     this.emit();
   },
 
+  // «No volver a mostrar» del aviso al entrar: se guarda en el perfil para que
+  // valga en todos los dispositivos (components/ayuda.js).
+  async ocultarAviso(id) {
+    if (!this.currentUser) throw new Error('No hay usuario activo');
+    this.profile = { ...this.profile, avisoOculto: id };
+    await sync.updateProfile(this.currentUser.uid, { avisoOculto: id });
+  },
+
   // Estrategia Liquidez activada o desactivada, en el perfil propio.
   async updateLiquidez(activa) {
     if (!this.currentUser) throw new Error('No hay usuario activo');
