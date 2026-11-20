@@ -34,9 +34,13 @@ export function accountUsd(trade, assignment, capital) {
 //   · sin nada → null (no hay dato, que no es lo mismo que $0).
 // `cuentas` es el Map id→cuenta (state.cuentaMap()), para el capital de los
 // trades antiguos que guardaban el riesgo en vez del $.
-export function tradeUsd(trade, cuentas) {
+// `soloIds` (Set, opcional): cuenta solo esas cuentas (filtro del calendario).
+// Con filtro, un trade sin ninguna de esas cuentas no tiene dato (null).
+export function tradeUsd(trade, cuentas, soloIds = null) {
   if (!trade) return null;
-  const accs = Array.isArray(trade.accounts) ? trade.accounts : [];
+  const todas = Array.isArray(trade.accounts) ? trade.accounts : [];
+  const accs = soloIds && soloIds.size ? todas.filter(a => soloIds.has(a.accountId)) : todas;
+  if (soloIds && soloIds.size && !accs.length) return null;
   if (accs.length) {
     let s = 0;
     for (const a of accs) {

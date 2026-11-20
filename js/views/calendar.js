@@ -43,6 +43,42 @@ function fmtPrincipal(v, dec) {
 
 let calYear = null, calMonth = null;
 let stratFilter = 'all';
+// Filtro por cuentas: ids elegidos (vacío = todas). Con filtro, el calendario
+// usa solo los trades asignados a alguna de esas cuentas (un trade cuenta una
+// vez aunque esté en varias) y el $ suma solo lo de esas cuentas. Se entra ya
+// filtrado desde cada cuenta con #/calendario?cuenta=<id>.
+let cuentasSel = new Set();
+let popAbierto = false;
+
+// "Lucid 25K #LT-25001"
+function nombreCuenta(c) {
+  const cap = c.capital >= 1000 ? Math.round(c.capital / 1000) + 'K' : String(c.capital || '');
+  return `${c.empresa || 'Cuenta'} ${cap}${c.numero ? ' #' + c.numero : ''}`.trim();
+}
+// Cuentas que tienen algún trade asignado: las activas primero.
+function cuentasConTrades() {
+  const usadas = new Set();
+  for (const t of state.tradesVista) for (const a of (t.accounts || [])) usadas.add(a.accountId);
+  return (state.cuentas || [])
+    .filter(c => usadas.has(c.id))
+    .sort((a, b) => (a.status === 'activa' ? 0 : 1) - (b.status === 'activa' ? 0 : 1) || nombreCuenta(a).localeCompare(nombreCuenta(b), 'es'));
+}
+function textoFiltro(lista) {
+  if (!cuentasSel.size) return 'Todas las cuentas';
+  const elegidas = lista.filter(c => cuentasSel.has(c.id));
+  if (elegidas.length === 1) return nombreCuenta(elegidas[0]);
+  // ¿Es exactamente un grupo de copiado?
+  const grupos = [...new Set(elegidas.map(c => String(c.grupo || '').trim()))];
+  if (grupos.length === 1 && grupos[0] && lista.filter(c => String(c.grupo || '').trim() === grupos[0]).length === elegidas.length) return `Grupo ${grupos[0]}`;
+  return `${elegidas.length} cuentas`;
+}
+function tradesFiltrados() {
+  return state.tradesVista.filter(t => {
+    if (stratFilter !== 'all' && t.sheet !== stratFilter) return false;
+    if (cuentasSel.size && !(t.accounts || []).some(a => cuentasSel.has(a.accountId))) return false;
+    return true;
+  });
+}
 let selectedDay = null;
 let selectedWeek = null;  // ISO 'YYYY-MM-DD' del lunes de la semana seleccionada
 
@@ -52,17 +88,21 @@ export function calendarView(container) {
     calYear = now.getFullYear();
     calMonth = now.getMonth();
   }
+  // Desde una cuenta: ya filtrado por ella. Desde el menú: todas.
+  const q = new URLSearchParams((location.hash.split('?')[1]) || '');
+  const ids = (q.get('cuenta') || '').split(',').map(s => s.trim()).filter(Boolean);
+  cuentasSel = new Set(ids);
+  selectedDay = null; selectedWeek = null; popAbierto = false;
   render(container);
   return state.on(() => render(container));
 }
 
 function render(container) {
-  const all = state.tradesVista;
-  const monthTrades = all.filter(t => {
-    if (stratFilter !== 'all' && t.sheet !== stratFilter) return false;
-    return true;
-  });
+  const monthTrades = tradesFiltrados();
   const dayIndex = buildDayIndex(monthTrades);
+  const lista = cuentasConTrades();
+  // Una cuenta elegida que ya no existe (borrada) no filtra nada.
+  for (const id of [...cuentasSel]) if (!lista.some(c => c.id === id)) cuentasSel.delete(id);
 
   const titleText = selectedDay
     ? `Trades del ${selectedDay}`
@@ -74,12 +114,16 @@ function render(container) {
     <div class="page-header">
       <div>
         <h1>Calendario <span>·</span> ${MONTHS_ES[calMonth]} ${calYear}</h1>
-        <div class="sub">P&L diario · Círculo naranja = 5+ trades en el día (sobreoperar)</div>
+        <div class="sub">${cuentasSel.size ? `Solo <strong>${esc(textoFiltro(lista))}</strong> · los trades de esas cuentas y su $` : 'P&L diario · Círculo naranja = 5+ trades en el día (sobreoperar)'}</div>
       </div>
       <div class="page-actions">
         <select id="calModo" class="select" title="Qué se enseña en cada día: % del sistema, % real o dólares">
           ${MODOS.map(m => `<option value="${m.value}" ${calModo === m.value ? 'selected' : ''}>${m.label}</option>`).join('')}
         </select>
+        ${lista.length ? `<div class="cal-cuentas">
+          <button type="button" class="select cal-cuentas-btn${cuentasSel.size ? ' on' : ''}" id="cuentaF" aria-haspopup="true" aria-expanded="${popAbierto}">${esc(textoFiltro(lista))}</button>
+          ${popAbierto ? popCuentasHtml(lista) : ''}
+        </div>` : ''}
         <select id="stratF" class="select">
           <option value="all" ${stratFilter === 'all' ? 'selected' : ''}>Todas las estrategias</option>
           ${sheetsVisibles().map(k => `<option value="${k}" ${stratFilter === k ? 'selected' : ''}>${sheetLabel(k)}</option>`).join('')}
@@ -125,6 +169,7 @@ function render(container) {
     guardarModo(e.target.value);
     render(container);
   });
+  wireCuentas(container, lista);
   container.querySelector('#stratF').addEventListener('change', e => {
     stratFilter = e.target.value;
     selectedDay = null;
@@ -153,7 +198,7 @@ function buildDayIndex(trades) {
     d.trades.push(t);
     d.count++;
     // $: de sus cuentas o el escrito a mano. Los trades sin dato no suman.
-    const u = tradeUsd(t, cuentas);
+    const u = tradeUsd(t, cuentas, cuentasSel);
     if (u != null) { d.usd += u; d.usdN++; }
     if (t.result !== 'BE') {
       d.pnl += t.pnl_pct || 0;
@@ -321,7 +366,7 @@ function paintCalendar(container, dayIndex) {
     <div class="cs-card">
       <div class="cs-label">P&L en $</div>
       <div class="cs-val pnl-value" style="color:${!mUsdN ? 'var(--muted)' : mUsd > 0 ? 'var(--green)' : mUsd < 0 ? 'var(--red)' : 'var(--orange)'};">${mUsdN ? fmtUsdCal(mUsd) : '–'}</div>
-      <div class="cs-sub">${!mUsdN ? 'sin trades con $ este mes' : mUsdN < mTrades ? `${mUsdN} de ${mTrades} trades con $` : 'cuentas y resultados a mano'}</div>
+      <div class="cs-sub">${!mUsdN ? 'sin trades con $ este mes' : cuentasSel.size ? 'solo las cuentas elegidas' : mUsdN < mTrades ? `${mUsdN} de ${mTrades} trades con $` : 'cuentas y resultados a mano'}</div>
     </div>
   `;
 
@@ -332,10 +377,7 @@ function paintCalendar(container, dayIndex) {
   } else if (selectedWeek) {
     const monday = selectedWeek;
     const sunday = isoPlusDays(monday, 6);
-    const weekList = state.tradesVista.filter(t =>
-      t.date >= monday && t.date <= sunday &&
-      (stratFilter === 'all' || t.sheet === stratFilter)
-    );
+    const weekList = tradesFiltrados().filter(t => t.date >= monday && t.date <= sunday);
     if (weekList.length) {
       renderTradeTable(tradesEl, weekList, { canDelete: true });
     } else {
@@ -343,13 +385,56 @@ function paintCalendar(container, dayIndex) {
     }
   } else {
     const monthStr = `${calYear}-${pad(calMonth + 1)}`;
-    const monthList = state.tradesVista.filter(t => t.date.startsWith(monthStr) && (stratFilter === 'all' || t.sheet === stratFilter));
+    const monthList = tradesFiltrados().filter(t => t.date.startsWith(monthStr));
     if (monthList.length) {
       renderTradeTable(tradesEl, monthList, { canDelete: true });
     } else {
       tradesEl.innerHTML = '<div class="empty">Sin trades en este mes</div>';
     }
   }
+}
+
+// ── Desplegable de cuentas (varias a la vez, o un grupo entero) ──
+function popCuentasHtml(lista) {
+  const grupos = [...new Set(lista.map(c => String(c.grupo || '').trim()).filter(Boolean))];
+  const chk = (attr, val, on, txt, extra = '') => `<label class="cal-cuentas-op"><input type="checkbox" ${attr}="${esc(val)}" ${on ? 'checked' : ''}><span>${txt}</span>${extra}</label>`;
+  const enGrupo = g => lista.filter(c => String(c.grupo || '').trim() === g);
+  return `<div class="cal-cuentas-pop" role="dialog" aria-label="Filtrar por cuentas">
+    <button type="button" class="cal-cuentas-todas${cuentasSel.size ? '' : ' on'}" data-todas>Todas las cuentas</button>
+    ${grupos.length ? `<div class="cal-cuentas-tit">Grupos de copiado</div>
+      ${grupos.map(g => chk('data-grupo', g, enGrupo(g).every(c => cuentasSel.has(c.id)), esc(g), `<small>${enGrupo(g).length} cuentas</small>`)).join('')}` : ''}
+    <div class="cal-cuentas-tit">Cuentas</div>
+    ${lista.map(c => chk('data-cuenta', c.id, cuentasSel.has(c.id), esc(nombreCuenta(c)), c.status !== 'activa' ? `<small>${esc(({ perdida: 'quemada' })[c.status] || c.status || '')}</small>` : '')).join('')}
+  </div>`;
+}
+
+function wireCuentas(container, lista) {
+  const btn = container.querySelector('#cuentaF');
+  if (!btn) return;
+  const repintar = () => { selectedDay = null; selectedWeek = null; render(container); };
+  btn.addEventListener('click', e => { e.stopPropagation(); popAbierto = !popAbierto; render(container); });
+  const pop = container.querySelector('.cal-cuentas-pop');
+  if (!pop) return;
+  pop.addEventListener('click', e => e.stopPropagation());
+  pop.querySelector('[data-todas]').addEventListener('click', () => { cuentasSel = new Set(); popAbierto = false; repintar(); });
+  pop.querySelectorAll('[data-cuenta]').forEach(ch => ch.addEventListener('change', () => {
+    if (ch.checked) cuentasSel.add(ch.dataset.cuenta); else cuentasSel.delete(ch.dataset.cuenta);
+    repintar();
+  }));
+  pop.querySelectorAll('[data-grupo]').forEach(ch => ch.addEventListener('change', () => {
+    const ids = lista.filter(c => String(c.grupo || '').trim() === ch.dataset.grupo).map(c => c.id);
+    ids.forEach(id => ch.checked ? cuentasSel.add(id) : cuentasSel.delete(id));
+    repintar();
+  }));
+  // Clic fuera: se cierra.
+  setTimeout(() => document.addEventListener('click', function cerrar() {
+    document.removeEventListener('click', cerrar);
+    if (popAbierto && document.body.contains(container)) { popAbierto = false; render(container); }
+  }), 0);
+}
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 function pad(n) { return String(n).padStart(2, '0'); }

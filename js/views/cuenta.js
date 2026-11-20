@@ -96,6 +96,7 @@ function render(container, cuentaId) {
       </div>
       <div class="page-actions">
         <a class="btn" href="#/cuentas">← Cuentas</a>
+        ${seg ? `<a class="btn" href="#/calendario?cuenta=${encodeURIComponent(cuenta.id)}" title="El calendario con solo los trades y el $ de esta cuenta">${ic('calendario')} Ver calendario</a>` : ''}
         ${adv ? `<button class="btn" id="advanceFaseBtn">${adv.toFondeada ? '★' : '✓'} ${adv.label}</button>` : ''}
         ${(adv && !adv.toFondeada) ? `<button class="btn" id="fondeadaBtn" title="Pasar a Fondeada directamente (saltando la 2ª fase)">★ A Fondeada</button>` : ''}
         ${seg && cuenta.status !== 'perdida' ? `<button class="btn" id="ajusteEquityBtn" title="Corregir el equity actual (trade sin asignar, varianza de cuenta antigua…)">${ic('balanza')} Ajustar equity</button>` : ''}

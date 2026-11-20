@@ -364,6 +364,12 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   total del grupo) o, si no tiene cuentas, el campo nuevo **`usd_manual`** (opcional, `null` = sin
   dato), que se rellena en Nuevo trade y al editar solo cuando no hay cuentas asignadas. Los días
   sin ningún dato en $ salen «—». Aún no se exporta ni importa en Excel.
+  **Filtro por cuentas**: botón «Todas las cuentas» con casillas (varias cuentas o un grupo de
+  copiado entero; salen las que tienen algún trade asignado). Con filtro, el calendario, el
+  resumen y la lista de abajo usan solo los trades de esas cuentas (un trade cuenta una vez) y el
+  $ suma solo lo de esas cuentas (`tradeUsd(t, cuentas, soloIds)`). Cada cuenta tiene un botón
+  «Ver calendario» que abre `#/calendario?cuenta=<id>`; desde el menú el calendario sale sin
+  filtro. Punto de vuelta antes de este cambio: etiqueta de git `antes-filtro-cuentas`.
 - **Equipo** (`profile.equipo`, `auth.isEquipo()`): alumno que el admin marca en la columna
   «Equipo» de Mis Alumnos. Ve Mis Alumnos y Stats grupales y puede abrir a cualquier alumno con
   «Ver dashboard» (dashboard, trades, backtesting, cuentas, diario, psicotrading), **en solo
