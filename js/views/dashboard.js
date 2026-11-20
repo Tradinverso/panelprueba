@@ -560,11 +560,14 @@ function paintStrategy(container, sheet, trades) {
   const subWr = winrate(sub);
   const decisive = c.tp + c.sl;
   card.querySelector('[data-field="wr"]').textContent = decisive ? fmtPctNoSign(subWr) : '–';
-  // Anillo: verde los TP, rojo los SL (arcos separados); gris si no hay trades.
-  card.querySelector('[data-field="ringSvg"]').innerHTML = ringSvg({ segments: decisive ? [
+  // Anillo: verde los TP, rojo los SL y gris los BE (arcos separados, como el
+  // donut de Estrategias); carril vacío si no hay trades. El número del centro
+  // sigue siendo el winrate sin BE.
+  card.querySelector('[data-field="ringSvg"]').innerHTML = ringSvg({ segments: [
     { value: c.tp, color: 'var(--green)', label: `${c.tp} TP` },
     { value: c.sl, color: 'var(--red)', label: `${c.sl} SL` },
-  ] : [] });
+    { value: c.be, color: 'var(--dim)', label: `${c.be} BE` },
+  ] });
   const pnlEl = card.querySelector('[data-field="pnl"]');
   pnlEl.textContent = fmtPct(subPnl, 1);
   pnlEl.style.color = subPnl >= 0 ? 'var(--green)' : 'var(--red)';

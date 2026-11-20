@@ -53,7 +53,7 @@ export const AYUDA_PAGINAS = {
       { t: 'Gráficos', lista: [
         '<b>Curva de equity</b>: una línea por estrategia y la global. Pulsa en la leyenda para enseñar u ocultar líneas.',
         '<b>P&L mensual</b>: una barra por mes con su cifra. En rojo los meses negativos.',
-        '<b>Por estrategia</b>: una tarjeta por estrategia con su winrate y el desglose TP / SL / BE.',
+        '<b>Por estrategia</b>: una tarjeta por estrategia con su winrate y el desglose TP / SL / BE. La rueda pinta los TP en verde, los SL en rojo y los BE en gris; el número del centro es el winrate sin contar los BE.',
         '<b>Timing y dirección</b>: en qué horas y días rindes mejor, y Long frente a Short.',
         '<b>Mapa de calor</b>: tu resultado por día y hora, con lo más importante de tu Diagnóstico al lado.',
       ] },
@@ -256,6 +256,9 @@ export const QUE_HA_CAMBIADO = [
 // ── Novedades: la más reciente arriba ───────────────────────────────────────
 // Cada cambio de la app añade aquí su línea, en el mismo commit.
 export const NOVEDADES = [
+  { fecha: '2026-11-20', titulo: 'Ruedas de winrate con BE', puntos: [
+    'Dashboard: las ruedas de cada estrategia enseñan también los <b>BE en gris</b>, junto a los TP en verde y los SL en rojo.',
+  ] },
   { fecha: '2026-11-20', titulo: 'Versión 3.0: lo nuevo', puntos: [
     '<b>Rutina diaria</b>: columna Hoy, diario inverso, diario del trader, checklist editable y puntuación de Disciplina.',
     '<b>Estrategias</b>: Nasdaq se divide en NQ Londres y NQ Nueva York. Liquidez pasa a ser un módulo opcional para quien ya la usaba.',
