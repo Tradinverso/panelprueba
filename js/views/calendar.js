@@ -271,13 +271,17 @@ function paintCalendar(container, dayIndex) {
     if (wTrades > 0) {
       const wrColor = wWr >= 55 ? 'var(--green)' : wWr < 45 ? 'var(--red)' : 'var(--orange)';
       const colorDe = v => v == null ? 'var(--muted)' : v > 0 ? 'var(--green)' : v < 0 ? 'var(--red)' : 'var(--orange)';
-      const wMain = principal({ pnl: wPnl, pnlReal: wPnlReal, usd: wUsd, usdN: wUsdN });
-      const etiqueta = { sis: 'sis', real: 'rl', usd: '' }[calModo];
       const breakdown = `${wTp}T · ${wSl}S${wBe > 0 ? ' · ' + wBe + 'BE' : ''}`;
+      // La columna de la semana enseña los tres, siempre en el mismo orden; el
+      // elegido en el desplegable, más grande.
+      const wUsdV = wUsdN ? wUsd : null;
+      const linea = (modo, lbl, v, txt) => `<div class="cws-pnl${calModo === modo ? ' on' : ''}" style="color:${colorDe(v)};"><span class="cws-lbl">${lbl}</span><span class="pnl-value">${txt}</span></div>`;
       wkCell.innerHTML = `
         <div class="cws-top">${wTrades} tr · <span class="cws-wr" style="color:${wrColor};">${wWr.toFixed(0)}% WR</span></div>
         <div class="cws-bd">${breakdown}</div>
-        <div class="cws-pnl" style="color:${colorDe(wMain)};">${etiqueta ? `<span class="cws-lbl">${etiqueta}</span>` : ''}<span class="pnl-value">${fmtPrincipal(wMain, 1)}</span></div>
+        ${linea('sis', 'sis', wPnl, fmtPct(wPnl, 1))}
+        ${linea('real', 'rl', wPnlReal, fmtPct(wPnlReal, 1))}
+        ${linea('usd', '$', wUsdV, wUsdV == null ? '—' : fmtUsdCal(wUsdV))}
       `;
     } else {
       wkCell.innerHTML = `<div class="cws-empty">–</div>`;
