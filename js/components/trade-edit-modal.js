@@ -40,6 +40,7 @@ export function openEditTradeModal(trade) {
     url2: trade.url2 || '',
     reflexion: trade.reflexion || '',
     accounts: Array.isArray(trade.accounts) ? trade.accounts.slice() : [],
+    usd_manual: typeof trade.usd_manual === 'number' ? String(trade.usd_manual) : '',
   };
 
   const pipLabel = meta.pipLabel || (trade.sheet === 'ZONAS' ? 'Pips SL' : 'Pip SL');
@@ -182,6 +183,11 @@ export function openEditTradeModal(trade) {
           <div id="cuentaAssignBoxEdit"></div>
         </div>` : ''}
 
+        <div class="form-field" id="usdManualEdit"${(data.accounts || []).length ? ' style="display:none;"' : ''}>
+          <label class="form-label">Resultado en $ <span style="color:var(--muted);font-weight:400;">· opcional, si no llevas la cuenta en la app</span></label>
+          <input class="form-input" type="number" step="0.01" data-input="usd_manual" value="${escapeAttr(data.usd_manual)}" placeholder="+250 / -120">
+        </div>
+
         <div id="editErr" class="auth-error" style="display:none;"></div>
       </div>
     `,
@@ -304,6 +310,9 @@ export function openEditTradeModal(trade) {
     if (assignBox) {
       caEdit = renderCuentaAssign(assignBox, data.accounts || [], (accs) => {
         data.accounts = accs;
+        // Con cuentas manda su $: el campo a mano se esconde.
+        const usdF = root.querySelector('#usdManualEdit');
+        if (usdF) usdF.style.display = accs.length ? 'none' : '';
       }, {
         getDefaultRisk: () => {
           const n = parseFloat(data.risk_real_pct);
@@ -370,11 +379,19 @@ function doSave(trade, data, close) {
     url2: data.url2 || '',
     reflexion: data.reflexion || '',
     accounts: Array.isArray(data.accounts) ? data.accounts : [],
+    usd_manual: (Array.isArray(data.accounts) && data.accounts.length) ? null : usdOrNull(data.usd_manual),
   };
 
   state.update(trade.id, patch);
   close();
   showToast('Trade actualizado');
+}
+
+// "250", "-120,5" → número; vacío o no numérico → null.
+function usdOrNull(v) {
+  if (v == null || v === '') return null;
+  const n = parseFloat(String(v).replace(',', '.'));
+  return isFinite(n) ? Math.round(n * 100) / 100 : null;
 }
 
 function escapeHtml(s) {

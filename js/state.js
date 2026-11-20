@@ -95,6 +95,13 @@ function toStrArr(v) {
   return [];
 }
 
+// Número finito o null: acepta "250", "-120,5" o 250.
+function usdManualDe(v) {
+  if (v == null || v === '') return null;
+  const n = typeof v === 'number' ? v : parseFloat(String(v).replace(',', '.'));
+  return isFinite(n) ? Math.round(n * 100) / 100 : null;
+}
+
 function sanitizeTrade(t) {
   if (!t) return null;
   const pnl_pct = typeof t.pnl_pct === 'number' ? t.pnl_pct : (parseFloat(t.pnl_pct) || 0);
@@ -154,6 +161,9 @@ function sanitizeTrade(t) {
     url2: t.url2 || '',
     reflexion: t.reflexion || '',
     accounts,
+    // Resultado en $ escrito a mano, para quien no lleva sus cuentas en la app.
+    // Opcional (null = sin dato). Si el trade tiene cuentas, mandan las cuentas.
+    usd_manual: usdManualDe(t.usd_manual),
     // Huso en el que se escribieron las horas (trades nuevos). Los antiguos no lo
     // tienen: se resuelve con el perfil de su dueño al mostrarlos.
     entry_tz: t.entry_tz || null,

@@ -354,6 +354,14 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   sin operar (naranja; rojo desde 14, igual que en Cuentas) y el resto. Si las primeras llenan el
   hueco, el último sitio es para la más parada. El resto queda en «y N más», que avisa de cuántas
   paradas hay escondidas.
+- **Calendario en % o en $** (`js/views/calendar.js`): selector «% Sistema · % Real · $» en la
+  cabecera (se recuerda en el navegador, clave `tradinverso_cal_modo`). Cada día enseña la cifra
+  elegida en grande y los trades; el % del sistema sale siempre (en pequeño si se elige otro). Lo
+  mismo en la columna de la semana y en el resumen del mes. El $ de un trade sale de
+  `tradeUsd()` (`js/utils/account-stats.js`): la suma de sus cuentas asignadas (con un grupo, el
+  total del grupo) o, si no tiene cuentas, el campo nuevo **`usd_manual`** (opcional, `null` = sin
+  dato), que se rellena en Nuevo trade y al editar solo cuando no hay cuentas asignadas. Los días
+  sin ningún dato en $ salen «—». Aún no se exporta ni importa en Excel.
 - **Equipo** (`profile.equipo`, `auth.isEquipo()`): alumno que el admin marca en la columna
   «Equipo» de Mis Alumnos. Ve Mis Alumnos y Stats grupales y puede abrir a cualquier alumno con
   «Ver dashboard» (dashboard, trades, backtesting, cuentas, diario, psicotrading), **en solo

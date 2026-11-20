@@ -75,7 +75,7 @@ export function newTradeView(container) {
         rr: prev.rr, pips: prev.pips,
         sensacion: prev.sensacion, plan_followed: prev.plan_followed, exit_reason: prev.exit_reason, post_loss: prev.post_loss,
         url1: prev.url1, url2: prev.url2, reflexion: prev.reflexion,
-        accounts: prev.accounts,
+        accounts: prev.accounts, usd_manual: prev.usd_manual,
       };
       paintChooser();
       rerender();
@@ -121,6 +121,7 @@ function init(sheet) {
     url2: '',
     reflexion: '',
     accounts: [],
+    usd_manual: '',   // resultado en $ a mano (solo si no se asignan cuentas)
   };
 }
 
@@ -165,6 +166,7 @@ function renderForm(wrap, side, sheet, data, onSaved) {
               <input class="form-input" type="number" step="0.1" data-input="pips" value="${data.pips}" placeholder="5.0"></label>` : ''}
           </div>`, { required: true })}
         ${state.haySeguimiento() || (data.accounts || []).length ? row('Cuentas', '<div id="cuentaAssignBox"></div>', { hint: 'opcional' }) : ''}
+        <div id="usdManualRow"${(data.accounts || []).length ? ' style="display:none;"' : ''}>${row('Resultado en $', `<input class="form-input nt-usd" type="number" step="0.01" data-input="usd_manual" value="${esc(data.usd_manual)}" placeholder="+250 / -120">`, { hint: 'opcional · si no llevas la cuenta en la app' })}</div>
       </div>
 
       <div class="card nt-section">
@@ -229,6 +231,8 @@ function renderForm(wrap, side, sheet, data, onSaved) {
     }
 
     const accs = Array.isArray(data.accounts) ? data.accounts : [];
+    const usdRow = wrap.querySelector('#usdManualRow');
+    if (usdRow) usdRow.style.display = accs.length ? 'none' : '';
     const kv = (k, v) => `<div class="nt-kv"><span>${k}</span><b>${v || '—'}</b></div>`;
     const avisos = [];
     // Sensación de riesgo y fuera del plan: se enseña el dato PROPIO del
@@ -458,6 +462,13 @@ function validate(sheet, data) {
   return errs;
 }
 
+// "250", "-120,5" → número; vacío o no numérico → null.
+function usdOrNull(v) {
+  if (v == null || v === '') return null;
+  const n = parseFloat(String(v).replace(',', '.'));
+  return isFinite(n) ? Math.round(n * 100) / 100 : null;
+}
+
 function buildTrade(sheet, data) {
   const pnl_pct = +parseFloat(data.pnl_pct).toFixed(4);
   const result = pnl_pct > 0.2 ? 'TP' : pnl_pct < -0.2 ? 'SL' : 'BE';
@@ -488,6 +499,8 @@ function buildTrade(sheet, data) {
     url2: data.url2 || '',
     reflexion: data.reflexion || '',
     accounts: Array.isArray(data.accounts) ? data.accounts : [],
+    // Con cuentas asignadas manda el $ de las cuentas: el escrito a mano no se guarda.
+    usd_manual: (Array.isArray(data.accounts) && data.accounts.length) ? null : usdOrNull(data.usd_manual),
     // Huso en el que se escribieron estas horas. Permite que el admin las
     // convierta a la suya sin tocar lo guardado.
     entry_tz: auth.timezone(),

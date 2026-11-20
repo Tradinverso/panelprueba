@@ -27,6 +27,27 @@ export function accountUsd(trade, assignment, capital) {
   return computeUsdPnl(trade.pnl_pct, assignment.riskPct, capital);
 }
 
+// Resultado en $ de un trade, para el calendario:
+//   · con cuentas asignadas → la suma de lo que entró en cada una (con un grupo
+//     de copiado, el dinero total del grupo);
+//   · sin cuentas → el importe escrito a mano (usd_manual);
+//   · sin nada → null (no hay dato, que no es lo mismo que $0).
+// `cuentas` es el Map id→cuenta (state.cuentaMap()), para el capital de los
+// trades antiguos que guardaban el riesgo en vez del $.
+export function tradeUsd(trade, cuentas) {
+  if (!trade) return null;
+  const accs = Array.isArray(trade.accounts) ? trade.accounts : [];
+  if (accs.length) {
+    let s = 0;
+    for (const a of accs) {
+      const c = cuentas && cuentas.get ? cuentas.get(a.accountId) : null;
+      s += accountUsd(trade, a, c ? c.capital : 0);
+    }
+    return s;
+  }
+  return typeof trade.usd_manual === 'number' && isFinite(trade.usd_manual) ? trade.usd_manual : null;
+}
+
 // Devuelve [{ trade, usdPnl }] solo de los trades asignados a esta cuenta.
 export function tradesForAccount(account, allTrades) {
   if (!account || !Array.isArray(allTrades)) return [];
