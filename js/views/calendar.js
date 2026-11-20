@@ -8,9 +8,9 @@ import { tradeRealPnl } from '../utils/calculations.js';
 import { tradeUsd } from '../utils/account-stats.js';
 import { openReflectionModal } from './psicologia.js';
 
-// Qué se enseña en cada día, cada semana y el resumen del mes: % del sistema,
-// % real o dólares. El % del sistema sale siempre: en grande si es el elegido
-// y en pequeño debajo si se elige otro. Se recuerda en este navegador.
+// Qué se enseña en cada día y en cada semana: % del sistema, % real o dólares
+// (solo esa cifra, en grande, y los trades). El resumen del mes enseña los tres.
+// Se recuerda en este navegador.
 const MODOS = [
   { value: 'sis',  label: '% Sistema' },
   { value: 'real', label: '% Real' },
@@ -172,7 +172,7 @@ function paintCalendar(container, dayIndex) {
   const firstDow = (new Date(calYear, calMonth, 1).getDay() + 6) % 7;
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
   const today = new Date();
-  let mTrades = 0, mTp = 0, mSl = 0, mPnl = 0, mPnlReal = 0, mUsd = 0, mUsdN = 0, mOver = 0;
+  let mTrades = 0, mTp = 0, mSl = 0, mPnl = 0, mPnlReal = 0, mUsd = 0, mUsdN = 0;
 
   // Fechas que tienen reflexión diaria — para mostrar el icono 📝 en la celda
   const reflexDates = new Set(
@@ -213,7 +213,6 @@ function paintCalendar(container, dayIndex) {
         // Solo trades del mes actual cuentan para el resumen del mes
         mTrades += data.count; mTp += data.tp; mSl += data.sl;
         mPnl += data.pnl; mPnlReal += data.pnlReal; mUsd += data.usd; mUsdN += data.usdN;
-        if (data.count >= 5) mOver++;
       }
       if (isToday) cls += ' cal-today';
       if (selectedDay === ds) cls += ' selected';
@@ -236,7 +235,6 @@ function paintCalendar(container, dayIndex) {
           <span class="cal-num">${dayNum}</span>
           <div class="cal-body">
             <div class="cal-pnl pnl-value${calModo === 'usd' ? ' usd' : ''}">${fmtPrincipal(principal(data))}</div>
-            ${calModo !== 'sis' ? `<div class="cal-pnl-real">sistema <span class="pnl-value">${fmtPct(data.pnl)}</span></div>` : ''}
             <div class="cal-meta">${data.count} trade${data.count > 1 ? 's' : ''} · ${data.tp}T ${data.sl}S${data.be > 0 ? ' ' + data.be + 'BE' : ''}</div>
           </div>
           ${data.count >= 5 ? `<div class="cal-warn">${data.count}</div>` : ''}
@@ -280,7 +278,6 @@ function paintCalendar(container, dayIndex) {
         <div class="cws-top">${wTrades} tr · <span class="cws-wr" style="color:${wrColor};">${wWr.toFixed(0)}% WR</span></div>
         <div class="cws-bd">${breakdown}</div>
         <div class="cws-pnl" style="color:${colorDe(wMain)};">${etiqueta ? `<span class="cws-lbl">${etiqueta}</span>` : ''}<span class="pnl-value">${fmtPrincipal(wMain, 1)}</span></div>
-        ${calModo !== 'sis' ? `<div class="cws-pnl cws-sis" style="color:${colorDe(wPnl)};"><span class="cws-lbl">sis</span><span class="pnl-value">${fmtPct(wPnl, 1)}</span></div>` : ''}
       `;
     } else {
       wkCell.innerHTML = `<div class="cws-empty">–</div>`;
@@ -295,7 +292,7 @@ function paintCalendar(container, dayIndex) {
 
   const wr = (mTp + mSl) > 0 ? mTp / (mTp + mSl) * 100 : 0;
   const sumDiv = container.querySelector('#calSummary');
-  sumDiv.style.setProperty('--cs-n', calModo === 'sis' ? 4 : 5);
+  sumDiv.style.setProperty('--cs-n', 5);
   sumDiv.innerHTML = `
     <div class="cs-card">
       <div class="cs-label">Trades del mes</div>
@@ -307,25 +304,20 @@ function paintCalendar(container, dayIndex) {
       <div class="cs-val" style="color:${wr >= 55 ? 'var(--green)' : wr < 45 ? 'var(--red)' : 'var(--orange)'};">${mTrades > 0 ? wr.toFixed(1) + '%' : '–'}</div>
       <div class="cs-sub">del mes</div>
     </div>
-    ${calModo === 'real' ? `<div class="cs-card">
-      <div class="cs-label">P&L real</div>
-      <div class="cs-val pnl-value" style="color:${mPnlReal > 0 ? 'var(--green)' : mPnlReal < 0 ? 'var(--red)' : 'var(--orange)'};">${mTrades > 0 ? fmtPct(mPnlReal) : '–'}</div>
-      <div class="cs-sub">según riesgo real</div>
-    </div>` : ''}
-    ${calModo === 'usd' ? `<div class="cs-card">
-      <div class="cs-label">P&L en $</div>
-      <div class="cs-val pnl-value" style="color:${!mUsdN ? 'var(--muted)' : mUsd > 0 ? 'var(--green)' : mUsd < 0 ? 'var(--red)' : 'var(--orange)'};">${mUsdN ? fmtUsdCal(mUsd) : '–'}</div>
-      <div class="cs-sub">${!mUsdN ? 'sin trades con $ este mes' : mUsdN < mTrades ? `${mUsdN} de ${mTrades} trades con $` : 'cuentas y resultados a mano'}</div>
-    </div>` : ''}
     <div class="cs-card">
       <div class="cs-label">P&L sistema</div>
       <div class="cs-val pnl-value" style="color:${mPnl > 0 ? 'var(--green)' : mPnl < 0 ? 'var(--red)' : 'var(--orange)'};">${mTrades > 0 ? fmtPct(mPnl) : '–'}</div>
       <div class="cs-sub">% sistema 1R</div>
     </div>
     <div class="cs-card">
-      <div class="cs-label">Sobreoperar</div>
-      <div class="cs-val" style="color:${mOver > 2 ? 'var(--red)' : mOver > 0 ? 'var(--orange)' : 'var(--green)'};">${mOver}</div>
-      <div class="cs-sub">días con 5+ trades</div>
+      <div class="cs-label">P&L real</div>
+      <div class="cs-val pnl-value" style="color:${mPnlReal > 0 ? 'var(--green)' : mPnlReal < 0 ? 'var(--red)' : 'var(--orange)'};">${mTrades > 0 ? fmtPct(mPnlReal) : '–'}</div>
+      <div class="cs-sub">según riesgo real</div>
+    </div>
+    <div class="cs-card">
+      <div class="cs-label">P&L en $</div>
+      <div class="cs-val pnl-value" style="color:${!mUsdN ? 'var(--muted)' : mUsd > 0 ? 'var(--green)' : mUsd < 0 ? 'var(--red)' : 'var(--orange)'};">${mUsdN ? fmtUsdCal(mUsd) : '–'}</div>
+      <div class="cs-sub">${!mUsdN ? 'sin trades con $ este mes' : mUsdN < mTrades ? `${mUsdN} de ${mTrades} trades con $` : 'cuentas y resultados a mano'}</div>
     </div>
   `;
 

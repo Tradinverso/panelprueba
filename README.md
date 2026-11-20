@@ -355,9 +355,10 @@ Hoy, desde el chip del Dashboard y desde el Calendario.
   hueco, el último sitio es para la más parada. El resto queda en «y N más», que avisa de cuántas
   paradas hay escondidas.
 - **Calendario en % o en $** (`js/views/calendar.js`): desplegable «% Sistema · % Real · Dólares ($)» en la
-  cabecera (se recuerda en el navegador, clave `tradinverso_cal_modo`). Cada día enseña la cifra
-  elegida en grande y los trades; el % del sistema sale siempre (en pequeño si se elige otro). Lo
-  mismo en la columna de la semana y en el resumen del mes. El $ de un trade sale de
+  cabecera (se recuerda en el navegador, clave `tradinverso_cal_modo`). Cada día y cada semana
+  enseñan solo la cifra elegida, en grande, y los trades. El resumen del mes enseña siempre los
+  tres P&L (sistema, real y $); sobreoperar ya no tiene tarjeta: se ve en el día, con el círculo
+  naranja de 5+ trades. El $ de un trade sale de
   `tradeUsd()` (`js/utils/account-stats.js`): la suma de sus cuentas asignadas (con un grupo, el
   total del grupo) o, si no tiene cuentas, el campo nuevo **`usd_manual`** (opcional, `null` = sin
   dato), que se rellena en Nuevo trade y al editar solo cuando no hay cuentas asignadas. Los días
