@@ -1,0 +1,139 @@
+{
+ "updatedAt": "2026-11-21T06:55:01.293Z",
+ "news": [
+  {
+   "t": "2026-11-16T17:00:00.000Z",
+   "cur": "USD",
+   "title": "Fed Chairman Warsh Speaks",
+   "forecast": "",
+   "previous": ""
+  },
+  {
+   "t": "2026-11-17T13:30:00.000Z",
+   "cur": "USD",
+   "title": "Core Retail Sales m/m",
+   "forecast": "0.4%",
+   "previous": "0.9%"
+  },
+  {
+   "t": "2026-11-17T13:30:00.000Z",
+   "cur": "USD",
+   "title": "Retail Sales m/m",
+   "forecast": "0.1%",
+   "previous": "0.8%"
+  },
+  {
+   "t": "2026-11-18T07:00:00.000Z",
+   "cur": "GBP",
+   "title": "CPI y/y",
+   "forecast": "3.6%",
+   "previous": "3.5%"
+  },
+  {
+   "t": "2026-11-18T15:00:00.000Z",
+   "cur": "GBP",
+   "title": "BOE Gov Bailey Speaks",
+   "forecast": "",
+   "previous": ""
+  },
+  {
+   "t": "2026-11-18T19:00:00.000Z",
+   "cur": "USD",
+   "title": "FOMC Meeting Minutes",
+   "forecast": "",
+   "previous": ""
+  }
+ ],
+ "directos": [
+  {
+   "t": "2026-11-16T16:30:00.000Z",
+   "end": "2026-11-16T17:30:00.000Z",
+   "title": "Directo semanal: Q&A de iniciación",
+   "url": "https://us06web.zoom.us/j/89773617527?pwd=3AKTJwV4XejSfcZKMGwkmvVLUQrcTg.1&jst=2"
+  },
+  {
+   "t": "2026-11-17T14:20:00.000Z",
+   "end": "2026-11-17T15:20:00.000Z",
+   "title": "Operativa en directo: Sesión de Nueva York",
+   "url": "https://us06web.zoom.us/j/83105693297?pwd=jNaUpQOhw1R2AYL6ZFIpvqklkbzt0t.1&jst=2"
+  },
+  {
+   "t": "2026-11-18T16:30:00.000Z",
+   "end": "2026-11-18T17:30:00.000Z",
+   "title": "Directo técnico",
+   "url": "https://us06web.zoom.us/j/84620157226?pwd=XMqb2HXlNSYycGMiBnPvIygcnFiiep.1&jst=2"
+  },
+  {
+   "t": "2026-11-19T14:20:00.000Z",
+   "end": "2026-11-19T15:20:00.000Z",
+   "title": "Operativa en directo: Sesión de Nueva York",
+   "url": "https://us06web.zoom.us/j/83105693297?pwd=jNaUpQOhw1R2AYL6ZFIpvqklkbzt0t.1&jst=2"
+  },
+  {
+   "t": "2026-11-20T08:30:00.000Z",
+   "end": "2026-11-20T09:30:00.000Z",
+   "title": "Café de los Viernes",
+   "url": "https://discord.com/channels/1306561566958817280/1361569524129730630"
+  },
+  {
+   "t": "2026-11-23T16:30:00.000Z",
+   "end": "2026-11-23T17:30:00.000Z",
+   "title": "Directo semanal: Q&A de iniciación",
+   "url": "https://us06web.zoom.us/j/89773617527?pwd=3AKTJwV4XejSfcZKMGwkmvVLUQrcTg.1&jst=2"
+  },
+  {
+   "t": "2026-11-24T14:20:00.000Z",
+   "end": "2026-11-24T15:20:00.000Z",
+   "title": "Operativa en directo: Sesión de Nueva York",
+   "url": "https://us06web.zoom.us/j/83105693297?pwd=jNaUpQOhw1R2AYL6ZFIpvqklkbzt0t.1&jst=2"
+  },
+  {
+   "t": "2026-11-25T16:30:00.000Z",
+   "end": "2026-11-25T17:30:00.000Z",
+   "title": "Directo de psicotrading",
+   "url": "https://us06web.zoom.us/j/89199380497?pwd=AmFrnWcacsrOMqPaT6szC3DuHzI1UU.1&jst=2"
+  },
+  {
+   "t": "2026-11-26T14:20:00.000Z",
+   "end": "2026-11-26T15:20:00.000Z",
+   "title": "Operativa en directo: Sesión de Nueva York",
+   "url": "https://us06web.zoom.us/j/83105693297?pwd=jNaUpQOhw1R2AYL6ZFIpvqklkbzt0t.1&jst=2"
+  },
+  {
+   "t": "2026-11-27T08:30:00.000Z",
+   "end": "2026-11-27T09:30:00.000Z",
+   "title": "Café de los Viernes",
+   "url": "https://discord.com/channels/1306561566958817280/1361569524129730630"
+  },
+  {
+   "t": "2026-11-30T16:30:00.000Z",
+   "end": "2026-11-30T17:30:00.000Z",
+   "title": "Directo semanal: Q&A de iniciación",
+   "url": "https://us06web.zoom.us/j/89773617527?pwd=3AKTJwV4XejSfcZKMGwkmvVLUQrcTg.1&jst=2"
+  },
+  {
+   "t": "2026-12-01T14:20:00.000Z",
+   "end": "2026-12-01T15:20:00.000Z",
+   "title": "Operativa en directo: Sesión de Nueva York",
+   "url": "https://us06web.zoom.us/j/83105693297?pwd=jNaUpQOhw1R2AYL6ZFIpvqklkbzt0t.1&jst=2"
+  },
+  {
+   "t": "2026-12-02T16:30:00.000Z",
+   "end": "2026-12-02T17:30:00.000Z",
+   "title": "Directo técnico",
+   "url": "https://us06web.zoom.us/j/84620157226?pwd=XMqb2HXlNSYycGMiBnPvIygcnFiiep.1&jst=2"
+  },
+  {
+   "t": "2026-12-03T14:20:00.000Z",
+   "end": "2026-12-03T15:20:00.000Z",
+   "title": "Operativa en directo: Sesión de Nueva York",
+   "url": "https://us06web.zoom.us/j/83105693297?pwd=jNaUpQOhw1R2AYL6ZFIpvqklkbzt0t.1&jst=2"
+  },
+  {
+   "t": "2026-12-04T08:30:00.000Z",
+   "end": "2026-12-04T09:30:00.000Z",
+   "title": "Café de los Viernes",
+   "url": "https://discord.com/channels/1306561566958817280/1361569524129730630"
+  }
+ ]
+}
