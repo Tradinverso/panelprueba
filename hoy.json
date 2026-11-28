@@ -1,0 +1,93 @@
+{
+ "updatedAt": "2026-11-28T19:54:31.992Z",
+ "news": [
+  {
+   "t": "2026-11-25T13:30:00.000Z",
+   "cur": "USD",
+   "title": "Core PCE Price Index m/m",
+   "forecast": "0.3%",
+   "previous": "0.3%"
+  },
+  {
+   "t": "2026-11-25T13:30:00.000Z",
+   "cur": "USD",
+   "title": "Prelim GDP q/q",
+   "forecast": "3.5%",
+   "previous": "3.4%"
+  }
+ ],
+ "directos": [
+  {
+   "t": "2026-11-23T16:30:00.000Z",
+   "end": "2026-11-23T17:30:00.000Z",
+   "title": "Directo semanal: Q&A de iniciación",
+   "url": "https://us06web.zoom.us/j/89773617527?pwd=3AKTJwV4XejSfcZKMGwkmvVLUQrcTg.1&jst=2"
+  },
+  {
+   "t": "2026-11-24T14:20:00.000Z",
+   "end": "2026-11-24T15:20:00.000Z",
+   "title": "Operativa en directo: Sesión de Nueva York",
+   "url": "https://us06web.zoom.us/j/83105693297?pwd=jNaUpQOhw1R2AYL6ZFIpvqklkbzt0t.1&jst=2"
+  },
+  {
+   "t": "2026-11-25T16:30:00.000Z",
+   "end": "2026-11-25T17:30:00.000Z",
+   "title": "Directo de psicotrading",
+   "url": "https://us06web.zoom.us/j/89199380497?pwd=AmFrnWcacsrOMqPaT6szC3DuHzI1UU.1&jst=2"
+  },
+  {
+   "t": "2026-11-27T08:30:00.000Z",
+   "end": "2026-11-27T09:30:00.000Z",
+   "title": "Café de los Viernes",
+   "url": "https://discord.com/channels/1306561566958817280/1361569524129730630"
+  },
+  {
+   "t": "2026-11-30T16:30:00.000Z",
+   "end": "2026-11-30T17:30:00.000Z",
+   "title": "Directo semanal: Q&A de iniciación",
+   "url": "https://us06web.zoom.us/j/89773617527?pwd=3AKTJwV4XejSfcZKMGwkmvVLUQrcTg.1&jst=2"
+  },
+  {
+   "t": "2026-12-01T14:20:00.000Z",
+   "end": "2026-12-01T15:20:00.000Z",
+   "title": "Operativa en directo: Sesión de Nueva York",
+   "url": "https://us06web.zoom.us/j/83105693297?pwd=jNaUpQOhw1R2AYL6ZFIpvqklkbzt0t.1&jst=2"
+  },
+  {
+   "t": "2026-12-02T16:30:00.000Z",
+   "end": "2026-12-02T17:30:00.000Z",
+   "title": "Directo técnico",
+   "url": "https://us06web.zoom.us/j/84620157226?pwd=XMqb2HXlNSYycGMiBnPvIygcnFiiep.1&jst=2"
+  },
+  {
+   "t": "2026-12-04T08:30:00.000Z",
+   "end": "2026-12-04T09:30:00.000Z",
+   "title": "Café de los Viernes",
+   "url": "https://discord.com/channels/1306561566958817280/1361569524129730630"
+  },
+  {
+   "t": "2026-12-08T14:20:00.000Z",
+   "end": "2026-12-08T15:20:00.000Z",
+   "title": "Operativa en directo: Sesión de Nueva York",
+   "url": "https://us06web.zoom.us/j/83105693297?pwd=jNaUpQOhw1R2AYL6ZFIpvqklkbzt0t.1&jst=2"
+  },
+  {
+   "t": "2026-12-09T16:30:00.000Z",
+   "end": "2026-12-09T17:30:00.000Z",
+   "title": "Directo de psicotrading",
+   "url": "https://us06web.zoom.us/j/89199380497?pwd=AmFrnWcacsrOMqPaT6szC3DuHzI1UU.1&jst=2"
+  },
+  {
+   "t": "2026-12-10T14:20:00.000Z",
+   "end": "2026-12-10T15:20:00.000Z",
+   "title": "Operativa en directo: Sesión de Nueva York",
+   "url": "https://us06web.zoom.us/j/83105693297?pwd=jNaUpQOhw1R2AYL6ZFIpvqklkbzt0t.1&jst=2"
+  },
+  {
+   "t": "2026-12-11T08:30:00.000Z",
+   "end": "2026-12-11T09:30:00.000Z",
+   "title": "Café de los Viernes",
+   "url": "https://discord.com/channels/1306561566958817280/1361569524129730630"
+  }
+ ]
+}
